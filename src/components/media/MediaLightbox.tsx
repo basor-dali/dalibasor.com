@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import type { MediaItem } from '@/types/content';
-import { formatDuration, mediaAlt, responsiveImage, SIZES } from '@/lib/media';
+import { formatDuration, mediaAlt, responsiveImage } from '@/lib/media';
 import { cx, formatDate } from '@/lib/utils';
 import { MediaVideo } from './MediaVideo';
 
@@ -27,6 +27,28 @@ import { MediaVideo } from './MediaVideo';
  * Only ever mounted once per page, via LightboxProvider. Grid cells are plain
  * server-rendered markup that call `open(index)`.
  */
+
+/**
+ * What a contained photograph actually measures on screen.
+ *
+ * The viewer letterboxes with object-contain inside a padded box, so a portrait
+ * frame never uses the full viewport width — a 2:3 photograph on a 1440×900
+ * screen occupies about 570px, not 1440. Declaring `100vw` made the browser
+ * fetch the 2560px file for it, up to a 6× over-fetch on the one screen where
+ * the visitor is looking hardest.
+ *
+ * Height is the binding constraint, so the width is bounded by
+ * `height × aspect-ratio`. The padding is fixed px (p-3 / sm:p-8 / md:p-12), so
+ * it is written exactly rather than approximated in vw.
+ */
+function containSizes(width: number, height: number): string {
+  const ratio = (width / Math.max(1, height)).toFixed(4);
+  return [
+    `(min-width: 48rem) min(calc(100vw - 96px), calc((100vh - 96px) * ${ratio}))`,
+    `(min-width: 40rem) min(calc(100vw - 64px), calc((100vh - 64px) * ${ratio}))`,
+    `min(calc(100vw - 24px), calc((100vh - 24px) * ${ratio}))`,
+  ].join(', ');
+}
 
 /** How long the viewer chrome stays up after the last interaction. */
 const CHROME_IDLE_MS = 3200;
@@ -76,6 +98,43 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
       ) : null}
     </LightboxContext.Provider>
   );
+}
+
+/**
+ * Open the viewer on the photograph named in the URL.
+ *
+ * The viewer has always written `?photo=<id>` as you move through an album, so
+ * every frame looked linkable — but nothing ever read it back, so following one
+ * of those links landed you on the album with the viewer closed. The feature
+ * was advertised in the URL bar and in the docs, and did nothing.
+ *
+ * Runs once, on mount, before the viewer writes anything of its own. An id that
+ * is not in this collection is ignored rather than treated as an error: the
+ * photograph may have moved to another album, and the page it lands on is still
+ * the right one.
+ */
+export function useDeepLinkedPhoto(
+  items: MediaItem[],
+  open: LightboxContextValue['open'],
+  label?: string,
+) {
+  const consumed = useRef(false);
+
+  useEffect(() => {
+    if (consumed.current || items.length === 0) return;
+    consumed.current = true;
+
+    const wanted = new URLSearchParams(window.location.search).get('photo');
+    if (!wanted) return;
+
+    const index = items.findIndex((item) => item.id === wanted);
+    if (index === -1) return;
+
+    // Deferred a tick: opening during the effect body would be a cascading
+    // render straight on top of hydration.
+    const timer = setTimeout(() => open(items, index, label), 0);
+    return () => clearTimeout(timer);
+  }, [items, open, label]);
 }
 
 /* ==========================================================================
@@ -235,7 +294,7 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
       // so the warmed entry is the one the browser goes on to request.
       const next = responsiveImage(neighbour, {
         ladder: 'lightbox',
-        sizes: SIZES.lightbox,
+        sizes: containSizes(neighbour.width, neighbour.height),
         fit: 'fit',
       });
       const preload = new Image();
@@ -272,7 +331,11 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
 
   const image =
     item.type === 'image'
-      ? responsiveImage(item, { ladder: 'lightbox', sizes: SIZES.lightbox, fit: 'fit' })
+      ? responsiveImage(item, {
+          ladder: 'lightbox',
+          sizes: containSizes(item.width, item.height),
+          fit: 'fit',
+        })
       : null;
 
   const captured = item.capturedAt ? formatDate(item.capturedAt) : undefined;

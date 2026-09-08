@@ -6,7 +6,7 @@ import type { LadderName } from '@/lib/media';
 import type { MediaItem } from '@/types/content';
 import { formatDuration, mediaAlt, responsiveImage, responsiveVideo } from '@/lib/media';
 import { cx, formatDayMonth } from '@/lib/utils';
-import { useLightbox } from './MediaLightbox';
+import { useDeepLinkedPhoto, useLightbox } from './MediaLightbox';
 import { Picture } from './Picture';
 
 /**
@@ -146,6 +146,7 @@ export function PhotoEssay({
   );
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { open } = useLightbox();
+  useDeepLinkedPhoto(items, open, contextLabel);
 
   const visible = useMemo(() => blocks.slice(0, visibleBlocks), [blocks, visibleBlocks]);
   const hasMore = visibleBlocks < blocks.length;

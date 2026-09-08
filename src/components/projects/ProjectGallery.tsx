@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo } from 'react';
 import { MediaVideo } from '@/components/media/MediaVideo';
-import { useLightbox } from '@/components/media/MediaLightbox';
+import { useDeepLinkedPhoto, useLightbox } from '@/components/media/MediaLightbox';
+import { Picture } from '@/components/media/Picture';
 import { responsiveImage } from '@/lib/media';
 import { cx } from '@/lib/utils';
 import type { MediaItem, ProjectMediaInput } from '@/types/content';
@@ -178,6 +179,9 @@ export function ProjectGallery({
     [images, open, title],
   );
 
+  // Against the images list, which is what the viewer actually receives here.
+  useDeepLinkedPhoto(images, open, title);
+
   if (items.length === 0) return null;
 
   return (
@@ -248,16 +252,13 @@ function GalleryImage({
           backgroundPosition: 'center',
         }}
       >
-        <img
-          src={image.src}
-          srcSet={image.srcSet || undefined}
-          sizes={image.srcSet ? image.sizes : undefined}
-          width={image.width}
-          height={image.height}
-          alt={image.alt}
-          loading="lazy"
-          decoding="async"
-          className="media-img transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.03] motion-reduce:transform-none"
+        {/* Through Picture, so the <source> entries responsiveImage already
+            computed are actually used. A hand-rolled <img> here discarded them,
+            which under R2 meant the gallery fell back to the single JPEG while
+            every other grid on the site served AVIF. */}
+        <Picture
+          image={image}
+          className="transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.03] motion-reduce:transform-none"
         />
         <span className="group-hover:border-ivory/20 pointer-events-none absolute inset-0 border border-transparent transition-colors duration-500" />
       </div>

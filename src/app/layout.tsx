@@ -68,18 +68,42 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });`;
 
+/**
+ * The origin photographs are served from, if it is a different host.
+ *
+ * Same-origin needs no preconnect, and a wrong one is worse than none: it
+ * spends a connection on a host the page never talks to.
+ */
+function mediaOriginFor(): string | null {
+  const candidate =
+    process.env.NEXT_PUBLIC_MEDIA_PROVIDER?.toLowerCase() === 'r2'
+      ? process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL
+      : process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+        ? 'https://res.cloudinary.com'
+        : null;
+
+  if (!candidate) return null;
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return null;
+  }
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const span = getArchiveSpan();
+  const mediaOrigin = mediaOriginFor();
 
   return (
     <html lang={site.language} className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: IMAGE_REVEAL }} />
-        <link
-          rel="preconnect"
-          href="https://res.cloudinary.com"
-          crossOrigin="anonymous"
-        />
+        {/* Warm the host photographs actually come from. This pointed at
+            Cloudinary while images were served from R2, so it opened a
+            connection nothing used and skipped the one on the critical path. */}
+        {mediaOrigin ? (
+          <link rel="preconnect" href={mediaOrigin} crossOrigin="anonymous" />
+        ) : null}
       </head>
       <body>
         <LightboxProvider>

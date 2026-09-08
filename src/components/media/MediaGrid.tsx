@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MediaItem } from '@/types/content';
 import { formatDuration, mediaAlt, responsiveImage, responsiveVideo } from '@/lib/media';
 import { cx, formatShortMonthYear } from '@/lib/utils';
-import { useLightbox } from './MediaLightbox';
+import { useDeepLinkedPhoto, useLightbox } from './MediaLightbox';
 import { Picture } from './Picture';
 
 /**
@@ -56,8 +56,21 @@ export function MediaGrid({
   );
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { open } = useLightbox();
+  useDeepLinkedPhoto(items, open, contextLabel);
 
   const visible = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
+
+  // Note on the two-column phone tier: a portrait (one column) followed by a
+  // landscape (two) leaves a half-width gap, because the landscape cannot fit
+  // beside it. That is deliberate. Promoting the lone portrait to full width
+  // closes every gap, but on an archive that alternates portrait and landscape
+  // it promotes *everything* — one photograph per row, and twice the
+  // scrolling. A half-width gap in a contact sheet reads as negative space;
+  // a wall of full-bleed frames reads as a different site.
+  const cells = useMemo(
+    () => visible.map((item, index) => cellFor(item, index, variant)),
+    [visible, variant],
+  );
   const hasMore = visibleCount < items.length;
 
   /* Reveal the next chunk as the sentinel approaches. rootMargin is generous
@@ -106,12 +119,13 @@ export function MediaGrid({
         {visible.map((item, index) => (
           <li
             key={item.id}
-            className={cx('media-cell', spanFor(item, index, variant))}
+            className={cx('media-cell', cells[index]!.span)}
             style={{ containIntrinsicSize: `auto ${estimateHeight(item)}px` }}
           >
             <GridCell
               item={item}
               index={index}
+              sizes={cells[index]!.sizes}
               onOpen={openAt}
               priority={index < priorityCount}
             />
@@ -148,18 +162,20 @@ const HOVER_IMG =
 function GridCell({
   item,
   index,
+  sizes,
   onOpen,
   priority,
 }: {
   item: MediaItem;
   index: number;
+  sizes: string;
   onOpen: (index: number) => void;
   priority: boolean;
 }) {
   const isVideo = item.type === 'video';
   const media = isVideo
     ? responsiveVideo(item, { posterWidth: 800 })
-    : responsiveImage(item, { ladder: 'grid', sizes: 'quarter', fit: 'fill' });
+    : responsiveImage(item, { ladder: 'grid', sizes, fit: 'fill' });
 
   const src = isVideo
     ? (media as ReturnType<typeof responsiveVideo>).poster
@@ -250,25 +266,58 @@ function GridCell({
    on their shape and their position in the sequence, which produces an uneven
    but rhythmic sheet rather than a wall of identical squares. */
 
-function spanFor(
-  item: MediaItem,
-  index: number,
-  variant: MediaGridProps['variant'],
-): string {
-  if (variant === 'contact') {
-    return 'col-span-1 md:col-span-1 lg:col-span-2';
-  }
+type Cell = {
+  /** Column span classes across the three tiers. */
+  span: string;
+  /**
+   * What the browser should assume this cell measures.
+   *
+   * Derived from the very same decision that picks the span, so the two cannot
+   * drift. They had: every cell declared `quarter` (25vw desktop, 50vw phone)
+   * while landscape cells actually occupy a third of a twelve-column grid and
+   * every cell is full-width-ish on a phone — under-declaring by up to 1.85×,
+   * which is the browser choosing a 640px file for a 1184px slot and rendering
+   * every landscape frame visibly soft.
+   *
+   * The absolute first clause matters: above --container-page (108rem) the page
+   * stops growing, so vw units no longer track the layout.
+   */
+  sizes: string;
+};
+
+const CELL: Record<'wide' | 'landscape' | 'portrait' | 'contact', Cell> = {
+  wide: {
+    span: 'col-span-2 md:col-span-4 lg:col-span-6',
+    sizes:
+      '(min-width: 108rem) 50rem, (min-width: 64rem) 47vw, (min-width: 48rem) 62vw, 92vw',
+  },
+  landscape: {
+    span: 'col-span-2 md:col-span-3 lg:col-span-4',
+    sizes:
+      '(min-width: 108rem) 33rem, (min-width: 64rem) 31vw, (min-width: 48rem) 46vw, 92vw',
+  },
+  portrait: {
+    span: 'col-span-1 md:col-span-2 lg:col-span-3',
+    sizes:
+      '(min-width: 108rem) 25rem, (min-width: 64rem) 23vw, (min-width: 48rem) 30vw, 45vw',
+  },
+  contact: {
+    span: 'col-span-1 md:col-span-1 lg:col-span-2',
+    sizes:
+      '(min-width: 108rem) 16rem, (min-width: 64rem) 15vw, (min-width: 48rem) 15vw, 45vw',
+  },
+};
+
+function cellFor(item: MediaItem, index: number, variant: MediaGridProps['variant']): Cell {
+  if (variant === 'contact') return CELL.contact;
 
   const isPortrait = item.orientation === 'portrait';
   const isVideo = item.type === 'video';
 
   // Every seventh landscape photograph gets a wide moment. Videos always do —
   // a clip playing at thumbnail size is not worth watching.
-  const wide = (!isPortrait && index % 7 === 3) || isVideo;
-
-  if (wide) return 'col-span-2 md:col-span-4 lg:col-span-6';
-  if (isPortrait) return 'col-span-1 md:col-span-2 lg:col-span-3';
-  return 'col-span-2 md:col-span-3 lg:col-span-4';
+  if ((!isPortrait && index % 7 === 3) || isVideo) return CELL.wide;
+  return isPortrait ? CELL.portrait : CELL.landscape;
 }
 
 /** Rough pixel height for `contain-intrinsic-size`, keeping scrollbars honest. */
