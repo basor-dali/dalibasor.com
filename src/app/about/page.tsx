@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Timeline } from '@/components/about/Timeline';
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { Placeholder } from '@/components/mdx/components';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage } from '@/components/media/MediaImage';
 import { MetaLine, SectionHeader } from '@/components/primitives';
 import { getAboutTimeline, getPage } from '@/lib/content';
@@ -66,7 +67,7 @@ export default function AboutPage() {
                 priority
               />
             ) : (
-              <PortraitPlaceholder />
+              <EmptyFrame ratio="4 / 5" label="Portrait pending" />
             )}
           </div>
 
@@ -178,28 +179,5 @@ export default function AboutPage() {
         </ul>
       </section>
     </>
-  );
-}
-
-/* ==========================================================================
-   REMOVABLE SCAFFOLD
-   ==========================================================================
-   There is no portrait in the archive yet. This holds its exact frame so the
-   composition — and the name knocked out over the foot of it — is real before
-   the photograph exists. Delete this component and its single use above the
-   moment `coverImage` is set in content/pages/about.mdx. */
-
-function PortraitPlaceholder() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{ aspectRatio: '4 / 5' }}
-      className="border-line bg-surface-2 relative border"
-    >
-      <span className="bg-ember-deep absolute top-5 left-5 block h-px w-8" />
-      <span className="u-label text-muted absolute right-5 bottom-5 left-5">
-        Portrait <span className="text-muted">— photograph pending</span>
-      </span>
-    </div>
   );
 }

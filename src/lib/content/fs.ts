@@ -7,8 +7,10 @@ import matter from 'gray-matter';
 /**
  * Filesystem access for /content.
  *
- * Everything here runs at build time only. Results are memoised per process:
- * a static build reads each file once no matter how many pages reference it.
+ * Everything here runs on the server only. Results are memoised per process, so
+ * a static build reads each file once no matter how many pages reference it —
+ * and in development the same cache is invalidated on every write to /content
+ * rather than turned off, for reasons set out at `once` below.
  */
 
 export const CONTENT_ROOT = path.join(process.cwd(), 'content');

@@ -5,11 +5,11 @@ import { cx } from '@/lib/utils';
    The plate that stands in for a photograph that does not exist yet
    ==========================================================================
 
-   There used to be four of these — one in AlbumCard, one in Hero, one in
-   ProjectFeature, one in NowBody — each with its own idea of what an empty
-   frame looks like: centred label, corner registration marks, two crossed
-   diagonals, an ember tick. They were written weeks apart for one page each,
-   and nothing ever put them side by side.
+   There used to be five of these — in AlbumCard, Hero, ProjectFeature, NowBody
+   and the About page — each with its own idea of what an empty frame looks
+   like: a centred label, corner registration marks, two crossed diagonals, an
+   ember tick. They were written weeks apart for one page each, and nothing ever
+   put them side by side.
 
    The homepage does. Scrolling it today, before there is any real imagery,
    means passing three different empty-frame designs in about two screens,

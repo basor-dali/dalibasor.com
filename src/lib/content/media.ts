@@ -20,12 +20,18 @@ import { CONTENT_ROOT, once } from './fs';
 /**
  * The photo + video archive.
  *
- * One YAML file per year in /content/media. Portable, diffable, and readable
- * by a human twenty years from now with nothing but a text editor. A year with
- * 500 photographs is roughly a 200KB file — small enough to parse eagerly, and
- * the parse happens once per build process.
+ * One YAML file per year in /content/media. Portable, diffable, and readable by
+ * a human twenty years from now with nothing but a text editor.
  *
- * Everything downstream reads from these types, never from Cloudinary.
+ * Every year is parsed the first time anything asks for anything, and the whole
+ * archive is parsed together. Measured, rather than assumed: a year holding 500
+ * photographs is a 417KB file that takes about 835ms to parse. That is fine
+ * once per build process, which is all a static build pays. It is emphatically
+ * not fine per request, which is what a dev server would do without the cache
+ * in ./fs.ts — see the note there, which exists because of exactly this.
+ *
+ * Everything downstream reads from these types. Nothing downstream knows which
+ * provider the files are actually stored on.
  */
 
 const MEDIA_DIR = path.join(CONTENT_ROOT, 'media');
@@ -392,10 +398,6 @@ export function findMediaByRef(ref: string | undefined): MediaItem | undefined {
   return byRef().get(ref);
 }
 
-/** @deprecated Use findMediaByRef, which accepts an id or a public id. */
-export function getMediaItem(id: string): MediaItem | undefined {
-  return findMediaByRef(id);
-}
 
 export function getArchiveTotals(): {
   photos: number;

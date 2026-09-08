@@ -7,7 +7,8 @@ import { pathToFileURL } from 'node:url';
  * A bridge to the media pipeline in /scripts.
  *
  * The importer's logic — EXIF reading, GPS stripping, LQIP generation, hashing,
- * Cloudinary upload, manifest writing — is deliberately NOT reimplemented here.
+ * derivative encoding, upload, manifest writing — is deliberately NOT
+ * reimplemented here.
  * There is one implementation, in plain .mjs with no build step, and both
  * `npm run media:import` and the /admin/media UI call it. Two copies would
  * drift, and the copy that drifts is the one that stops stripping GPS.

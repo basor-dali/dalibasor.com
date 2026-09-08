@@ -30,6 +30,14 @@ content/media/*.yml ──▶ YAML ──▶ MediaItem[] ──┘
 build process and memoised (`once()` in `fs.ts`) — a page that appears in fifty places reads its
 file once.
 
+The dev server shares that cache rather than skipping it, and invalidates it on every write to
+`content/` — an `fs.watch` for hand-edits and Keystatic, plus a direct `invalidateContent()`
+call from the admin routes so a save never waits on a filesystem event. Skipping the cache
+instead looks harmless and is not: resolving a cover image parses the whole photo archive, so
+uncached it is parsed once per post, per project, per Now entry, per render. Measured against a
+generated 500-photograph year, the homepage took 31.2s to render that way and 0.24s with the
+cache.
+
 Loaders validate as they read and **throw on ambiguity**: a duplicate slug, an invalid project
 status, two Now entries claiming the same month. These are build failures rather than silent
 breakage because each one would quietly corrupt a URL.
@@ -65,7 +73,7 @@ transform-on-first-request penalty, and leaves the archive as plain objects in a
 Which widths exist is recorded per item in the manifest rather than inferred from a constant,
 so changing the ladder later cannot orphan anything already imported.
 
-Nothing in `src/components` or `src/app` knows what a Cloudinary URL looks like. Components
+Nothing in `src/components` or `src/app` knows what any provider's URLs look like. Components
 call `responsiveImage(item, { ladder, sizes, fit })` and get back `{ src, srcSet, sources,
 sizes, width, height, aspectRatio, lqip, color }` — where `sources` is one entry per format for
 providers that pre-generate, and empty for those that negotiate server-side.
