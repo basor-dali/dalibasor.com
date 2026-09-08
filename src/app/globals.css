@@ -136,6 +136,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: clip; /* no horizontal overflow, ever */
+
+    /* `overflow-x: clip` is a promise the page has to be able to keep. A word
+       longer than its column does not wrap — a bare URL in a paragraph, a
+       commit hash, a Windows path in a note — so it runs past the edge and the
+       clip then makes it permanently unreachable. Not truncated with an
+       ellipsis: gone, with no scrollbar to reveal it.
+
+       break-word rather than break-all, so ordinary prose is untouched and only
+       a word with nowhere else to go is broken. */
+    overflow-wrap: break-word;
   }
 
   h1,
@@ -623,11 +633,29 @@
     opacity: 1;
   }
 
-  /* Elements that deliberately break the measure inside an article. */
+  /* Elements that deliberately break the measure inside an article.
+     ------------------------------------------------------------------------
+     This has to escape its parent, and `width: min(--container-wide, 100%)`
+     never could: 100% is 100% of the 42rem measure, so the min always chose
+     the measure and a bleed figure came out exactly as wide as the paragraph
+     above it. Silently — and not only visually. Figure passes `ladder="bleed"`
+     and `sizes="wide"` when it bleeds, so those figures were downloading an
+     image sized for 1440px and painting it at 672px.
+
+     Negative margins are what actually break out. `50%` resolves against the
+     parent's content box, so `50% - width/2` centres a box of any width on the
+     parent's centre — and the parent is itself centred in the page, so the
+     result is centred in the viewport too.
+
+     Capped at the viewport less both gutters, so it never touches the edge of
+     the screen. 100vw includes the scrollbar on desktop, which is why the cap
+     is a gutter rather than zero: the few pixels of error land in whitespace
+     rather than in an overflow that `overflow-x: clip` would make unreachable. */
   .prose .bleed-wide {
-    width: min(var(--container-wide), 100%);
-    margin-inline: auto;
+    --bleed-width: min(var(--container-wide), calc(100vw - 2 * var(--spacing-gutter)));
+    width: var(--bleed-width);
     max-width: none;
+    margin-inline: calc(50% - var(--bleed-width) / 2);
   }
 }
 

@@ -152,6 +152,7 @@ type LightboxProps = {
 function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps) {
   const [chromeVisible, setChromeVisible] = useState(true);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const chromeRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -322,8 +323,33 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
     // Horizontal intent only — a vertical swipe closes.
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
       go(dx < 0 ? 1 : -1);
-    } else if (dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.4) {
+      return;
+    }
+    if (dy > 90 && Math.abs(dy) > Math.abs(dx) * 1.4) {
       onClose();
+      return;
+    }
+
+    // A tap, not a swipe: bring the chrome back.
+    //
+    // wakeChrome was wired to mousemove alone, and a touch screen never sends
+    // one. So on a phone the counter, the caption, the Close button and the
+    // arrows faded out 3.2s after opening and there was no gesture that could
+    // return them — the photograph was still swipeable, but everything written
+    // about it was gone for the rest of the session.
+    //
+    // Tapping the photograph toggles, the way a phone's own photo viewer does.
+    // Taps that land on the chrome are ignored, or tapping "next" would hide
+    // the arrow that was just tapped.
+    if (Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+      const target = event.target as Node | null;
+      if (target && chromeRef.current?.contains(target)) return;
+      if (chromeVisible) {
+        if (hideTimer.current) clearTimeout(hideTimer.current);
+        setChromeVisible(false);
+      } else {
+        wakeChrome();
+      }
     }
   }
 
@@ -415,12 +441,20 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
 
       {/* --- chrome ------------------------------------------------------ */}
       <div
+        ref={chromeRef}
         className={cx(
           // focus-within keeps the chrome up for exactly as long as focus is
           // inside it. Waking it on focus instead would re-arm the 3.2s hide
           // and fade the Close button out from under the keyboard.
           'pointer-events-none absolute inset-0 transition-opacity duration-500 focus-within:opacity-100',
-          chromeVisible ? 'opacity-100' : 'opacity-0',
+          chromeVisible
+            ? 'opacity-100'
+            : // opacity: 0 hides a control; it does not disable it. Faded out,
+              // the Close button and both arrows were still sitting there
+              // catching clicks and taps, so reaching for the edge of an
+              // invisible photograph jumped to the next one instead. Focus
+              // still works, which is all the keyboard path needs.
+              'opacity-0 [&_*]:pointer-events-none',
         )}
       >
         {/* top bar */}
