@@ -4,7 +4,8 @@ import { MetaLine, StatusDot } from '@/components/primitives';
 import { MediaImage } from '@/components/media/MediaImage';
 import { STATUS_LABELS } from '@/lib/content';
 import { formatDate, formatMonthYear, isoDate, pluralize, truncate } from '@/lib/utils';
-import { CoverFrame, LinkCue, PlaceholderFrame } from './Hero';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
+import { CoverFrame, LinkCue } from './Hero';
 
 /**
  * From the archive.
@@ -119,7 +120,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               ladder="grid"
               sizes={SPLIT_SIZES}
               tone="surface-3"
-              placeholderLabel="Photograph"
+              placeholderLabel="Photograph pending"
             />
             <div>
               <p className="u-label text-muted flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -165,7 +166,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
                 className="transition-opacity duration-700 group-hover:opacity-90"
               />
             ) : (
-              <PlaceholderFrame ratio="4 / 3" label="Photograph" tone="surface-3" />
+              <EmptyFrame ratio="4 / 3" label="Photograph pending" tone="surface-3" />
             )}
 
             <div>

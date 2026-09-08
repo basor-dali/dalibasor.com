@@ -1,5 +1,6 @@
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { Placeholder } from '@/components/mdx/components';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage } from '@/components/media/MediaImage';
 import { ArrowLink, MetaLine } from '@/components/primitives';
 import { formatDate, formatPeriod, isoDate, parseDate, pluralize } from '@/lib/utils';
@@ -118,7 +119,7 @@ export function NowBody({
                 priority={priority}
               />
             ) : (
-              <FramePlaceholder ratio="4 / 5" label={formatPeriod(entry.period)} />
+              <EmptyFrame ratio="4 / 5" label="Photograph pending" />
             )}
           </div>
         </div>
@@ -205,27 +206,4 @@ function distanceLabel(months: number): string | undefined {
   return rest === 0
     ? `${yearPart} before the current entry`
     : `${yearPart}, ${pluralize(rest, 'month')} before the current entry`;
-}
-
-/* ==========================================================================
-   REMOVABLE SCAFFOLD
-   ==========================================================================
-   No photographs have been imported yet. This holds the frame — correct ratio,
-   hairline border, one small mono label — so the composition is real while the
-   archive is empty. Delete this component and the single `<FramePlaceholder>`
-   above the moment Now entries carry a `coverImage`. */
-
-function FramePlaceholder({ ratio, label }: { ratio: string; label: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      style={{ aspectRatio: ratio }}
-      className="border-line bg-surface-2 relative border"
-    >
-      <span className="bg-ember-deep absolute top-5 left-5 block h-px w-8" />
-      <span className="u-label text-muted absolute right-5 bottom-5 left-5">
-        {label} <span className="text-muted">— photograph pending</span>
-      </span>
-    </div>
-  );
 }

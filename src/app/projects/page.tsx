@@ -67,6 +67,22 @@ export default function ProjectsPage() {
     }
   }
 
+  // Group by status only once grouping is doing something.
+  //
+  // Every row already carries its own status dot and label, so a group whose
+  // whole contents is one project spends a sticky header and a 3xl "01" to say
+  // what the single row beneath it says anyway. At three projects in three
+  // statuses — which is where this page actually is — that produced three
+  // near-identical blocks, each announcing that it contains one thing.
+  //
+  // The rubric earns its place the moment any status holds more than one
+  // project, because then it is genuinely splitting a list rather than
+  // labelling its rows one at a time. Until then the flat run reads better and
+  // says exactly as much. Order is unchanged either way — STATUS_ORDER puts
+  // live work first and abandoned work last, present rather than hidden.
+  const grouped = groups.some((group) => group.projects.length > 1);
+  const flat = grouped ? [] : groups.flatMap((group) => group.projects);
+
   const building = projects.filter((project) => project.status === 'building').length;
   const abandoned = projects.filter((project) => project.status === 'abandoned').length;
   const earliest =
@@ -117,57 +133,71 @@ export default function ProjectsPage() {
             headingLevel={2}
           />
 
-          <div className="mt-(--spacing-section-sm) flex flex-col gap-(--spacing-section-sm)">
-            {groups.map((group) => {
-              const dimmed = group.status === 'abandoned';
+          {!grouped ? (
+            <ul className="mt-(--spacing-section-sm) list-none p-0">
+              {flat.map((project) => (
+                <ProjectIndexRow
+                  key={project.slug}
+                  project={project}
+                  ordinal={ordinals.get(project.slug) ?? '000'}
+                  dimmed={project.status === 'abandoned'}
+                  headingLevel={3}
+                />
+              ))}
+            </ul>
+          ) : (
+            <div className="mt-(--spacing-section-sm) flex flex-col gap-(--spacing-section-sm)">
+              {groups.map((group) => {
+                const dimmed = group.status === 'abandoned';
 
-              return (
-                <section key={group.status} className="u-grid">
-                  {/* The status is a rubric, not another title: mono at label
+                return (
+                  <section key={group.status} className="u-grid">
+                    {/* The status is a rubric, not another title: mono at label
                       size, with the count carrying the visual weight. It holds
                       its own narrow column and stays put while the rows scroll
                       past it. */}
-                  <header className="col-span-2 md:col-span-6 lg:sticky lg:top-28 lg:col-span-3 lg:self-start">
-                    <div className="flex items-baseline justify-between gap-5 lg:block">
-                      <h3
-                        className={cx(
-                          'u-label-lg flex items-center gap-2.5',
-                          dimmed ? 'text-soft' : 'text-ivory',
-                        )}
-                      >
-                        <StatusDot status={group.status} />
-                        {group.label}
-                      </h3>
-                      <p
-                        aria-hidden="true"
-                        className={cx(
-                          'u-display u-nums shrink-0 text-3xl lg:mt-5',
-                          dimmed ? 'text-line-strong' : 'text-muted',
-                        )}
-                      >
-                        {String(group.projects.length).padStart(2, '0')}
+                    <header className="col-span-2 md:col-span-6 lg:sticky lg:top-28 lg:col-span-3 lg:self-start">
+                      <div className="flex items-baseline justify-between gap-5 lg:block">
+                        <h3
+                          className={cx(
+                            'u-label-lg flex items-center gap-2.5',
+                            dimmed ? 'text-soft' : 'text-ivory',
+                          )}
+                        >
+                          <StatusDot status={group.status} />
+                          {group.label}
+                        </h3>
+                        <p
+                          aria-hidden="true"
+                          className={cx(
+                            'u-display u-nums shrink-0 text-3xl lg:mt-5',
+                            dimmed ? 'text-line-strong' : 'text-muted',
+                          )}
+                        >
+                          {String(group.projects.length).padStart(2, '0')}
+                        </p>
+                      </div>
+                      <p className="sr-only">
+                        {pluralize(group.projects.length, 'project')}
                       </p>
-                    </div>
-                    <p className="sr-only">
-                      {pluralize(group.projects.length, 'project')}
-                    </p>
-                  </header>
+                    </header>
 
-                  <ul className="col-span-2 list-none p-0 md:col-span-6 lg:col-span-9">
-                    {group.projects.map((project) => (
-                      <ProjectIndexRow
-                        key={project.slug}
-                        project={project}
-                        ordinal={ordinals.get(project.slug) ?? '000'}
-                        dimmed={dimmed}
-                        headingLevel={4}
-                      />
-                    ))}
-                  </ul>
-                </section>
-              );
-            })}
-          </div>
+                    <ul className="col-span-2 list-none p-0 md:col-span-6 lg:col-span-9">
+                      {group.projects.map((project) => (
+                        <ProjectIndexRow
+                          key={project.slug}
+                          project={project}
+                          ordinal={ordinals.get(project.slug) ?? '000'}
+                          dimmed={dimmed}
+                          headingLevel={4}
+                        />
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
+          )}
         </section>
       ) : null}
     </>

@@ -27,6 +27,8 @@ export function LatestWriting({ posts }: { posts: PostSummary[] }) {
   return (
     <section className="u-page py-(--spacing-section-sm)" aria-labelledby="home-writing">
       <SectionHeader
+        size="display"
+        rule="strong"
         eyebrow="Writing"
         title={<span id="home-writing">Latest</span>}
         link={{ href: '/writing', label: 'All writing' }}

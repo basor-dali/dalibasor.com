@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ProjectSummary } from '@/types/content';
-import { ArrowLink, EmptyState, Label, StatusDot } from '@/components/primitives';
+import { EmptyState, SectionHeader, StatusDot } from '@/components/primitives';
 import { STATUS_LABELS } from '@/lib/content';
 import { cx, ordinalLabel, truncate } from '@/lib/utils';
 import { CoverFrame, LinkCue } from './Hero';
@@ -51,21 +51,13 @@ export function SelectedProjects({ projects }: { projects: ProjectSummary[] }) {
     <section className="py-(--spacing-section)" aria-labelledby="home-projects">
       {/* --- header: rule above, title and link on one baseline ------------- */}
       <div className="u-page">
-        <hr className="u-rule-strong" />
-        <div className="mt-7 flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
-          <div>
-            <Label className="mb-5 block">Selected work</Label>
-            <h2
-              id="home-projects"
-              className="u-display u-display-tight text-4xl text-white"
-            >
-              Projects
-            </h2>
-          </div>
-          <ArrowLink href="/projects" className="pb-2">
-            All projects
-          </ArrowLink>
-        </div>
+        <SectionHeader
+          size="display"
+          rule="strong"
+          eyebrow="Selected work"
+          title={<span id="home-projects">Projects</span>}
+          link={{ href: '/projects', label: 'All projects' }}
+        />
       </div>
 
       {projects.length === 0 ? (
@@ -115,7 +107,7 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
               ratio={layout.ratio}
               ladder="feature"
               sizes={layout.sizes}
-              placeholderLabel="Project photograph — to be supplied"
+              placeholderLabel="Cover pending"
               className="transition-opacity duration-700 group-hover:opacity-90"
             />
           </div>

@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import type { CSSProperties } from 'react';
 import type { LadderName, SizesPreset } from '@/lib/media';
 import type { MediaItem, ResolvedAlbum } from '@/types/content';
 import { cx, formatMonthYear, ordinalLabel, pluralize } from '@/lib/utils';
+import { EmptyFrame } from './EmptyFrame';
 import { MediaImage } from './MediaImage';
 
 /**
@@ -35,35 +35,6 @@ export function frameRatio(item: MediaItem | undefined, min = 0.66, max = 2.4): 
   const ratio = item.width / item.height;
   const clamped = Math.min(max, Math.max(min, ratio));
   return `${clamped.toFixed(4)} / 1`;
-}
-
-/**
- * The frame that stands in when there is no photograph yet. A year with an
- * empty manifest still has to hold its shape on the page — and an empty frame
- * is honest in a way a broken image never is.
- */
-export function EmptyFrame({
-  ratio = '3 / 2',
-  label = 'No photograph yet',
-  className,
-}: {
-  ratio?: string;
-  label?: string;
-  className?: string;
-}) {
-  const style: CSSProperties = { ['--ar' as string]: ratio };
-
-  return (
-    <div
-      className={cx(
-        'u-frame border-line bg-surface-2 flex items-center justify-center border',
-        className,
-      )}
-      style={style}
-    >
-      <span className="u-label text-muted px-4 text-center">{label}</span>
-    </div>
-  );
 }
 
 /* ==========================================================================
@@ -126,7 +97,7 @@ export function AlbumCard({
             imgClassName="transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.035] motion-reduce:transform-none"
           />
         ) : (
-          <EmptyFrame ratio={ratio} label={`${album.title} — no cover yet`} />
+          <EmptyFrame ratio={ratio} label="Cover pending" />
         )}
 
         {typeof index === 'number' ? (

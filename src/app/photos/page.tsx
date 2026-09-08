@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { EmptyFrame, frameRatio } from '@/components/media/AlbumCard';
+import { frameRatio } from '@/components/media/AlbumCard';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { MediaImage } from '@/components/media/MediaImage';
 import { EmptyState, Label, YearMark } from '@/components/primitives';
 import {
@@ -216,9 +217,7 @@ function YearBlock({
   // lead — but it is not empty. Saying "nothing filed" directly above a count
   // line reading "2 videos" is simply false.
   const emptyLabel =
-    summary.totalCount === 0
-      ? `Nothing filed under ${year} yet`
-      : `${year} — video only`;
+    summary.totalCount === 0 ? `Nothing filed under ${year} yet` : `${year} — video only`;
 
   const note = summary.note
     ? truncate(summary.note.replace(/\s+/g, ' ').trim(), 150)

@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import type { MediaItem, YearSummary } from '@/types/content';
-import { ArrowLink, Label, YearMark } from '@/components/primitives';
+import { ArrowLink, SectionHeader, YearMark } from '@/components/primitives';
 import { MediaImage } from '@/components/media/MediaImage';
 import { site } from '@/lib/site';
 import { pluralize } from '@/lib/utils';
-import { LinkCue, PlaceholderFrame } from './Hero';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
+import { LinkCue } from './Hero';
 
 /**
  * The life archive.
@@ -25,24 +26,19 @@ export function ArchivePreview({ years }: { years: YearSummary[] }) {
     <section className="py-(--spacing-section)" aria-labelledby="home-archive">
       {/* --- header, hung on the right for once ----------------------------- */}
       <div className="u-page">
-        <hr className="u-rule" />
-        <div className="mt-7 flex flex-wrap items-end justify-between gap-x-10 gap-y-6 md:flex-row-reverse">
-          <div className="w-full md:w-auto md:text-right">
-            <Label className="mb-5 block">
+        <SectionHeader
+          size="display"
+          align="right"
+          rule="strong"
+          eyebrow={
+            <>
               Life <span aria-hidden="true">·</span> Photographs{' '}
               <span aria-hidden="true">·</span> Video
-            </Label>
-            <h2
-              id="home-archive"
-              className="u-display u-display-tight text-4xl text-white"
-            >
-              The Archive
-            </h2>
-          </div>
-          <ArrowLink href="/photos" className="pb-2">
-            Every year
-          </ArrowLink>
-        </div>
+            </>
+          }
+          title={<span id="home-archive">The Archive</span>}
+          link={{ href: '/photos', label: 'Every year' }}
+        />
       </div>
 
       {lead ? <LeadYear year={lead} /> : <ArchiveEmpty />}
@@ -92,10 +88,10 @@ function LeadYear({ year }: { year: YearSummary }) {
                 className="transition-opacity duration-700 group-hover:opacity-90"
               />
             ) : (
-              <PlaceholderFrame
+              <EmptyFrame
                 key={`empty-${index}`}
                 ratio="4 / 5"
-                label="Photograph"
+                label="Photograph pending"
                 tone={index === 1 ? 'surface-3' : 'surface-2'}
               />
             ),
@@ -146,7 +142,7 @@ function YearRow({ year }: { year: YearSummary }) {
             className="w-12 shrink-0 sm:w-16"
           />
         ) : (
-          <PlaceholderFrame
+          <EmptyFrame
             ratio="1 / 1"
             label=""
             marks={false}
@@ -172,10 +168,10 @@ function ArchiveEmpty() {
       <YearMark year={site.archiveStartYear} className="text-line" />
       <div className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4">
         {[0, 1, 2].map((index) => (
-          <PlaceholderFrame
+          <EmptyFrame
             key={index}
             ratio="4 / 5"
-            label="Photograph"
+            label="Photograph pending"
             tone={index === 1 ? 'surface-3' : 'surface-2'}
           />
         ))}

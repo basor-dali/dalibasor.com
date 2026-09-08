@@ -44,6 +44,18 @@ export function Label({
  * An eyebrow, a display title and an optional link out. Used to open each
  * homepage section and each index page. The rule underneath is what ties the
  * whole site together visually.
+ *
+ * It grew a `size` and an `align` because the homepage had built this same
+ * arrangement three times: Writing through here at `text-2xl`, Projects and
+ * The Archive hand-rolled at `text-4xl`, one of them right-hung, and the two
+ * hand-rolled ones disagreeing about the weight of their own rule. The
+ * homepage is the one page where all three appear within a screen of each
+ * other, so the difference read as three tiers of importance rather than as
+ * three peers — and Writing, set a tier smaller than everything around it,
+ * came off as the least of them.
+ *
+ *   size="section"  index pages and sections within a page
+ *   size="display"  a top-level division of the homepage
  */
 export function SectionHeader({
   eyebrow,
@@ -53,26 +65,54 @@ export function SectionHeader({
   className,
   headingLevel = 2,
   rule = true,
+  size = 'section',
+  align = 'left',
 }: {
-  eyebrow?: string;
+  eyebrow?: ReactNode;
   title: ReactNode;
   link?: { href: string; label: string };
   description?: ReactNode;
   className?: string;
   headingLevel?: 1 | 2 | 3;
-  rule?: boolean;
+  /** `true` is a hairline; `'strong'` opens a top-level section. */
+  rule?: boolean | 'strong';
+  size?: 'section' | 'display';
+  /** `'right'` hangs the whole header on the right from `md` up. */
+  align?: 'left' | 'right';
 }) {
   const Heading = `h${headingLevel}` as 'h1' | 'h2' | 'h3';
+  const display = size === 'display';
 
   return (
     <header className={cx(className)}>
-      {rule ? <hr className="u-rule mb-6" /> : null}
-      <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-        <div className="min-w-0">
-          {eyebrow ? <Label className="mb-3 block">{eyebrow}</Label> : null}
-          <Heading className="u-display text-2xl text-white">{title}</Heading>
+      {rule ? (
+        <hr className={cx(rule === 'strong' ? 'u-rule-strong' : 'u-rule', 'mb-7')} />
+      ) : null}
+      <div
+        className={cx(
+          'flex flex-wrap justify-between',
+          display ? 'items-end gap-x-10 gap-y-5' : 'items-baseline gap-x-8 gap-y-3',
+          align === 'right' && 'md:flex-row-reverse md:text-right',
+        )}
+      >
+        <div className={cx('min-w-0', align === 'right' && 'w-full md:w-auto')}>
+          {eyebrow ? (
+            <Label className={cx('block', display ? 'mb-5' : 'mb-3')}>{eyebrow}</Label>
+          ) : null}
+          <Heading
+            className={cx(
+              'u-display text-white',
+              display ? 'u-display-tight text-4xl' : 'text-2xl',
+            )}
+          >
+            {title}
+          </Heading>
         </div>
-        {link ? <ArrowLink href={link.href}>{link.label}</ArrowLink> : null}
+        {link ? (
+          <ArrowLink href={link.href} className={cx(display && 'pb-2')}>
+            {link.label}
+          </ArrowLink>
+        ) : null}
       </div>
       {description ? (
         <div className="text-soft mt-4 max-w-(--container-text)">{description}</div>

@@ -5,7 +5,7 @@ import { MdxContent } from '@/components/mdx/MdxContent';
 import { Placeholder } from '@/components/mdx/components';
 import { CoverImage } from '@/components/media/MediaImage';
 import { Label, StatusDot, TimeStamp } from '@/components/primitives';
-import { PlaceholderFrame } from '@/components/projects/ProjectFeature';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { ProjectGallery } from '@/components/projects/ProjectGallery';
 import { ProjectMeta } from '@/components/projects/ProjectMeta';
 import {
@@ -120,7 +120,7 @@ export default async function ProjectPage({ params }: PageProps) {
             priority
           />
         ) : (
-          <PlaceholderFrame ratio="16 / 9" label="Cover image — to be supplied" />
+          <EmptyFrame ratio="16 / 9" label="Cover pending" />
         )}
       </div>
 

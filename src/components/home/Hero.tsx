@@ -1,62 +1,10 @@
 import type { ReactNode } from 'react';
 import type { MediaItem } from '@/types/content';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage, MediaImage } from '@/components/media/MediaImage';
 import type { LadderName, SizesPreset } from '@/lib/media';
 import { site } from '@/lib/site';
 import { cx } from '@/lib/utils';
-
-/* ==========================================================================
-   PLACEHOLDER IMAGERY — DELETE THIS BLOCK WHEN REAL PHOTOGRAPHS EXIST
-   ==========================================================================
-   There is no photography in the archive yet. Rather than hotlink stock or
-   leave a hole in the composition, every missing image renders a frame at the
-   correct aspect ratio with a hairline border and a small mono label.
-
-   To remove: delete `PlaceholderFrame`, then change `CoverFrame` below so it
-   returns `null` (or nothing) when `publicId` is absent. Nothing else on the
-   homepage knows this exists — every call site goes through `CoverFrame`.
-   ========================================================================== */
-
-export function PlaceholderFrame({
-  ratio,
-  label = 'Photograph — to be supplied',
-  className,
-  tone = 'surface-2',
-  marks = true,
-}: {
-  /** e.g. `3 / 2`. Omit when the className supplies an `aspect-*` utility. */
-  ratio?: string;
-  label?: string;
-  className?: string;
-  tone?: 'surface-2' | 'surface-3';
-  /** Corner registration marks. Turn them off in very small frames. */
-  marks?: boolean;
-}) {
-  return (
-    <div
-      aria-hidden="true"
-      className={cx(
-        'border-line relative flex items-center justify-center overflow-hidden border',
-        tone === 'surface-3' ? 'bg-surface-3' : 'bg-surface-2',
-        className,
-      )}
-      style={ratio ? { aspectRatio: ratio } : undefined}
-    >
-      {/* registration marks, the way a print gets trimmed */}
-      {marks ? (
-        <>
-          <span className="border-line-strong pointer-events-none absolute top-3 left-3 h-3 w-3 border-t border-l" />
-          <span className="border-line-strong pointer-events-none absolute top-3 right-3 h-3 w-3 border-t border-r" />
-          <span className="border-line-strong pointer-events-none absolute bottom-3 left-3 h-3 w-3 border-b border-l" />
-          <span className="border-line-strong pointer-events-none absolute right-3 bottom-3 h-3 w-3 border-r border-b" />
-        </>
-      ) : null}
-      {label ? (
-        <span className="u-label text-muted px-6 text-center">{label}</span>
-      ) : null}
-    </div>
-  );
-}
 
 /**
  * A cover slot. Renders the real photograph when frontmatter has one, and the
@@ -103,7 +51,7 @@ export function CoverFrame({
   }
 
   return (
-    <PlaceholderFrame
+    <EmptyFrame
       ratio={ratio}
       label={placeholderLabel}
       className={className}
@@ -190,9 +138,9 @@ export function Hero({
             className={cx('w-full', HERO_RATIO)}
           />
         ) : (
-          <PlaceholderFrame
+          <EmptyFrame
             className={cx('w-full border-x-0', HERO_RATIO)}
-            label="Portrait — to be supplied"
+            label="Portrait pending"
           />
         )}
 

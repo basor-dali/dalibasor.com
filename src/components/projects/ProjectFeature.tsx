@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { CSSProperties } from 'react';
+import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage } from '@/components/media/MediaImage';
 import { StatusDot } from '@/components/primitives';
 import { STATUS_LABELS } from '@/lib/content';
@@ -213,49 +213,8 @@ function Frame({
           priority={priority}
         />
       ) : (
-        <PlaceholderFrame ratio={ratio} />
+        <EmptyFrame ratio={ratio} label="Cover pending" />
       )}
-    </div>
-  );
-}
-
-/* ==========================================================================
-   TEMPORARY — delete once real project imagery exists
-   ==========================================================================
-   No photographs have been shot or imported yet. Rather than hotlink stock or
-   collapse the layout, a project with no cover gets a correctly proportioned
-   empty plate: surface ground, hairline border, two faint diagonals, one mono
-   label. It holds the composition honestly and is trivial to find later —
-   search the repo for "PlaceholderFrame". */
-
-export function PlaceholderFrame({
-  ratio = '3 / 2',
-  label = 'Image — to be supplied',
-  className,
-}: {
-  ratio?: string;
-  label?: string;
-  className?: string;
-}) {
-  const style: CSSProperties = { ['--ar' as string]: ratio };
-
-  return (
-    <div
-      className={cx('u-frame border-line bg-surface-2 border', className)}
-      style={style}
-    >
-      <svg
-        aria-hidden="true"
-        preserveAspectRatio="none"
-        viewBox="0 0 100 100"
-        className="text-line absolute inset-0 h-full w-full"
-      >
-        <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.25" />
-        <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.25" />
-      </svg>
-      <span className="u-label text-muted absolute bottom-3 left-3 sm:bottom-4 sm:left-4">
-        {label}
-      </span>
     </div>
   );
 }
