@@ -15,7 +15,7 @@ Back up three things:
 | #   | What                            | Where it lives                         | How bad if lost              |
 | --- | ------------------------------- | -------------------------------------- | ---------------------------- |
 | 1   | Your writing and metadata       | This Git repository                    | Catastrophic — irreplaceable |
-| 2   | Your original photos and videos | Your own disks (never only Cloudinary) | Catastrophic — irreplaceable |
+| 2   | Your original photos and videos | Your own disks (never only the bucket) | Catastrophic — irreplaceable |
 | 3   | The site code                   | This Git repository                    | Annoying, rebuildable        |
 
 If you only ever do one thing: **keep `/content` and your photo originals backed up in two
@@ -61,9 +61,11 @@ without this website running, the backup is working.
 
 ## 2. Photo and video originals — the important one
 
-**Cloudinary is a delivery network, not your archive.** The importer uploads a metadata-
-stripped copy for the web. Your originals — the full-resolution, unmodified files — stay on
-your machine and are never touched by any script in this repository.
+**The bucket is a delivery network, not your archive.** Photographs live in Cloudflare R2 and
+video on Cloudinary, and the importer uploads a metadata-stripped copy for the web. Your
+originals — the full-resolution, unmodified files, GPS and all — stay on your machine and are
+never touched by any script in this repository. Every script here reads originals and writes
+copies; none of them deletes, moves or recompresses the file you pointed it at.
 
 Keep them somewhere deliberate and permanent:
 
@@ -104,12 +106,36 @@ Three copies, two different media, one offsite.
 A backup you have never restored from is a rumour. Once a year, pick a random photo from 2017,
 restore it from the offsite copy, and open it. Put a reminder in your calendar.
 
-### If Cloudinary disappears
+### Pull the whole bucket back down
+
+```bash
+npm run media:backup -- --verify              # is everything the manifest claims actually there?
+npm run media:backup -- --to ~/Archive/web-copies
+npm run media:backup -- --to ~/Archive/web-copies --year 2019
+```
+
+This walks every manifest, checks that the full-resolution copy of each photograph really
+exists in the bucket, and downloads them into folders that mirror the archive. It is resumable
+— a file already on disk at the right size is skipped — so an interrupted run picks up where
+it stopped.
+
+Run `--verify` more often than you think you need to. A manifest entry pointing at an object
+that is not there is a photograph you have **already** lost, and the site will not tell you: the
+page still renders, the frame is still reserved, the image just never arrives. You would rather
+find that out this year than in 2041.
+
+This is the delivery copy, not your original — full resolution, but metadata stripped. It is
+the offsite leg, not a replacement for section 2.
+
+### If the bucket disappears
 
 You lose nothing irreplaceable. The manifests still contain every caption, date, location and
-album. Re-upload the originals to whatever replaces it, keep the same folder structure, and
-either point the new provider at the same public ids or run a find-and-replace over
-`content/media/*.yml`. Then write a new provider in `src/lib/media/` — see below.
+album, and `variants`/`formats` record exactly which sizes each photograph had. Re-upload the
+originals to whatever replaces it, keep the same key structure, and either point the new
+provider at the same public ids or run a find-and-replace over `content/media/*.yml`. Then
+write a new provider in `src/lib/media/` — see below.
+
+R2 and Cloudinary are independent: losing one leaves the other untouched.
 
 ---
 
@@ -137,18 +163,12 @@ Compress-Archive -Path content -DestinationPath "dalibasor-content-$(Get-Date -f
 
 ### Everything currently on the media CDN
 
-If you ever need to pull the delivery copies back down (you should still rely on your
-originals):
+Photographs: `npm run media:backup -- --to <folder>`, as above. It reads the manifests, so it
+gets exactly what the site is serving and nothing else.
 
-```bash
-# list every asset in the account
-npx cloudinary-cli ls "folder=dalibasor" --max_results 500
-
-# or use the Admin API directly with the credentials in .env.local
-```
-
-Cloudinary's own account settings also offer a full account export. Do this once a year and
-drop the result next to your originals.
+Video is still on Cloudinary and the script does not fetch it. Cloudinary's account settings
+offer a full account export; do that once a year and drop the result next to your originals.
+There is far less of it, and the originals are on your disk either way.
 
 ### The rendered site
 
@@ -168,7 +188,8 @@ The whole media layer sits behind one interface so that this is a contained job,
 
 ```
 src/lib/media/provider.ts    the interface every component talks to
-src/lib/media/cloudinary.ts  the current implementation
+src/lib/media/r2.ts          photographs — static files generated at import
+src/lib/media/cloudinary.ts  video, and the previous path for photographs
 src/lib/media/local.ts       the fallback — serves files from /public/media
 src/lib/media/index.ts       picks one based on NEXT_PUBLIC_MEDIA_PROVIDER
 ```
@@ -187,7 +208,9 @@ no external service at all. It will be slow and heavy — it is a lifeboat, not 
 
 - `node_modules/` — reinstall with `npm install`
 - `.next/` — regenerated by `npm run build`
-- Cloudinary derivatives — regenerated on demand from the uploaded copies
+- Every derivative in the bucket — `npm run media:regenerate -- --all --from ~/Archive/photos`
+  rebuilds them from your originals, falling back to the full-resolution copy in the bucket for
+  anything it cannot find on disk
 - The deployment on Vercel — redeploy from Git in a few minutes
 
 ---
@@ -200,8 +223,10 @@ Once a year, ideally when you write the January Now entry:
 2. Mirror the photo originals to the external drive.
 3. Confirm the offsite backup ran recently and actually contains this year's photos.
 4. Restore one random old file from offsite and open it.
-5. Export `content/` to a dated archive and drop it beside the originals.
-6. Check that `.env.local` credentials are recorded in your password manager — losing the
-   Cloudinary API secret is recoverable, losing the account is not.
+5. `npm run media:backup -- --verify` — confirms every photograph the manifests claim to have
+   is really in the bucket.
+6. Export `content/` to a dated archive and drop it beside the originals.
+7. Check that `.env.local` credentials are recorded in your password manager — losing an API
+   token is recoverable, losing the account is not.
 
 Five minutes a year to keep a life's archive.

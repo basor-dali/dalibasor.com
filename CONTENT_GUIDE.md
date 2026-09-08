@@ -177,20 +177,22 @@ This is the part with tooling, because doing it by hand does not scale to a hund
 
 ### One-time setup
 
-Photographs are stored on Cloudflare R2 and video on Cloudinary. Full setup — creating the
-bucket, the API token, and a custom domain — is in [docs/MEDIA.md](docs/MEDIA.md).
+Photographs are stored on Cloudflare R2 and video on Cloudinary.
 
-Copy `.env.example` to `.env.local` and fill it in:
+```bash
+cp .env.example .env.local
+```
 
-```
-NEXT_PUBLIC_MEDIA_PROVIDER=cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-CLOUDINARY_FOLDER=dalibasor
-```
+Then fill it in. Every variable is explained in the file itself, which is deliberately the only
+place the setup is written out — a second copy in a guide is a copy that goes stale, and this
+one did. Creating the bucket, the API token and a custom domain is in
+[docs/MEDIA.md](docs/MEDIA.md).
 
 `.env.local` is gitignored. Keep those credentials in your password manager too.
+
+You can skip all of it while you are only writing. With no `.env.local` the site falls back to
+the `local` provider, every page renders, and photographs simply come from `public/media`
+unresized.
 
 ### Create a new year
 

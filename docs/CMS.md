@@ -159,15 +159,13 @@ There is no path by which a coordinate reaches the site. GPS is removed at impor
 
 ## Setup
 
-Copy `.env.example` to `.env.local` and fill in your Cloudinary details:
+```bash
+cp .env.example .env.local
+```
 
-```
-NEXT_PUBLIC_MEDIA_PROVIDER=cloudinary
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-CLOUDINARY_FOLDER=dalibasor
-```
+Every variable is explained in `.env.example` itself, which is deliberately the only place the
+setup is written out. Photographs go to Cloudflare R2 and video to Cloudinary;
+[MEDIA.md](MEDIA.md) covers creating the bucket and the token.
 
 Restart the dev server afterwards — env files are read once at boot. Without them the media
 tool loads but refuses to upload and says exactly what is missing.
@@ -196,9 +194,12 @@ laptop, the change is contained:
 Saving then commits to the repository through the GitHub API and Vercel redeploys. Your content
 is still MDX in Git; only the transport changes.
 
-**Do not do the same for `/admin/media`.** It holds the Cloudinary API secret and writes to the
-local filesystem. For phone uploads, use Cloudinary's own app or web uploader into the right
-folder, then run the importer later to pick the files up into the manifest.
+**Do not do the same for `/admin/media`.** It holds the bucket's write credentials, generates
+every derivative with sharp, and writes to the local filesystem — none of which belongs on a
+deployed site. For photographs taken while you are away from your machine, keep the files and
+run `npm run media:import` when you are back at it. The originals should reach your own disk
+before they reach anything else, which is the whole arrangement in
+[BACKUP.md](../BACKUP.md).
 
 ---
 
