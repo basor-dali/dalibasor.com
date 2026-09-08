@@ -185,7 +185,7 @@ export function ProjectGallery({ items, title, slug, year, className }: ProjectG
               <GalleryImage item={item} slot={slot} onOpen={() => openAt(imageIndex)} />
             )}
             {item.caption ? (
-              <figcaption className="u-label mt-3 text-mute">{item.caption}</figcaption>
+              <figcaption className="u-label mt-3 text-muted">{item.caption}</figcaption>
             ) : null}
           </figure>
         </li>

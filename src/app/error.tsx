@@ -43,7 +43,7 @@ export default function ErrorBoundary({
           </p>
 
           {error.digest ? (
-            <p className="u-label mt-8 text-mute">
+            <p className="u-label mt-8 text-muted">
               Reference <span className="u-nums text-muted">{error.digest}</span>
             </p>
           ) : null}
@@ -59,7 +59,7 @@ export default function ErrorBoundary({
           Try again
         </button>
 
-        <Link href="/" className="u-label u-link u-link-reveal text-mute hover:text-ivory">
+        <Link href="/" className="u-label u-link u-link-reveal text-muted hover:text-ivory">
           Go to the front page
         </Link>
       </div>

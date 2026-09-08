@@ -76,7 +76,7 @@ export default function PhotosPage() {
                 </span>
                 <span className="my-3 flex items-center gap-6 sm:my-5 sm:gap-10">
                   <span className="h-px flex-1 bg-ember-deep" />
-                  <span className="u-label shrink-0 text-mute">
+                  <span className="u-label shrink-0 text-muted">
                     {pluralize(totals.years, 'year')} filed
                   </span>
                 </span>
@@ -101,7 +101,7 @@ export default function PhotosPage() {
         </dl>
 
         {olderMaterial ? (
-          <p className="u-label mt-10 text-mute">
+          <p className="u-label mt-10 text-muted">
             The wider archive — writing and projects — runs from {span.from}
           </p>
         ) : null}
@@ -144,7 +144,7 @@ export default function PhotosPage() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <dt className="u-label text-mute">{label}</dt>
+      <dt className="u-label text-muted">{label}</dt>
       <dd className="u-display u-nums mt-3.5 text-2xl text-ivory">
         {value.toLocaleString('en-US')}
       </dd>

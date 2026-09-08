@@ -152,7 +152,7 @@ function TextEntry({
       <Link href={post.href} className="group block">
         <div className="flex items-baseline gap-4">
           <Label className="u-nums">{ordinalLabel(index)}</Label>
-          <TimeStamp date={post.date} className="text-mute" />
+          <TimeStamp date={post.date} className="text-muted" />
         </div>
 
         <h3 className="u-display mt-5 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">
@@ -164,7 +164,7 @@ function TextEntry({
         ) : null}
 
         {post.tags.length > 0 ? (
-          <p className="u-label mt-5 text-mute">
+          <p className="u-label mt-5 text-muted">
             {post.tags.slice(0, 3).join('  ·  ')}
           </p>
         ) : null}
@@ -199,7 +199,7 @@ function TailEntry({ post }: { post: PostSummary }) {
           <div className="col-span-2 md:col-span-4 lg:col-span-6 lg:col-start-6">
             <div className="flex items-baseline gap-4">
               <Label className="u-nums">{ordinalLabel(3)}</Label>
-              <TimeStamp date={post.date} className="text-mute" />
+              <TimeStamp date={post.date} className="text-muted" />
             </div>
 
             <h3 className="u-display mt-5 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">

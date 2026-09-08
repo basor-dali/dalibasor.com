@@ -61,7 +61,7 @@ export function EmptyFrame({
       )}
       style={style}
     >
-      <span className="u-label px-4 text-center text-mute">{label}</span>
+      <span className="u-label px-4 text-center text-muted">{label}</span>
     </div>
   );
 }
@@ -164,7 +164,7 @@ export function AlbumCard({
             <p className="u-serif mt-1.5 text-lg text-muted">{album.subtitle}</p>
           ) : null}
           {meta.length > 0 ? (
-            <p className="u-label mt-3.5 text-mute">{meta.join('  ·  ')}</p>
+            <p className="u-label mt-3.5 text-muted">{meta.join('  ·  ')}</p>
           ) : null}
           <span
             aria-hidden="true"

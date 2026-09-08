@@ -75,7 +75,7 @@ export default function NowPage() {
                         href={row.href}
                         className="group/row grid grid-cols-[2.75rem_minmax(0,1fr)] items-baseline gap-x-4 py-5 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:gap-x-8 sm:py-6"
                       >
-                        <span className="u-label u-nums text-mute transition-colors duration-300 group-hover/row:text-ember">
+                        <span className="u-label u-nums text-muted transition-colors duration-300 group-hover/row:text-ember">
                           {number}
                         </span>
 
@@ -83,7 +83,7 @@ export default function NowPage() {
                           {recordLabel(row)}
                         </span>
 
-                        <span className="u-label col-start-2 mt-2 flex items-center gap-3 text-mute sm:col-start-3 sm:mt-0 sm:justify-end">
+                        <span className="u-label col-start-2 mt-2 flex items-center gap-3 text-muted sm:col-start-3 sm:mt-0 sm:justify-end">
                           {row.location}
                           <svg
                             viewBox="0 0 16 16"

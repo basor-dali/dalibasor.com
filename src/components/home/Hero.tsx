@@ -51,7 +51,7 @@ export function PlaceholderFrame({
           <span className="pointer-events-none absolute right-3 bottom-3 h-3 w-3 border-r border-b border-line-strong" />
         </>
       ) : null}
-      {label ? <span className="u-label px-6 text-center text-mute">{label}</span> : null}
+      {label ? <span className="u-label px-6 text-center text-muted">{label}</span> : null}
     </div>
   );
 }
@@ -167,7 +167,7 @@ export function Hero({
           <p className="u-label text-muted">
             Personal archive <span aria-hidden="true">·</span> {site.location}
           </p>
-          <p className="u-label u-nums text-mute">
+          <p className="u-label u-nums text-muted">
             {span.from} <span aria-hidden="true">—</span> {span.to}
           </p>
         </div>
@@ -215,7 +215,7 @@ export function Hero({
           <p className="u-serif col-span-2 max-w-(--container-text) text-xl text-soft md:col-span-6 lg:col-span-5">
             {site.descriptor}
           </p>
-          <p className="u-label col-span-2 text-mute md:col-span-6 lg:col-span-4 lg:col-start-9 lg:text-right">
+          <p className="u-label col-span-2 text-muted md:col-span-6 lg:col-span-4 lg:col-start-9 lg:text-right">
             Technology <span aria-hidden="true">/</span> Projects{' '}
             <span aria-hidden="true">/</span> Life <span aria-hidden="true">/</span> Travel{' '}
             <span aria-hidden="true">/</span> Photography

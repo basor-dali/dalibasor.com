@@ -78,7 +78,7 @@ export default async function NowPeriodPage({ params }: RouteParams) {
           <Neighbour entry={next} direction="later" />
         </div>
 
-        <p className="u-label mt-16 text-mute">
+        <p className="u-label mt-16 text-muted">
           <Link href="/now" className="u-link u-link-reveal hover:text-ivory">
             All Now entries
           </Link>
@@ -104,8 +104,8 @@ function Neighbour({
   if (!entry) {
     return (
       <div className={cx(later && 'sm:text-right')}>
-        <p className="u-label text-mute">{later ? 'Later' : 'Earlier'}</p>
-        <p className="u-display mt-3 text-xl text-mute">
+        <p className="u-label text-muted">{later ? 'Later' : 'Earlier'}</p>
+        <p className="u-display mt-3 text-xl text-muted">
           {later ? 'This is the newest entry' : 'This is the first entry'}
         </p>
       </div>
@@ -114,13 +114,13 @@ function Neighbour({
 
   return (
     <Link href={entry.href} className={cx('group/nb block', later && 'sm:text-right')}>
-      <p className="u-label text-mute transition-colors duration-300 group-hover/nb:text-ember">
+      <p className="u-label text-muted transition-colors duration-300 group-hover/nb:text-ember">
         {later ? 'Later' : 'Earlier'}
       </p>
       <p className="u-display mt-3 text-2xl text-ivory transition-colors duration-300 group-hover/nb:text-white">
         {entry.title}
       </p>
-      {entry.location ? <p className="u-label mt-3 text-mute">{entry.location}</p> : null}
+      {entry.location ? <p className="u-label mt-3 text-muted">{entry.location}</p> : null}
     </Link>
   );
 }

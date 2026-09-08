@@ -198,7 +198,7 @@ export function Navigation() {
                 }
               >
                 <span className="flex items-baseline gap-3">
-                  <span className="u-label w-6 shrink-0 text-mute">
+                  <span className="u-label w-6 shrink-0 text-muted">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <span

@@ -198,7 +198,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
             <hr className="u-rule mb-7" />
             <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
               <h2 className="u-display text-2xl text-white">Albums</h2>
-              <p className="u-label text-mute">{pluralize(year.albums.length, 'album')}</p>
+              <p className="u-label text-muted">{pluralize(year.albums.length, 'album')}</p>
             </div>
           </header>
           <AlbumGrid
@@ -219,7 +219,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
             <Label as="p">{EVERYDAY_LABEL}</Label>
             <div className="mt-3.5 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
               <h2 className="u-display text-2xl text-white">{everydayHeading}</h2>
-              <p className="u-label text-mute">{pluralize(year.everyday.length, 'frame')}</p>
+              <p className="u-label text-muted">{pluralize(year.everyday.length, 'frame')}</p>
             </div>
           </header>
           <MediaGrid

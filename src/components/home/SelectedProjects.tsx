@@ -144,7 +144,7 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
             ) : null}
 
             {technologies.length > 0 ? (
-              <p className="u-label mt-7 text-mute">
+              <p className="u-label mt-7 text-muted">
                 {technologies.join('  /  ')}
                 {overflow > 0 ? `  /  +${overflow}` : ''}
               </p>

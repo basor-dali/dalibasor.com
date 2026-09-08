@@ -29,7 +29,7 @@ export function TimelineStrip({ years }: { years: TimelineYear[] }) {
         <Label as="h2">
           <span id="home-timeline">Timeline</span>
         </Label>
-        <p className="u-label u-nums text-mute">
+        <p className="u-label u-nums text-muted">
           {first.year} <span aria-hidden="true">—</span> {last.year}
         </p>
       </div>
@@ -74,7 +74,7 @@ function YearNode({ year, isLatest }: { year: TimelineYear; isLatest: boolean })
       >
         {year.year}
       </span>
-      <span className="u-label u-nums mt-1.5 block text-mute">
+      <span className="u-label u-nums mt-1.5 block text-muted">
         {hasContent ? year.total : <span aria-hidden="true">—</span>}
       </span>
     </>

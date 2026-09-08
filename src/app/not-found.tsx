@@ -54,13 +54,13 @@ export default function NotFound() {
           {DESTINATIONS.map((destination, index) => (
             <li key={destination.href} className="border-t border-line">
               <Link href={destination.href} className="group/dest block py-6">
-                <span className="u-label u-nums block text-mute transition-colors duration-300 group-hover/dest:text-ember">
+                <span className="u-label u-nums block text-muted transition-colors duration-300 group-hover/dest:text-ember">
                   {ordinalLabel(index)}
                 </span>
                 <span className="u-display mt-4 block text-xl text-ivory transition-colors duration-300 group-hover/dest:text-white">
                   {destination.label}
                 </span>
-                <span className="u-label mt-2.5 block text-mute">{destination.note}</span>
+                <span className="u-label mt-2.5 block text-muted">{destination.note}</span>
               </Link>
             </li>
           ))}

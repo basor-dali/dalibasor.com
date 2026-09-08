@@ -34,7 +34,7 @@ export function Timeline({
 
           <div className="min-w-0">
             <p className="text-lg text-ivory">{entry.what}</p>
-            {entry.where ? <p className="u-label mt-2.5 text-mute">{entry.where}</p> : null}
+            {entry.where ? <p className="u-label mt-2.5 text-muted">{entry.where}</p> : null}
           </div>
         </li>
       ))}

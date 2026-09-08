@@ -139,7 +139,7 @@ function Stamp({
         className,
       )}
     >
-      <span className="u-nums text-mute">{ordinal}</span>
+      <span className="u-nums text-muted">{ordinal}</span>
       <span aria-hidden="true" className="text-line-strong">
         /
       </span>
@@ -150,7 +150,7 @@ function Stamp({
       <span aria-hidden="true" className="text-line-strong">
         /
       </span>
-      <span className="u-nums text-mute">{project.period}</span>
+      <span className="u-nums text-muted">{project.period}</span>
     </p>
   );
 }
@@ -162,7 +162,7 @@ function Body({ project, className }: { project: ProjectSummary; className?: str
         <p className="max-w-[46ch] text-soft">{project.description}</p>
       ) : null}
       {project.technologies.length > 0 ? (
-        <p className="u-label mt-5 text-mute">{project.technologies.join('  /  ')}</p>
+        <p className="u-label mt-5 text-muted">{project.technologies.join('  /  ')}</p>
       ) : null}
       <span className="u-label mt-6 inline-flex items-baseline gap-2 text-ember">
         {/* The whole feature is the link, so the underline is driven by the
@@ -249,7 +249,7 @@ export function PlaceholderFrame({
         <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.25" />
         <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.25" />
       </svg>
-      <span className="u-label absolute bottom-3 left-3 text-mute sm:bottom-4 sm:left-4">
+      <span className="u-label absolute bottom-3 left-3 text-muted sm:bottom-4 sm:left-4">
         {label}
       </span>
     </div>

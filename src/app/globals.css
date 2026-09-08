@@ -25,7 +25,11 @@
   --color-ivory: #ede7dd;
   --color-soft: #b3aba2;
   --color-muted: #8c857e;
-  --color-mute: #6e6862; /* decorative / large text only — 3.4:1 */
+  /* The dimmest tier, and the only token that does not meet WCAG AA for body
+     text: 3.58:1 on ground, 3.43:1 on surface, 3.25:1 on surface-2, 3.05:1 on
+     surface-3. It exists for the colossal year numerals and nothing else.
+     NEVER put it on text below 24px — use --color-muted (5.40:1) there. */
+  --color-mute: #6e6862;
 
   /* --- accent ---------------------------------------------------------- */
   --color-ember: #d2673f; /* 5.4:1 on ground — safe for small text */
@@ -491,7 +495,8 @@
   }
 
   .prose ol > li::marker {
-    color: var(--color-mute);
+    /* A list number is content, not decoration, and 0.85em is ~14px. */
+    color: var(--color-muted);
     font-family: var(--font-mono);
     font-size: 0.85em;
   }
@@ -579,7 +584,8 @@
     font-size: var(--text-micro);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--color-mute);
+    /* 11px, so it needs 4.5:1 — mute is 3.58:1 and would fail. */
+    color: var(--color-muted);
   }
 
   /* Footnotes (remark-gfm) */
@@ -596,7 +602,7 @@
     font-size: var(--text-micro);
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--color-mute);
+    color: var(--color-muted);
     margin-top: 0;
     margin-bottom: 1em;
   }

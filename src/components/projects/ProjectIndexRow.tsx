@@ -39,7 +39,7 @@ export function ProjectIndexRow({
         href={project.href}
         className="group grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2.5 border-t border-line py-5 transition-colors duration-500 hover:border-line-strong sm:grid-cols-[3.5rem_minmax(0,1fr)] sm:gap-x-6 sm:py-6 lg:grid-cols-[3rem_minmax(0,1fr)_9rem_minmax(0,11rem)] lg:gap-x-6 xl:gap-x-10"
       >
-        <span className={cx('u-label u-nums', dimmed ? 'text-mute' : 'text-muted')}>
+        <span className={cx('u-label u-nums', dimmed ? 'text-muted' : 'text-muted')}>
           {ordinal}
         </span>
 
@@ -61,7 +61,7 @@ export function ProjectIndexRow({
 
         <p className="col-start-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 lg:col-start-auto">
           <StatusDot status={project.status} />
-          <span className={cx('u-label', dimmed ? 'text-mute' : 'text-muted')}>
+          <span className={cx('u-label', dimmed ? 'text-muted' : 'text-muted')}>
             {STATUS_LABELS[project.status]}
           </span>
           {/* The <p> is not itself a u-label, so the divider has to carry the
@@ -69,11 +69,11 @@ export function ProjectIndexRow({
           <span aria-hidden="true" className="u-label text-line-strong">
             /
           </span>
-          <span className="u-label u-nums text-mute">{project.period}</span>
+          <span className="u-label u-nums text-muted">{project.period}</span>
         </p>
 
         <div className="col-start-2 flex items-baseline justify-between gap-4 lg:col-start-auto">
-          <p className="u-label min-w-0 text-mute">{project.technologies.join('  /  ')}</p>
+          <p className="u-label min-w-0 text-muted">{project.technologies.join('  /  ')}</p>
           <svg
             viewBox="0 0 16 16"
             width="11"

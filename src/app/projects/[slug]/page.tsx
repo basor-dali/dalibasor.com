@@ -81,7 +81,7 @@ export default async function ProjectPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-b border-line pb-4">
           <Link
             href="/projects"
-            className="u-label text-mute transition-colors duration-300 hover:text-ivory"
+            className="u-label text-muted transition-colors duration-300 hover:text-ivory"
           >
             <span aria-hidden="true">←</span> All projects
           </Link>
@@ -91,7 +91,7 @@ export default async function ProjectPage({ params }: PageProps) {
             <span aria-hidden="true" className="text-line-strong">
               /
             </span>
-            <span className="u-nums text-mute">{project.period}</span>
+            <span className="u-nums text-muted">{project.period}</span>
           </p>
         </div>
 
@@ -199,7 +199,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   <span className="u-display text-lg text-ivory transition-colors duration-300 group-hover:text-white sm:text-xl">
                     {post.title}
                   </span>
-                  <TimeStamp date={post.date} className="text-mute" />
+                  <TimeStamp date={post.date} className="text-muted" />
                 </Link>
               </li>
             ))}
@@ -257,7 +257,7 @@ function Neighbour({
       </p>
       <p
         className={cx(
-          'u-label mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-mute',
+          'u-label mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-muted',
           isNext && 'sm:justify-end',
         )}
       >

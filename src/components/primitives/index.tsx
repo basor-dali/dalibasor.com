@@ -10,6 +10,17 @@ import { cx, formatDate, isoDate } from '@/lib/utils';
 
 /* --- eyebrow label -------------------------------------------------------- */
 
+/**
+ * Colour utilities from the palette, so Label can tell whether a caller has
+ * already chosen one. `cx` is a plain string join — it cannot resolve a
+ * conflict — so emitting a default colour alongside a caller's `text-ember`
+ * left both classes on the element and handed the decision to stylesheet
+ * source order. `text-muted` sorts later than `text-ember`, so every eyebrow
+ * that asked for ember silently painted grey.
+ */
+const COLOR_UTILITY =
+  /(^|\s)text-(white|ivory|soft|muted|mute|ember|ember-deep|line|line-strong|ground|ground-deep|surface|surface-2|surface-3)(\/|\s|$)/;
+
 export function Label({
   children,
   className,
@@ -19,7 +30,12 @@ export function Label({
   className?: string;
   as?: 'span' | 'p' | 'div' | 'h2';
 }) {
-  return <Tag className={cx('u-label text-mute', className)}>{children}</Tag>;
+  // `muted` (5.40:1) rather than `mute` (3.58:1): u-label is 11px, which needs
+  // 4.5:1. This is the colour of nearly every date, tag and count on the site.
+  const colored = className ? COLOR_UTILITY.test(className) : false;
+  return (
+    <Tag className={cx('u-label', !colored && 'text-muted', className)}>{children}</Tag>
+  );
 }
 
 /* --- section header ------------------------------------------------------- */
@@ -148,7 +164,7 @@ export function MetaLine({
   if (present.length === 0) return null;
 
   return (
-    <p className={cx('u-label flex flex-wrap items-center gap-x-2 gap-y-1 text-mute', className)}>
+    <p className={cx('u-label flex flex-wrap items-center gap-x-2 gap-y-1 text-muted', className)}>
       {present.map((item, index) => (
         <span key={index} className="flex items-center gap-x-2">
           {index > 0 ? (

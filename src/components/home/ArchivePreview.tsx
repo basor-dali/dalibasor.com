@@ -72,7 +72,7 @@ function LeadYear({ year }: { year: YearSummary }) {
       <Link href={year.href} className="group block">
         <YearMark
           year={year.year}
-          className="text-line-strong transition-colors duration-700 group-hover:text-mute"
+          className="text-line-strong transition-colors duration-700 group-hover:text-muted"
         />
 
         {/* pushed right and pulled up so the photographs sit across the
@@ -128,7 +128,7 @@ function YearRow({ year }: { year: YearSummary }) {
         {year.year}
       </span>
 
-      <span className="u-label min-w-0 truncate text-mute">{countLine(year)}</span>
+      <span className="u-label min-w-0 truncate text-muted">{countLine(year)}</span>
 
       <span className="flex items-center gap-4">
         {cover && cover.type === 'image' ? (

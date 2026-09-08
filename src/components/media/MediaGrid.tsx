@@ -119,7 +119,7 @@ export function MediaGrid({
 
       {hasMore ? (
         <div ref={sentinelRef} className="flex justify-center py-16" aria-hidden="true">
-          <span className="u-label text-mute">
+          <span className="u-label text-muted">
             {items.length - visibleCount} more
           </span>
         </div>
@@ -129,7 +129,7 @@ export function MediaGrid({
           silently hiding two hundred photographs. */}
       {hasMore ? (
         <noscript>
-          <p className="u-label py-8 text-center text-mute">
+          <p className="u-label py-8 text-center text-muted">
             {items.length - visibleCount} more photographs load as you scroll.
           </p>
         </noscript>

@@ -342,7 +342,7 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
         <div className="pointer-events-auto absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-ground-deep/80 to-transparent p-4 sm:p-6">
           <p className="u-label text-muted">
             <span className="text-ivory">{String(index + 1).padStart(2, '0')}</span>
-            <span className="mx-1.5 text-mute">/</span>
+            <span className="mx-1.5 text-muted">/</span>
             {String(count).padStart(2, '0')}
           </p>
           <button
@@ -370,7 +370,7 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
                 <p className="max-w-2xl text-sm text-ivory sm:text-base">{item.caption}</p>
               ) : null}
               {metaBits.length > 0 ? (
-                <p className="u-label mt-2 text-mute">
+                <p className="u-label mt-2 text-muted">
                   {metaBits.map((bit, i) => (
                     <span key={bit}>
                       {i > 0 ? <span className="mx-2 text-line-strong">·</span> : null}

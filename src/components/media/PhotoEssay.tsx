@@ -204,10 +204,10 @@ export function PhotoEssay({
       {hasMore ? (
         <>
           <div ref={sentinelRef} className="flex justify-center py-20" aria-hidden="true">
-            <span className="u-label text-mute">{items.length - shownCount} more</span>
+            <span className="u-label text-muted">{items.length - shownCount} more</span>
           </div>
           <noscript>
-            <p className="u-label py-8 text-center text-mute">
+            <p className="u-label py-8 text-center text-muted">
               {items.length - shownCount} more frames load as you scroll.
             </p>
           </noscript>
@@ -424,7 +424,7 @@ function FrameCaption({ item, compact }: { item: MediaItem; compact: boolean }) 
           {item.caption}
         </span>
       ) : null}
-      {bits.length > 0 ? <span className="u-label text-mute">{bits.join('  ·  ')}</span> : null}
+      {bits.length > 0 ? <span className="u-label text-muted">{bits.join('  ·  ')}</span> : null}
     </figcaption>
   );
 }

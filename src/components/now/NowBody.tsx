@@ -77,7 +77,7 @@ export function NowBody({
 
         <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
           <p className="u-label text-ember">{isCurrent ? 'Now' : 'Archived'}</p>
-          <p className="u-label u-nums text-mute">
+          <p className="u-label u-nums text-muted">
             {context === 'permalink' && isCurrent ? 'Currently live · ' : null}
             {entry.period}
           </p>
@@ -126,7 +126,7 @@ export function NowBody({
                 : `This is how things were in ${formatPeriod(entry.period)}. It has not been edited since.`}
             </p>
             <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-              <p className="u-label text-mute">
+              <p className="u-label text-muted">
                 {isCurrent ? 'Current entry' : (distance ?? 'An earlier entry')}
               </p>
               <ArrowLink href="/now">{isCurrent ? 'Go to /now' : 'See what is current'}</ArrowLink>
@@ -145,8 +145,8 @@ export function NowBody({
             <div className="border-b border-line pb-6 lg:sticky lg:top-32 lg:border-b-0 lg:pb-0">
               <span aria-hidden="true" className="mb-4 block h-px w-10 bg-ember-deep" />
               <div className="flex flex-wrap gap-x-6 gap-y-2 lg:block lg:space-y-2">
-                <p className="u-label text-mute">{formatPeriod(entry.period)}</p>
-                {entry.location ? <p className="u-label text-mute">{entry.location}</p> : null}
+                <p className="u-label text-muted">{formatPeriod(entry.period)}</p>
+                {entry.location ? <p className="u-label text-muted">{entry.location}</p> : null}
               </div>
             </div>
           </div>
@@ -212,7 +212,7 @@ function FramePlaceholder({ ratio, label }: { ratio: string; label: string }) {
     >
       <span className="absolute top-5 left-5 block h-px w-8 bg-ember-deep" />
       <span className="u-label absolute right-5 bottom-5 left-5 text-muted">
-        {label} <span className="text-mute">— photograph pending</span>
+        {label} <span className="text-muted">— photograph pending</span>
       </span>
     </div>
   );

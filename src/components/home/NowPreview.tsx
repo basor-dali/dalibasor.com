@@ -26,7 +26,7 @@ export function NowPreview({ entry }: { entry?: NowEntry }) {
           </h2>
 
           {entry?.location ? (
-            <p className="u-label mt-4 text-mute">{entry.location}</p>
+            <p className="u-label mt-4 text-muted">{entry.location}</p>
           ) : null}
         </div>
 
@@ -43,7 +43,7 @@ export function NowPreview({ entry }: { entry?: NowEntry }) {
               </p>
             </div>
           ) : (
-            <p className="u-serif max-w-(--container-text) text-xl text-mute">
+            <p className="u-serif max-w-(--container-text) text-xl text-muted">
               Nothing written for this month yet.
             </p>
           )}

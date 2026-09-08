@@ -277,7 +277,7 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
         onSubmit={(event) => event.preventDefault()}
         className="max-w-(--container-text-wide)"
       >
-        <label htmlFor={inputId} className="u-label text-mute mb-5 block">
+        <label htmlFor={inputId} className="u-label text-muted mb-5 block">
           Search everything
         </label>
 
@@ -325,7 +325,7 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
         <section key={group.label} className="mt-(--spacing-section-sm)">
           <div className="border-line-strong flex items-baseline justify-between gap-6 border-b pb-3">
             <h2 className="u-label text-ember">{group.label}</h2>
-            <span className="u-label u-nums text-mute">
+            <span className="u-label u-nums text-muted">
               {ordinalLabel(group.items.length - 1)}
             </span>
           </div>
@@ -343,7 +343,7 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
                     {/* Numbered within the group, most relevant first. */}
                     <span
                       aria-hidden="true"
-                      className="u-label u-nums text-mute md:col-span-1"
+                      className="u-label u-nums text-muted md:col-span-1"
                     >
                       {ordinalLabel(index)}
                     </span>
@@ -360,7 +360,7 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
                     </div>
 
                     {result.doc.meta ? (
-                      <p className="u-label text-mute mt-4 md:col-span-3 md:mt-0 md:text-right">
+                      <p className="u-label text-muted mt-4 md:col-span-3 md:mt-0 md:text-right">
                         {result.doc.meta}
                       </p>
                     ) : null}
@@ -397,9 +397,9 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
       {showIdle && counts.length > 0 ? (
         <div className="mt-(--spacing-section-sm)">
           <div className="border-line-strong flex items-baseline justify-between gap-6 border-b pb-3">
-            <h2 className="u-label text-mute">In the index</h2>
+            <h2 className="u-label text-muted">In the index</h2>
             {docs ? (
-              <span className="u-label u-nums text-mute">{docs.length}</span>
+              <span className="u-label u-nums text-muted">{docs.length}</span>
             ) : null}
           </div>
 

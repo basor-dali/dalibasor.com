@@ -135,7 +135,7 @@ export default function AboutPage() {
       {/* ---------------------------------------------------------------- */}
       <section className="u-page mt-(--spacing-section)" aria-label="Elsewhere">
         <hr className="u-rule" />
-        <h2 className="u-label mt-5 text-mute">Elsewhere</h2>
+        <h2 className="u-label mt-5 text-muted">Elsewhere</h2>
 
         <ul className="mt-10 grid list-none gap-x-(--spacing-gutter) gap-y-0 p-0 sm:grid-cols-2 lg:grid-cols-4">
           {site.social.map((entry) => (
@@ -149,7 +149,7 @@ export default function AboutPage() {
                 <span className="u-display block text-xl text-ivory transition-colors duration-300 group-hover/out:text-white">
                   {entry.label}
                 </span>
-                <span className="u-label mt-2 block text-mute transition-colors duration-300 group-hover/out:text-ember">
+                <span className="u-label mt-2 block text-muted transition-colors duration-300 group-hover/out:text-ember">
                   {entry.handle}
                 </span>
               </a>
@@ -161,7 +161,7 @@ export default function AboutPage() {
               <span className="u-display block text-xl text-ivory transition-colors duration-300 group-hover/out:text-white">
                 Email
               </span>
-              <span className="u-label mt-2 block break-all text-mute transition-colors duration-300 group-hover/out:text-ember">
+              <span className="u-label mt-2 block break-all text-muted transition-colors duration-300 group-hover/out:text-ember">
                 {site.author.email}
               </span>
             </a>
@@ -189,7 +189,7 @@ function PortraitPlaceholder() {
     >
       <span className="absolute top-5 left-5 block h-px w-8 bg-ember-deep" />
       <span className="u-label absolute right-5 bottom-5 left-5 text-muted">
-        Portrait <span className="text-mute">— photograph pending</span>
+        Portrait <span className="text-muted">— photograph pending</span>
       </span>
     </div>
   );

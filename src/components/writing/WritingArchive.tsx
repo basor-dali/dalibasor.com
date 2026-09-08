@@ -143,7 +143,7 @@ export function WritingArchive({
       <div className="js-writing-filters">
         <div className="u-grid items-end">
           <div className="col-span-2 md:col-span-6 lg:col-span-5">
-            <label htmlFor={searchId} className="u-label mb-3 block text-mute">
+            <label htmlFor={searchId} className="u-label mb-3 block text-muted">
               Search
             </label>
             <div className="relative flex items-center border-b border-line transition-colors duration-300 focus-within:border-ember">

@@ -135,7 +135,7 @@ export default function ProjectsPage() {
                         aria-hidden="true"
                         className={cx(
                           'u-display u-nums shrink-0 text-3xl lg:mt-5',
-                          dimmed ? 'text-line-strong' : 'text-mute',
+                          dimmed ? 'text-line-strong' : 'text-muted',
                         )}
                       >
                         {String(group.projects.length).padStart(2, '0')}
@@ -186,7 +186,7 @@ function EmptyIndex() {
         </div>
 
         <div className="col-span-2 md:col-span-6 lg:col-span-4 lg:col-start-9">
-          <h2 className="u-label text-mute">Statuses</h2>
+          <h2 className="u-label text-muted">Statuses</h2>
           <ul className="mt-5 list-none p-0">
             {STATUS_ORDER.map((status) => (
               <li

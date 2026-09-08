@@ -14,9 +14,9 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
           {/* --- identity --- */}
           <div className="md:col-span-5">
             <p className="u-display text-2xl text-ivory">{site.name}</p>
-            <p className="u-label mt-3 text-mute">{site.location}</p>
+            <p className="u-label mt-3 text-muted">{site.location}</p>
             {span ? (
-              <p className="u-label mt-8 text-mute">
+              <p className="u-label mt-8 text-muted">
                 Archive {span.from} <span aria-hidden="true">—</span> {span.to}
                 <span className="sr-only"> to </span>
               </p>
@@ -25,7 +25,7 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
 
           {/* --- pages --- */}
           <nav aria-label="Footer" className="md:col-span-3">
-            <h2 className="u-label mb-4 text-mute">Pages</h2>
+            <h2 className="u-label mb-4 text-muted">Pages</h2>
             <ul className="list-none space-y-2.5 p-0">
               {primaryNav.map((item) => (
                 <li key={item.href}>
@@ -50,7 +50,7 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
 
           {/* --- elsewhere --- */}
           <div className="md:col-span-4">
-            <h2 className="u-label mb-4 text-mute">Elsewhere</h2>
+            <h2 className="u-label mb-4 text-muted">Elsewhere</h2>
             <ul className="list-none space-y-2.5 p-0">
               {site.social.map((social) => (
                 <li key={social.label}>
@@ -61,7 +61,7 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
                     className="u-link u-link-reveal text-sm text-soft hover:text-white"
                   >
                     {social.label}
-                    <span className="u-label ml-2 text-mute">{social.handle}</span>
+                    <span className="u-label ml-2 text-muted">{social.handle}</span>
                   </a>
                 </li>
               ))}
@@ -86,10 +86,10 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
         </div>
 
         <div className="mt-16 flex flex-col gap-3 border-t border-line pt-8 sm:flex-row sm:items-baseline sm:justify-between">
-          <p className="u-label text-mute">
+          <p className="u-label text-muted">
             © {site.archiveStartYear}–{new Date().getUTCFullYear()} {site.name}
           </p>
-          <p className="u-label text-mute">Built and maintained by me.</p>
+          <p className="u-label text-muted">Built and maintained by me.</p>
         </div>
       </div>
     </footer>

@@ -47,7 +47,7 @@ export function YearSelector({ years, current, className }: YearSelectorProps) {
                   'u-label-lg u-nums block py-1 transition-colors duration-300',
                   isCurrent
                     ? 'text-ember'
-                    : 'text-mute hover:text-ivory focus-visible:text-ivory',
+                    : 'text-muted hover:text-ivory focus-visible:text-ivory',
                 )}
               >
                 {year}
@@ -73,7 +73,7 @@ function StepLink({
 
   if (!year) {
     return (
-      <p className={cx('u-label max-w-[14rem] text-mute', align)}>
+      <p className={cx('u-label max-w-[14rem] text-muted', align)}>
         {isEarlier ? 'The earliest year filed' : 'The most recent year'}
       </p>
     );
@@ -81,18 +81,18 @@ function StepLink({
 
   return (
     <Link href={`/photos/${year}`} className={cx('group block max-w-[14rem]', align)}>
-      <span className="u-label block text-mute transition-colors duration-300 group-hover:text-muted">
+      <span className="u-label block text-muted transition-colors duration-300 group-hover:text-muted">
         {isEarlier ? 'Earlier' : 'Later'}
       </span>
       <span className="u-display u-nums mt-3 block text-3xl text-ivory transition-colors duration-300 group-hover:text-white">
         {isEarlier ? (
-          <span aria-hidden="true" className="mr-3 text-mute">
+          <span aria-hidden="true" className="mr-3 text-muted">
             &larr;
           </span>
         ) : null}
         {year}
         {isEarlier ? null : (
-          <span aria-hidden="true" className="ml-3 text-mute">
+          <span aria-hidden="true" className="ml-3 text-muted">
             &rarr;
           </span>
         )}

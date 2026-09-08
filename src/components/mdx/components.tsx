@@ -136,7 +136,7 @@ export function Pull({ children, cite }: { children: ReactNode; cite?: string })
       <p className="u-serif mx-auto max-w-4xl text-center text-3xl leading-[1.15] text-white">
         {children}
       </p>
-      {cite ? <p className="u-label mt-6 text-center text-mute">{cite}</p> : null}
+      {cite ? <p className="u-label mt-6 text-center text-muted">{cite}</p> : null}
     </aside>
   );
 }
@@ -145,7 +145,7 @@ export function Pull({ children, cite }: { children: ReactNode; cite?: string })
 export function Note({ children, label = 'Note' }: { children: ReactNode; label?: string }) {
   return (
     <aside className="my-10 border-l border-line-strong pl-5">
-      <p className="u-label mb-2 text-mute">{label}</p>
+      <p className="u-label mb-2 text-muted">{label}</p>
       <div className="text-sm text-muted [&>*+*]:mt-3">{children}</div>
     </aside>
   );

@@ -148,8 +148,8 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
           <div className="col-span-2 md:col-span-6 lg:col-span-3 lg:col-start-10 lg:self-end">
             <ul className="list-none space-y-2.5 p-0">
               <li className="u-label text-muted">{countLabel}</li>
-              {album.location ? <li className="u-label text-mute">{album.location}</li> : null}
-              {dateLabel ? <li className="u-label text-mute">{dateLabel}</li> : null}
+              {album.location ? <li className="u-label text-muted">{album.location}</li> : null}
+              {dateLabel ? <li className="u-label text-muted">{dateLabel}</li> : null}
             </ul>
           </div>
         </div>
@@ -204,9 +204,9 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
 
         <div className="mt-8 flex flex-wrap items-baseline justify-between gap-x-10 gap-y-6">
           <Link href={`/photos/${album.year}`} className="group block">
-            <span className="u-label block text-mute">Back to</span>
+            <span className="u-label block text-muted">Back to</span>
             <span className="u-display u-nums mt-3.5 block text-3xl text-ivory transition-colors duration-300 group-hover:text-white">
-              <span aria-hidden="true" className="mr-3 text-mute">
+              <span aria-hidden="true" className="mr-3 text-muted">
                 &larr;
               </span>
               {album.year}
@@ -228,10 +228,10 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
                     <span className="u-display text-xl text-ivory transition-colors duration-300 group-hover:text-white">
                       {entry.title}
                       {entry.subtitle ? (
-                        <span className="u-serif ml-3 text-lg text-mute">{entry.subtitle}</span>
+                        <span className="u-serif ml-3 text-lg text-muted">{entry.subtitle}</span>
                       ) : null}
                     </span>
-                    <span className="u-label text-mute">
+                    <span className="u-label text-muted">
                       {albumCountLabel(entry.photoCount, entry.videoCount)}
                     </span>
                   </Link>

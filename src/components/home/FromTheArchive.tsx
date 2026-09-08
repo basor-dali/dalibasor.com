@@ -43,11 +43,11 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
 
             {entry ? (
               <p className="mt-8">
-                <span className="u-label block text-mute">From</span>
+                <span className="u-label block text-muted">From</span>
                 <span className="u-display u-display-tight u-nums mt-1 block text-4xl text-ivory">
                   {entry.year}
                 </span>
-                <span className="u-label mt-3 block text-mute">{KIND_LABEL[entry.kind]}</span>
+                <span className="u-label mt-3 block text-muted">{KIND_LABEL[entry.kind]}</span>
               </p>
             ) : null}
           </div>
@@ -57,7 +57,7 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
             {entry ? (
               <Body entry={entry} />
             ) : (
-              <p className="u-serif max-w-(--container-text-wide) text-xl text-mute">
+              <p className="u-serif max-w-(--container-text-wide) text-xl text-muted">
                 Nothing old enough to resurface yet. Once there is some history here, this is
                 where a photograph, a project or an entry from years back will turn up.
               </p>
