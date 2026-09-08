@@ -21,7 +21,8 @@ const COLOR_ENABLED =
       Boolean(process.stdout.isTTY);
 
 function wrap(open, close) {
-  return (text) => (COLOR_ENABLED ? `\u001b[${open}m${text}\u001b[${close}m` : String(text));
+  return (text) =>
+    COLOR_ENABLED ? `\u001b[${open}m${text}\u001b[${close}m` : String(text);
 }
 
 export const colors = {

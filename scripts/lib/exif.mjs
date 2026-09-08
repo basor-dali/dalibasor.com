@@ -168,7 +168,11 @@ export function captureDateFromFile(stats) {
 export async function readCaptureInfo(buffer, stats, { readExif = true } = {}) {
   const exif = readExif ? await readSafeExif(buffer) : {};
   if (exif.capturedAt) {
-    return { capturedAt: exif.capturedAt, orientation: exif.orientation, inferred: false };
+    return {
+      capturedAt: exif.capturedAt,
+      orientation: exif.orientation,
+      inferred: false,
+    };
   }
   const fallback = captureDateFromFile(stats);
   return {

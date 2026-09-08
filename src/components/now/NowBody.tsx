@@ -64,7 +64,8 @@ export function NowBody({
       ? distanceLabel(monthsBetween(entry.period, current.period))
       : undefined;
 
-  const coverAlt = entry.coverAlt?.trim() || `Photograph from ${formatPeriod(entry.period)}`;
+  const coverAlt =
+    entry.coverAlt?.trim() || `Photograph from ${formatPeriod(entry.period)}`;
 
   return (
     <article>
@@ -87,7 +88,9 @@ export function NowBody({
           <div className="col-span-2 min-w-0 md:col-span-6 lg:col-span-7">
             <h1 className="u-display u-display-tight text-white">
               {lead ? <span className="block text-4xl">{lead}</span> : null}
-              <span className="u-nums block max-w-full text-colossal text-mute">{entry.year}</span>
+              <span className="u-nums text-colossal text-mute block max-w-full">
+                {entry.year}
+              </span>
             </h1>
 
             <MetaLine
@@ -95,7 +98,9 @@ export function NowBody({
               items={[
                 entry.location,
                 hasExactDate ? (
-                  <time dateTime={isoDate(entry.date)}>Written {formatDate(entry.date)}</time>
+                  <time dateTime={isoDate(entry.date)}>
+                    Written {formatDate(entry.date)}
+                  </time>
                 ) : null,
               ]}
             />
@@ -119,8 +124,8 @@ export function NowBody({
 
         {/* --- the past-snapshot band ------------------------------------ */}
         {context === 'permalink' ? (
-          <div className="mt-14 border-y border-line py-6 sm:mt-20">
-            <p className="u-serif max-w-(--container-text) text-xl text-soft">
+          <div className="border-line mt-14 border-y py-6 sm:mt-20">
+            <p className="u-serif text-soft max-w-(--container-text) text-xl">
               {isCurrent
                 ? 'This is the entry currently shown at /now. It keeps this address once a newer one is written.'
                 : `This is how things were in ${formatPeriod(entry.period)}. It has not been edited since.`}
@@ -129,7 +134,9 @@ export function NowBody({
               <p className="u-label text-muted">
                 {isCurrent ? 'Current entry' : (distance ?? 'An earlier entry')}
               </p>
-              <ArrowLink href="/now">{isCurrent ? 'Go to /now' : 'See what is current'}</ArrowLink>
+              <ArrowLink href="/now">
+                {isCurrent ? 'Go to /now' : 'See what is current'}
+              </ArrowLink>
             </div>
           </div>
         ) : null}
@@ -142,11 +149,13 @@ export function NowBody({
       <div className="u-page mt-(--spacing-section-sm)">
         <div className="u-grid">
           <div className="col-span-2 md:col-span-6 lg:col-span-2">
-            <div className="border-b border-line pb-6 lg:sticky lg:top-32 lg:border-b-0 lg:pb-0">
-              <span aria-hidden="true" className="mb-4 block h-px w-10 bg-ember-deep" />
+            <div className="border-line border-b pb-6 lg:sticky lg:top-32 lg:border-b-0 lg:pb-0">
+              <span aria-hidden="true" className="bg-ember-deep mb-4 block h-px w-10" />
               <div className="flex flex-wrap gap-x-6 gap-y-2 lg:block lg:space-y-2">
                 <p className="u-label text-muted">{formatPeriod(entry.period)}</p>
-                {entry.location ? <p className="u-label text-muted">{entry.location}</p> : null}
+                {entry.location ? (
+                  <p className="u-label text-muted">{entry.location}</p>
+                ) : null}
               </div>
             </div>
           </div>
@@ -179,7 +188,9 @@ export function NowBody({
 function monthsBetween(from: string, to: string): number {
   const a = parseDate(from);
   const b = parseDate(to);
-  return (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth());
+  return (
+    (b.getUTCFullYear() - a.getUTCFullYear()) * 12 + (b.getUTCMonth() - a.getUTCMonth())
+  );
 }
 
 function distanceLabel(months: number): string | undefined {
@@ -208,10 +219,10 @@ function FramePlaceholder({ ratio, label }: { ratio: string; label: string }) {
     <div
       aria-hidden="true"
       style={{ aspectRatio: ratio }}
-      className="relative border border-line bg-surface-2"
+      className="border-line bg-surface-2 relative border"
     >
-      <span className="absolute top-5 left-5 block h-px w-8 bg-ember-deep" />
-      <span className="u-label absolute right-5 bottom-5 left-5 text-muted">
+      <span className="bg-ember-deep absolute top-5 left-5 block h-px w-8" />
+      <span className="u-label text-muted absolute right-5 bottom-5 left-5">
         {label} <span className="text-muted">— photograph pending</span>
       </span>
     </div>

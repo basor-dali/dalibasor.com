@@ -57,7 +57,8 @@ export const CONTENT_TYPE = {
  * keeps a large import to minutes rather than hours.
  */
 const ENCODERS = {
-  avif: (pipeline) => pipeline.avif({ quality: 55, effort: 3, chromaSubsampling: '4:2:0' }),
+  avif: (pipeline) =>
+    pipeline.avif({ quality: 55, effort: 3, chromaSubsampling: '4:2:0' }),
   webp: (pipeline) => pipeline.webp({ quality: 78, effort: 4, smartSubsample: true }),
   jpeg: (pipeline) => pipeline.jpeg({ quality: 82, mozjpeg: true, progressive: true }),
 };
@@ -141,7 +142,10 @@ export function originalExtensionCandidates(item = {}) {
  * private can survive into a derivative. Returns descriptors ready to upload;
  * this function performs no I/O of its own.
  */
-export async function generateDerivatives(buffer, { nativeWidth, formats = LADDER_FORMATS }) {
+export async function generateDerivatives(
+  buffer,
+  { nativeWidth, formats = LADDER_FORMATS },
+) {
   const widths = widthsFor(nativeWidth);
   const outputs = [];
 
@@ -168,7 +172,9 @@ export async function generateDerivatives(buffer, { nativeWidth, formats = LADDE
   // One JPEG so <img src> resolves even without AVIF or WebP support.
   const fallbackWidth = Math.min(FALLBACK_WIDTH, nativeWidth);
   const fallback = await ENCODERS.jpeg(
-    source.clone().resize(fallbackWidth, null, { withoutEnlargement: true, fit: 'inside' }),
+    source
+      .clone()
+      .resize(fallbackWidth, null, { withoutEnlargement: true, fit: 'inside' }),
   ).toBuffer();
 
   outputs.push({

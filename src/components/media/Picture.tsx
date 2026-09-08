@@ -26,7 +26,13 @@ export type PictureProps = {
   alt?: string;
 };
 
-export function Picture({ image, priority = false, className, style, alt }: PictureProps) {
+export function Picture({
+  image,
+  priority = false,
+  className,
+  style,
+  alt,
+}: PictureProps) {
   const img = (
     <img
       src={image.src}

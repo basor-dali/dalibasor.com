@@ -90,7 +90,9 @@ export function readCredentials() {
   const cloudName = (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '').trim();
   const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim();
   const apiSecret = (process.env.CLOUDINARY_API_SECRET || '').trim();
-  const folder = (process.env.CLOUDINARY_FOLDER || DEFAULT_FOLDER).trim().replace(/^\/+|\/+$/g, '');
+  const folder = (process.env.CLOUDINARY_FOLDER || DEFAULT_FOLDER)
+    .trim()
+    .replace(/^\/+|\/+$/g, '');
 
   const missing = [];
   if (!cloudName) missing.push('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME');

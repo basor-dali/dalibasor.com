@@ -51,7 +51,9 @@ export function MediaGrid({
   className,
   priorityCount = 0,
 }: MediaGridProps) {
-  const [visibleCount, setVisibleCount] = useState(() => Math.min(initialCount, items.length));
+  const [visibleCount, setVisibleCount] = useState(() =>
+    Math.min(initialCount, items.length),
+  );
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { open } = useLightbox();
 
@@ -119,9 +121,7 @@ export function MediaGrid({
 
       {hasMore ? (
         <div ref={sentinelRef} className="flex justify-center py-16" aria-hidden="true">
-          <span className="u-label text-muted">
-            {items.length - visibleCount} more
-          </span>
+          <span className="u-label text-muted">{items.length - visibleCount} more</span>
         </div>
       ) : null}
 
@@ -129,7 +129,7 @@ export function MediaGrid({
           silently hiding two hundred photographs. */}
       {hasMore ? (
         <noscript>
-          <p className="u-label py-8 text-center text-muted">
+          <p className="u-label text-muted py-8 text-center">
             {items.length - visibleCount} more photographs load as you scroll.
           </p>
         </noscript>
@@ -161,7 +161,9 @@ function GridCell({
     ? responsiveVideo(item, { posterWidth: 800 })
     : responsiveImage(item, { ladder: 'grid', sizes: 'quarter', fit: 'fill' });
 
-  const src = isVideo ? (media as ReturnType<typeof responsiveVideo>).poster : (media as ReturnType<typeof responsiveImage>).src;
+  const src = isVideo
+    ? (media as ReturnType<typeof responsiveVideo>).poster
+    : (media as ReturnType<typeof responsiveImage>).src;
 
   const stamp = item.capturedAt ? formatShortMonthYear(item.capturedAt) : undefined;
 
@@ -205,12 +207,19 @@ function GridCell({
 
         {/* A whisper of a scrim on hover so the label stays legible on a
             bright photograph, and nothing at all otherwise. */}
-        <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ground-deep/55 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+        <span className="from-ground-deep/55 pointer-events-none absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
         {isVideo ? (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="flex h-11 w-11 items-center justify-center border border-ivory/40 bg-ground/40 backdrop-blur-[2px] transition-colors duration-500 group-hover:border-ivory/80">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true" className="translate-x-px text-ivory">
+            <span className="border-ivory/40 bg-ground/40 group-hover:border-ivory/80 flex h-11 w-11 items-center justify-center border backdrop-blur-[2px] transition-colors duration-500">
+              <svg
+                viewBox="0 0 24 24"
+                width="13"
+                height="13"
+                fill="currentColor"
+                aria-hidden="true"
+                className="text-ivory translate-x-px"
+              >
                 <path d="M5 3.5 20 12 5 20.5z" />
               </svg>
             </span>
@@ -219,11 +228,11 @@ function GridCell({
 
         {(stamp || item.location || (isVideo && item.duration)) && (
           <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2.5 opacity-0 transition-opacity duration-500 group-hover:opacity-100 sm:p-3">
-            <span className="u-label truncate text-ivory/85">
+            <span className="u-label text-ivory/85 truncate">
               {item.location ?? stamp}
             </span>
             {isVideo && item.duration ? (
-              <span className="u-label shrink-0 text-ivory/85">
+              <span className="u-label text-ivory/85 shrink-0">
                 {formatDuration(item.duration)}
               </span>
             ) : null}
@@ -241,7 +250,11 @@ function GridCell({
    on their shape and their position in the sequence, which produces an uneven
    but rhythmic sheet rather than a wall of identical squares. */
 
-function spanFor(item: MediaItem, index: number, variant: MediaGridProps['variant']): string {
+function spanFor(
+  item: MediaItem,
+  index: number,
+  variant: MediaGridProps['variant'],
+): string {
   if (variant === 'contact') {
     return 'col-span-1 md:col-span-1 lg:col-span-2';
   }

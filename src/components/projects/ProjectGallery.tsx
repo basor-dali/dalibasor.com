@@ -54,13 +54,15 @@ const SLOTS: Slot[] = [
   },
   {
     span: 'col-span-2 md:col-span-4 lg:col-span-7',
-    sizes: '(min-width: 108rem) 57rem, (min-width: 64rem) 57vw, (min-width: 48rem) 64vw, 100vw',
+    sizes:
+      '(min-width: 108rem) 57rem, (min-width: 64rem) 57vw, (min-width: 48rem) 64vw, 100vw',
     ratio: '3 / 2',
     ladder: 'feature',
   },
   {
     span: 'col-span-2 md:col-span-2 lg:col-span-5',
-    sizes: '(min-width: 108rem) 40rem, (min-width: 64rem) 40vw, (min-width: 48rem) 31vw, 100vw',
+    sizes:
+      '(min-width: 108rem) 40rem, (min-width: 64rem) 40vw, (min-width: 48rem) 31vw, 100vw',
     ratio: '4 / 5',
     ladder: 'grid',
   },
@@ -84,31 +86,36 @@ const SLOTS: Slot[] = [
   },
   {
     span: 'col-span-1 md:col-span-2 lg:col-span-5',
-    sizes: '(min-width: 108rem) 40rem, (min-width: 64rem) 40vw, (min-width: 48rem) 31vw, 48vw',
+    sizes:
+      '(min-width: 108rem) 40rem, (min-width: 64rem) 40vw, (min-width: 48rem) 31vw, 48vw',
     ratio: '1 / 1',
     ladder: 'grid',
   },
   {
     span: 'col-span-1 md:col-span-4 lg:col-span-7',
-    sizes: '(min-width: 108rem) 57rem, (min-width: 64rem) 57vw, (min-width: 48rem) 64vw, 48vw',
+    sizes:
+      '(min-width: 108rem) 57rem, (min-width: 64rem) 57vw, (min-width: 48rem) 64vw, 48vw',
     ratio: '3 / 2',
     ladder: 'feature',
   },
   {
     span: 'col-span-1 md:col-span-2 lg:col-span-4',
-    sizes: '(min-width: 108rem) 31rem, (min-width: 64rem) 32vw, (min-width: 48rem) 31vw, 48vw',
+    sizes:
+      '(min-width: 108rem) 31rem, (min-width: 64rem) 32vw, (min-width: 48rem) 31vw, 48vw',
     ratio: '1 / 1',
     ladder: 'grid',
   },
   {
     span: 'col-span-1 md:col-span-2 lg:col-span-4',
-    sizes: '(min-width: 108rem) 31rem, (min-width: 64rem) 32vw, (min-width: 48rem) 31vw, 48vw',
+    sizes:
+      '(min-width: 108rem) 31rem, (min-width: 64rem) 32vw, (min-width: 48rem) 31vw, 48vw',
     ratio: '1 / 1',
     ladder: 'grid',
   },
   {
     span: 'col-span-2 md:col-span-2 lg:col-span-4',
-    sizes: '(min-width: 108rem) 31rem, (min-width: 64rem) 32vw, (min-width: 48rem) 31vw, 100vw',
+    sizes:
+      '(min-width: 108rem) 31rem, (min-width: 64rem) 32vw, (min-width: 48rem) 31vw, 100vw',
     ratio: '4 / 5',
     ladder: 'grid',
   },
@@ -130,7 +137,13 @@ const VIDEO_SLOT: Slot = {
   ladder: 'feature',
 };
 
-export function ProjectGallery({ items, title, slug, year, className }: ProjectGalleryProps) {
+export function ProjectGallery({
+  items,
+  title,
+  slug,
+  year,
+  className,
+}: ProjectGalleryProps) {
   const { open } = useLightbox();
 
   const cells = useMemo(() => {
@@ -160,7 +173,10 @@ export function ProjectGallery({ items, title, slug, year, className }: ProjectG
     [cells],
   );
 
-  const openAt = useCallback((index: number) => open(images, index, title), [images, open, title]);
+  const openAt = useCallback(
+    (index: number) => open(images, index, title),
+    [images, open, title],
+  );
 
   if (items.length === 0) return null;
 
@@ -185,7 +201,7 @@ export function ProjectGallery({ items, title, slug, year, className }: ProjectG
               <GalleryImage item={item} slot={slot} onOpen={() => openAt(imageIndex)} />
             )}
             {item.caption ? (
-              <figcaption className="u-label mt-3 text-muted">{item.caption}</figcaption>
+              <figcaption className="u-label text-muted mt-3">{item.caption}</figcaption>
             ) : null}
           </figure>
         </li>
@@ -243,7 +259,7 @@ function GalleryImage({
           decoding="async"
           className="media-img transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.03] motion-reduce:transform-none"
         />
-        <span className="pointer-events-none absolute inset-0 border border-transparent transition-colors duration-500 group-hover:border-ivory/20" />
+        <span className="group-hover:border-ivory/20 pointer-events-none absolute inset-0 border border-transparent transition-colors duration-500" />
       </div>
     </button>
   );
@@ -276,7 +292,8 @@ function toMediaItem(
 ): MediaItem {
   const { slug, index, year, title } = context;
   const type = input.type === 'video' ? 'video' : 'image';
-  const width = input.width && input.width > 0 ? input.width : type === 'video' ? 1920 : 2000;
+  const width =
+    input.width && input.width > 0 ? input.width : type === 'video' ? 1920 : 2000;
   const fallbackHeight = Math.round(width * (type === 'video' ? 9 / 16 : 2 / 3));
   const height = input.height && input.height > 0 ? input.height : fallbackHeight;
   const number = String(index + 1).padStart(2, '0');
@@ -292,7 +309,10 @@ function toMediaItem(
     caption: input.caption,
     // Never an empty alt on a clickable image. The frontmatter should say what
     // the picture is; when it does not, at least say what it belongs to.
-    alt: input.alt ?? input.caption ?? `${title} — ${type === 'video' ? 'clip' : 'image'} ${number}`,
+    alt:
+      input.alt ??
+      input.caption ??
+      `${title} — ${type === 'video' ? 'clip' : 'image'} ${number}`,
     poster: input.poster,
   };
 }

@@ -172,9 +172,15 @@ function checkManifest(file, report) {
     albumSlugs.add(slug);
 
     if (!album.title) {
-      report.warn(where, `album "${slug}" has no \`title\`. The slug will be shown instead.`);
+      report.warn(
+        where,
+        `album "${slug}" has no \`title\`. The slug will be shown instead.`,
+      );
     }
-    if (album.date !== undefined && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(String(album.date))) {
+    if (
+      album.date !== undefined &&
+      !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(String(album.date))
+    ) {
       report.warn(
         where,
         `\`date: ${album.date}\` is not YYYY, YYYY-MM or YYYY-MM-DD. Album ordering may be odd.`,
@@ -207,7 +213,10 @@ function checkManifest(file, report) {
       report.error(where, 'missing `publicId`. Nothing can be rendered without it.');
     }
     if (!item.id) {
-      report.warn(where, 'missing `id`. One will be generated, but it may change between builds.');
+      report.warn(
+        where,
+        'missing `id`. One will be generated, but it may change between builds.',
+      );
     }
 
     /* ids unique */
@@ -248,7 +257,10 @@ function checkManifest(file, report) {
 
     /* type */
     if (item.type !== 'image' && item.type !== 'video') {
-      report.error(where, `\`type\` must be ${IMAGE_EXTENSIONS_HINT}, got "${item.type}".`);
+      report.error(
+        where,
+        `\`type\` must be ${IMAGE_EXTENSIONS_HINT}, got "${item.type}".`,
+      );
     }
 
     /* dimensions — these drive the aspect-ratio boxes that prevent layout shift */
@@ -260,8 +272,15 @@ function checkManifest(file, report) {
           `missing \`${key}\`. Without it the page reserves the wrong space and the ` +
             'layout jumps as photographs load.',
         );
-      } else if (!Number.isFinite(value) || value < MIN_SANE_DIMENSION || value > MAX_SANE_DIMENSION) {
-        report.error(where, `\`${key}: ${item[key]}\` is not a plausible pixel dimension.`);
+      } else if (
+        !Number.isFinite(value) ||
+        value < MIN_SANE_DIMENSION ||
+        value > MAX_SANE_DIMENSION
+      ) {
+        report.error(
+          where,
+          `\`${key}: ${item[key]}\` is not a plausible pixel dimension.`,
+        );
       }
     }
 
@@ -312,7 +331,14 @@ function checkManifest(file, report) {
     }
 
     /* privacy — the one thing that must never be in here */
-    for (const key of ['gps', 'latitude', 'longitude', 'gpsLatitude', 'gpsLongitude', 'coordinates']) {
+    for (const key of [
+      'gps',
+      'latitude',
+      'longitude',
+      'gpsLatitude',
+      'gpsLongitude',
+      'coordinates',
+    ]) {
       if (item[key] !== undefined) {
         report.error(
           where,
@@ -423,7 +449,9 @@ function main() {
   }
 
   if (options.strict && report.warnings.length > 0) {
-    fail(`${pluralize(report.warnings.length, 'warning')} found and --strict was passed.`);
+    fail(
+      `${pluralize(report.warnings.length, 'warning')} found and --strict was passed.`,
+    );
   }
 
   success(

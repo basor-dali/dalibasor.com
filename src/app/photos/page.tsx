@@ -3,8 +3,13 @@ import Link from 'next/link';
 import { EmptyFrame, frameRatio } from '@/components/media/AlbumCard';
 import { MediaImage } from '@/components/media/MediaImage';
 import { EmptyState, Label, YearMark } from '@/components/primitives';
-import { getArchiveSpan, getArchiveTotals, getTimeline, getYearSummaries } from '@/lib/content';
-import { mediaProvider } from '@/lib/media';
+import {
+  getArchiveSpan,
+  getArchiveTotals,
+  getTimeline,
+  getYearSummaries,
+} from '@/lib/content';
+import { mediaProvider, providerCanResize } from '@/lib/media';
 import { pageMetadata } from '@/lib/metadata';
 import { cx, pluralize, truncate } from '@/lib/utils';
 import type { MediaItem, YearSummary } from '@/types/content';
@@ -24,7 +29,16 @@ const IMAGE_HOVER =
 
 function ogImage(item: MediaItem | undefined): string | undefined {
   if (!item || item.type !== 'image') return undefined;
-  return mediaProvider().imageUrl(item.publicId, { width: 1200, height: 630, fit: 'fill' });
+  // A photograph is the better share image, but only when a CDN is actually
+  // configured. On the local provider the URL points into /public/media, where
+  // nothing exists, and every unfurl would carry a dead image. Returning
+  // undefined falls back to the site card, which always resolves.
+  if (!providerCanResize()) return undefined;
+  return mediaProvider().imageUrl(item.publicId, {
+    width: 1200,
+    height: 630,
+    fit: 'fill',
+  });
 }
 
 export function generateMetadata(): Metadata {
@@ -71,12 +85,12 @@ export default function PhotosPage() {
           <span aria-hidden="true" className="block">
             {singleYear ? null : (
               <>
-                <span className="u-display u-display-tight u-nums block text-colossal text-white">
+                <span className="u-display u-display-tight u-nums text-colossal block text-white">
                   {totals.firstYear}
                 </span>
                 <span className="my-3 flex items-center gap-6 sm:my-5 sm:gap-10">
-                  <span className="h-px flex-1 bg-ember-deep" />
-                  <span className="u-label shrink-0 text-muted">
+                  <span className="bg-ember-deep h-px flex-1" />
+                  <span className="u-label text-muted shrink-0">
                     {pluralize(totals.years, 'year')} filed
                   </span>
                 </span>
@@ -84,7 +98,7 @@ export default function PhotosPage() {
             )}
             <span
               className={cx(
-                'u-display u-display-tight u-nums block text-colossal text-white',
+                'u-display u-display-tight u-nums text-colossal block text-white',
                 singleYear ? 'text-left' : 'text-right',
               )}
             >
@@ -93,7 +107,7 @@ export default function PhotosPage() {
           </span>
         </h1>
 
-        <dl className="mt-16 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-line pt-10 sm:grid-cols-4 sm:gap-x-10">
+        <dl className="border-line mt-16 grid grid-cols-2 gap-x-6 gap-y-10 border-t pt-10 sm:grid-cols-4 sm:gap-x-10">
           <Stat label="Photographs" value={totals.photos} />
           <Stat label="Videos" value={totals.videos} />
           <Stat label="Albums" value={totals.albums} />
@@ -101,7 +115,7 @@ export default function PhotosPage() {
         </dl>
 
         {olderMaterial ? (
-          <p className="u-label mt-10 text-muted">
+          <p className="u-label text-muted mt-10">
             The wider archive — writing and projects — runs from {span.from}
           </p>
         ) : null}
@@ -113,8 +127,8 @@ export default function PhotosPage() {
           <EmptyState title="No years filed yet">
             <p>
               Each year lives in one file under{' '}
-              <span className="font-mono text-ivory">content/media</span>. The first one to land
-              there opens the archive.
+              <span className="text-ivory font-mono">content/media</span>. The first one
+              to land there opens the archive.
             </p>
           </EmptyState>
         </div>
@@ -125,9 +139,13 @@ export default function PhotosPage() {
             {years.map((summary, index) => (
               <li
                 key={summary.year}
-                className="border-t border-line py-(--spacing-section-sm) last:pb-0"
+                className="border-line border-t py-(--spacing-section-sm) last:pb-0"
               >
-                <YearBlock summary={summary} index={index} priority={index === 0 && hasMedia} />
+                <YearBlock
+                  summary={summary}
+                  index={index}
+                  priority={index === 0 && hasMedia}
+                />
               </li>
             ))}
           </ol>
@@ -145,7 +163,7 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <dt className="u-label text-muted">{label}</dt>
-      <dd className="u-display u-nums mt-3.5 text-2xl text-ivory">
+      <dd className="u-display u-nums text-ivory mt-3.5 text-2xl">
         {value.toLocaleString('en-US')}
       </dd>
     </div>
@@ -224,7 +242,7 @@ function YearBlock({
                   gradient is what keeps it legible over a bright frame. */}
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ground via-ground/45 to-transparent"
+                className="from-ground via-ground/45 pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t to-transparent"
               />
             </figure>
 
@@ -248,7 +266,7 @@ function YearBlock({
             <YearMark
               year={year}
               as="span"
-              className="text-white transition-colors duration-500 group-hover:text-ivory"
+              className="group-hover:text-ivory text-white transition-colors duration-500"
             />
           </h3>
         </>
@@ -257,7 +275,7 @@ function YearBlock({
       {variant === 1 ? (
         <div className="u-grid items-end">
           <h3 className="col-span-2 md:col-span-6 lg:col-span-4 lg:row-start-1">
-            <span className="u-display u-display-tight u-nums block text-5xl text-white transition-colors duration-500 group-hover:text-ivory">
+            <span className="u-display u-display-tight u-nums group-hover:text-ivory block text-5xl text-white transition-colors duration-500">
               {year}
             </span>
           </h3>
@@ -295,7 +313,7 @@ function YearBlock({
             <YearMark
               year={year}
               as="span"
-              className="text-white transition-colors duration-500 group-hover:text-ivory"
+              className="group-hover:text-ivory text-white transition-colors duration-500"
             />
           </h3>
 
@@ -326,13 +344,13 @@ function YearBlock({
       {/* --- the line under every year ---------------------------------- */}
       <div className="mt-9 flex flex-wrap items-baseline justify-between gap-x-10 gap-y-4">
         <p className="u-label text-muted">{countLine}</p>
-        <span className="u-label text-muted transition-colors duration-300 group-hover:text-ivory">
+        <span className="u-label text-muted group-hover:text-ivory transition-colors duration-300">
           Open {year} <span aria-hidden="true">&rarr;</span>
         </span>
       </div>
 
       {note ? (
-        <p className="u-serif mt-7 max-w-(--container-text) text-lg text-muted">{note}</p>
+        <p className="u-serif text-muted mt-7 max-w-(--container-text) text-lg">{note}</p>
       ) : null}
     </Link>
   );

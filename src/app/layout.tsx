@@ -20,8 +20,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
     types: {
-      'application/rss+xml': [{ url: '/writing/rss.xml', title: `${site.name} — Writing` }],
-      'application/feed+json': [{ url: '/writing/feed.json', title: `${site.name} — Writing` }],
+      'application/rss+xml': [
+        { url: '/writing/rss.xml', title: `${site.name} — Writing` },
+      ],
+      'application/feed+json': [
+        { url: '/writing/feed.json', title: `${site.name} — Writing` },
+      ],
     },
   },
   openGraph: {
@@ -78,7 +82,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-
         <LightboxProvider>
           <SiteChrome span={span}>{children}</SiteChrome>
         </LightboxProvider>

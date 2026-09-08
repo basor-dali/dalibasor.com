@@ -50,7 +50,7 @@ export default function AboutPage() {
       <header className="u-page pt-36 sm:pt-44">
         <hr className="u-rule" />
 
-        <p className="u-label mt-5 text-ember">About</p>
+        <p className="u-label text-ember mt-5">About</p>
 
         <div className="u-grid mt-12 items-start sm:mt-16">
           {/* The photograph leads, and the name runs over the foot of it. */}
@@ -71,12 +71,14 @@ export default function AboutPage() {
 
           <div className="col-span-2 min-w-0 md:col-span-6 lg:col-span-7 lg:pt-28">
             <h1 className="u-display u-display-tight relative z-10 text-5xl text-white lg:-ml-[16%]">
-              <span className="block w-fit bg-ground py-1 pr-5 sm:pr-8">Dali</span>
-              <span className="block w-fit bg-ground py-1 pr-5 sm:pr-8">Basor</span>
+              <span className="bg-ground block w-fit py-1 pr-5 sm:pr-8">Dali</span>
+              <span className="bg-ground block w-fit py-1 pr-5 sm:pr-8">Basor</span>
             </h1>
 
             {subtitle ? (
-              <p className="u-serif mt-10 max-w-(--container-text) text-xl text-soft">{subtitle}</p>
+              <p className="u-serif text-soft mt-10 max-w-(--container-text) text-xl">
+                {subtitle}
+              </p>
             ) : null}
 
             <MetaLine
@@ -98,7 +100,7 @@ export default function AboutPage() {
       <section className="u-page mt-(--spacing-section)" aria-label="About Dali Basor">
         <div className="u-grid">
           <div className="col-span-2 min-w-0 md:col-span-6 lg:col-span-8 lg:col-start-4">
-            <span aria-hidden="true" className="mb-10 block h-px w-16 bg-ember-deep" />
+            <span aria-hidden="true" className="bg-ember-deep mb-10 block h-px w-16" />
 
             <div className="prose max-w-(--container-text)">
               {body ? (
@@ -106,12 +108,18 @@ export default function AboutPage() {
               ) : (
                 <Placeholder>
                   <p>
-                    <strong className="text-ivory">[DALI: WRITE THIS IN YOUR OWN WORDS]</strong>
+                    <strong className="text-ivory">
+                      [DALI: WRITE THIS IN YOUR OWN WORDS]
+                    </strong>
                   </p>
                   <p>
-                    This page renders <code>content/pages/about.mdx</code>. Create it, write the
-                    body as ordinary MDX, and add the timeline to the frontmatter as{' '}
-                    <code>timeline: [{'{'} when, what, where {'}'}]</code>.
+                    This page renders <code>content/pages/about.mdx</code>. Create it,
+                    write the body as ordinary MDX, and add the timeline to the
+                    frontmatter as{' '}
+                    <code>
+                      timeline: [{'{'} when, what, where {'}'}]
+                    </code>
+                    .
                   </p>
                 </Placeholder>
               )}
@@ -135,33 +143,33 @@ export default function AboutPage() {
       {/* ---------------------------------------------------------------- */}
       <section className="u-page mt-(--spacing-section)" aria-label="Elsewhere">
         <hr className="u-rule" />
-        <h2 className="u-label mt-5 text-muted">Elsewhere</h2>
+        <h2 className="u-label text-muted mt-5">Elsewhere</h2>
 
         <ul className="mt-10 grid list-none gap-x-(--spacing-gutter) gap-y-0 p-0 sm:grid-cols-2 lg:grid-cols-4">
           {site.social.map((entry) => (
-            <li key={entry.label} className="border-t border-line">
+            <li key={entry.label} className="border-line border-t">
               <a
                 href={entry.href}
                 target="_blank"
                 rel="me noreferrer"
                 className="group/out block py-5"
               >
-                <span className="u-display block text-xl text-ivory transition-colors duration-300 group-hover/out:text-white">
+                <span className="u-display text-ivory block text-xl transition-colors duration-300 group-hover/out:text-white">
                   {entry.label}
                 </span>
-                <span className="u-label mt-2 block text-muted transition-colors duration-300 group-hover/out:text-ember">
+                <span className="u-label text-muted group-hover/out:text-ember mt-2 block transition-colors duration-300">
                   {entry.handle}
                 </span>
               </a>
             </li>
           ))}
 
-          <li className="border-t border-line">
+          <li className="border-line border-t">
             <a href={`mailto:${site.author.email}`} className="group/out block py-5">
-              <span className="u-display block text-xl text-ivory transition-colors duration-300 group-hover/out:text-white">
+              <span className="u-display text-ivory block text-xl transition-colors duration-300 group-hover/out:text-white">
                 Email
               </span>
-              <span className="u-label mt-2 block break-all text-muted transition-colors duration-300 group-hover/out:text-ember">
+              <span className="u-label text-muted group-hover/out:text-ember mt-2 block break-all transition-colors duration-300">
                 {site.author.email}
               </span>
             </a>
@@ -185,10 +193,10 @@ function PortraitPlaceholder() {
     <div
       aria-hidden="true"
       style={{ aspectRatio: '4 / 5' }}
-      className="relative border border-line bg-surface-2"
+      className="border-line bg-surface-2 relative border"
     >
-      <span className="absolute top-5 left-5 block h-px w-8 bg-ember-deep" />
-      <span className="u-label absolute right-5 bottom-5 left-5 text-muted">
+      <span className="bg-ember-deep absolute top-5 left-5 block h-px w-8" />
+      <span className="u-label text-muted absolute right-5 bottom-5 left-5">
         Portrait <span className="text-muted">— photograph pending</span>
       </span>
     </div>

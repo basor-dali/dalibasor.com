@@ -26,13 +26,13 @@ export default function NotFound() {
   return (
     <div className="u-page pt-36 pb-(--spacing-section) sm:pt-44">
       <hr className="u-rule" />
-      <p className="u-label mt-5 text-ember">Error 404</p>
+      <p className="u-label text-ember mt-5">Error 404</p>
 
       <div className="u-grid mt-12 items-end sm:mt-16">
         <div className="col-span-2 min-w-0 md:col-span-6 lg:col-span-7">
           <p
             aria-hidden="true"
-            className="u-display u-display-tight u-nums max-w-full text-colossal text-mute"
+            className="u-display u-display-tight u-nums text-colossal text-mute max-w-full"
           >
             404
           </p>
@@ -42,9 +42,9 @@ export default function NotFound() {
           <h1 className="u-display u-display-tight max-w-[16ch] text-2xl text-white">
             This page is not in the archive
           </h1>
-          <p className="u-serif mt-6 max-w-(--container-text) text-xl text-soft">
-            Either it never existed, or it did and the address moved. Both happen. Everything that
-            is here is behind one of these.
+          <p className="u-serif text-soft mt-6 max-w-(--container-text) text-xl">
+            Either it never existed, or it did and the address moved. Both happen.
+            Everything that is here is behind one of these.
           </p>
         </div>
       </div>
@@ -52,15 +52,17 @@ export default function NotFound() {
       <nav aria-label="Where to go instead" className="mt-(--spacing-section-sm)">
         <ul className="m-0 grid list-none gap-x-(--spacing-gutter) gap-y-0 p-0 sm:grid-cols-2 lg:grid-cols-4">
           {DESTINATIONS.map((destination, index) => (
-            <li key={destination.href} className="border-t border-line">
+            <li key={destination.href} className="border-line border-t">
               <Link href={destination.href} className="group/dest block py-6">
-                <span className="u-label u-nums block text-muted transition-colors duration-300 group-hover/dest:text-ember">
+                <span className="u-label u-nums text-muted group-hover/dest:text-ember block transition-colors duration-300">
                   {ordinalLabel(index)}
                 </span>
-                <span className="u-display mt-4 block text-xl text-ivory transition-colors duration-300 group-hover/dest:text-white">
+                <span className="u-display text-ivory mt-4 block text-xl transition-colors duration-300 group-hover/dest:text-white">
                   {destination.label}
                 </span>
-                <span className="u-label mt-2.5 block text-muted">{destination.note}</span>
+                <span className="u-label text-muted mt-2.5 block">
+                  {destination.note}
+                </span>
               </Link>
             </li>
           ))}

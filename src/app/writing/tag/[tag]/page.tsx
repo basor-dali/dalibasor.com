@@ -36,7 +36,11 @@ export async function generateMetadata({
   const label = getTagLabel(tag);
 
   if (!label) {
-    return pageMetadata({ title: 'Not found', path: `/writing/tag/${tag}`, noIndex: true });
+    return pageMetadata({
+      title: 'Not found',
+      path: `/writing/tag/${tag}`,
+      noIndex: true,
+    });
   }
 
   const count = getPostsByTag(tag).length;
@@ -49,7 +53,11 @@ export async function generateMetadata({
   });
 }
 
-export default async function WritingTagPage({ params }: { params: Promise<RouteParams> }) {
+export default async function WritingTagPage({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}) {
   const { tag } = await params;
   const label = getTagLabel(tag);
 
@@ -76,7 +84,9 @@ export default async function WritingTagPage({ params }: { params: Promise<Route
         eyebrow="Subject"
         title={label}
         meta={
-          <MetaLine items={[pluralize(posts.length, 'entry', 'entries'), spanLabel(years)]} />
+          <MetaLine
+            items={[pluralize(posts.length, 'entry', 'entries'), spanLabel(years)]}
+          />
         }
       >
         <div className="mt-10">
@@ -103,7 +113,7 @@ export default async function WritingTagPage({ params }: { params: Promise<Route
               <li key={entry.slug}>
                 <Link
                   href={`/writing/tag/${entry.slug}`}
-                  className="u-label text-muted transition-colors duration-300 hover:text-ivory"
+                  className="u-label text-muted hover:text-ivory transition-colors duration-300"
                 >
                   {entry.tag}
                   <span className="u-nums ml-2 opacity-70">{entry.count}</span>

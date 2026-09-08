@@ -73,13 +73,13 @@ export function ProjectMeta({
   }
 
   return (
-    <dl className={cx('border-t border-line', className)}>
+    <dl className={cx('border-line border-t', className)}>
       {rows.map((row) => (
         <div
           key={row.label}
-          className="grid grid-cols-1 gap-x-6 gap-y-1.5 border-b border-line py-4 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:py-5"
+          className="border-line grid grid-cols-1 gap-x-6 gap-y-1.5 border-b py-4 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:py-5"
         >
-          <dt className="u-label pt-0.5 text-muted">{row.label}</dt>
+          <dt className="u-label text-muted pt-0.5">{row.label}</dt>
           <dd className="m-0 min-w-0">{row.value}</dd>
         </div>
       ))}

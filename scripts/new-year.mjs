@@ -112,7 +112,9 @@ writeNew(manifestPath(year), contents, { what: `${year} manifest` });
 
 info('Next:');
 detail(`npm run media:import -- --year ${year} --dir ~/PhotosToUpload/${year}/Everyday`);
-detail(`npm run media:import -- --year ${year} --album serbia --dir ~/PhotosToUpload/${year}/Serbia`);
+detail(
+  `npm run media:import -- --year ${year} --album serbia --dir ~/PhotosToUpload/${year}/Serbia`,
+);
 blank();
 detail(`The year page appears at /photos/${year} as soon as it has items.`);
 blank();

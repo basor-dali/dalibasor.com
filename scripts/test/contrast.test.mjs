@@ -15,7 +15,10 @@ import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 import fs from 'node:fs';
 
-const CSS = fs.readFileSync(new URL('../../src/app/globals.css', import.meta.url), 'utf8');
+const CSS = fs.readFileSync(
+  new URL('../../src/app/globals.css', import.meta.url),
+  'utf8',
+);
 
 /** Pull a colour token out of the @theme block, so the test reads real values. */
 function token(name) {
@@ -26,7 +29,9 @@ function token(name) {
 
 function luminance(hex) {
   const channels = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-  const [r, g, b] = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  const [r, g, b] = channels.map((c) =>
+    c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4,
+  );
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
@@ -97,13 +102,18 @@ describe('colour contrast', () => {
             .forEach((line, i) => {
               if (!/\btext-mute\b/.test(line)) return;
               // Legitimate: colossal/3xl+ numerals, and a placeholder on a 2xl input.
-              if (/text-(colossal|5xl|4xl|3xl|2xl)|placeholder:text-mute/.test(line)) return;
+              if (/text-(colossal|5xl|4xl|3xl|2xl)|placeholder:text-mute/.test(line))
+                return;
               offenders.push(`${full}:${i + 1}`);
             });
         }
       }
     };
     walk(new URL('../../src', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
-    assert.deepEqual(offenders, [], `text-mute on small text at:\n  ${offenders.join('\n  ')}`);
+    assert.deepEqual(
+      offenders,
+      [],
+      `text-mute on small text at:\n  ${offenders.join('\n  ')}`,
+    );
   });
 });

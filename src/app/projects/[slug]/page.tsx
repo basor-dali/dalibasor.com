@@ -40,7 +40,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const project = getProject(slug);
 
   if (!project) {
-    return pageMetadata({ title: 'Project not found', path: `/projects/${slug}`, noIndex: true });
+    return pageMetadata({
+      title: 'Project not found',
+      path: `/projects/${slug}`,
+      noIndex: true,
+    });
   }
 
   return pageMetadata({
@@ -74,18 +78,21 @@ export default async function ProjectPage({ params }: PageProps) {
 
   return (
     <article>
-      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(breadcrumbs)} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(breadcrumbs)}
+      />
 
       {/* --- header ------------------------------------------------------ */}
       <header className="u-page pt-36 sm:pt-44">
-        <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-b border-line pb-4">
+        <div className="border-line flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-b pb-4">
           <Link
             href="/projects"
-            className="u-label text-muted transition-colors duration-300 hover:text-ivory"
+            className="u-label text-muted hover:text-ivory transition-colors duration-300"
           >
             <span aria-hidden="true">←</span> All projects
           </Link>
-          <p className="u-label flex flex-wrap items-center gap-x-2.5 gap-y-1 text-muted">
+          <p className="u-label text-muted flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <StatusDot status={project.status} />
             {STATUS_LABELS[project.status]}
             <span aria-hidden="true" className="text-line-strong">
@@ -120,7 +127,7 @@ export default async function ProjectPage({ params }: PageProps) {
       <div className="u-page mt-(--spacing-section-sm)">
         <div className="u-grid">
           {project.description ? (
-            <p className="u-serif col-span-2 text-2xl leading-[1.2] text-ivory md:col-span-6 lg:col-span-5">
+            <p className="u-serif text-ivory col-span-2 text-2xl leading-[1.2] md:col-span-6 lg:col-span-5">
               {project.description}
             </p>
           ) : null}
@@ -144,11 +151,13 @@ export default async function ProjectPage({ params }: PageProps) {
             {project.placeholder ? (
               <Placeholder>
                 <p>
-                  This project record is scaffolding — status, dates and technologies are in place,
-                  the account of it is not.
+                  This project record is scaffolding — status, dates and technologies are
+                  in place, the account of it is not.
                 </p>
                 <p>
-                  <strong className="text-ivory">[DALI: WRITE THIS IN YOUR OWN WORDS]</strong>
+                  <strong className="text-ivory">
+                    [DALI: WRITE THIS IN YOUR OWN WORDS]
+                  </strong>
                 </p>
               </Placeholder>
             ) : null}
@@ -164,7 +173,10 @@ export default async function ProjectPage({ params }: PageProps) {
 
       {/* --- gallery ------------------------------------------------------ */}
       {project.gallery.length > 0 ? (
-        <section className="u-page mt-(--spacing-section)" aria-labelledby="project-gallery">
+        <section
+          className="u-page mt-(--spacing-section)"
+          aria-labelledby="project-gallery"
+        >
           <hr className="u-rule mb-6" />
           <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
             <h2 id="project-gallery" className="u-display text-2xl text-white">
@@ -184,7 +196,10 @@ export default async function ProjectPage({ params }: PageProps) {
 
       {/* --- related writing ---------------------------------------------- */}
       {related.length > 0 ? (
-        <section className="u-page mt-(--spacing-section)" aria-labelledby="related-writing">
+        <section
+          className="u-page mt-(--spacing-section)"
+          aria-labelledby="related-writing"
+        >
           <hr className="u-rule mb-6" />
           <h2 id="related-writing" className="u-display text-2xl text-white">
             Related writing
@@ -194,9 +209,9 @@ export default async function ProjectPage({ params }: PageProps) {
               <li key={post.slug}>
                 <Link
                   href={post.href}
-                  className="group grid grid-cols-1 items-baseline gap-x-8 gap-y-2 border-t border-line py-5 transition-colors duration-500 hover:border-line-strong sm:grid-cols-[minmax(0,1fr)_auto]"
+                  className="group border-line hover:border-line-strong grid grid-cols-1 items-baseline gap-x-8 gap-y-2 border-t py-5 transition-colors duration-500 sm:grid-cols-[minmax(0,1fr)_auto]"
                 >
-                  <span className="u-display text-lg text-ivory transition-colors duration-300 group-hover:text-white sm:text-xl">
+                  <span className="u-display text-ivory text-lg transition-colors duration-300 group-hover:text-white sm:text-xl">
                     {post.title}
                   </span>
                   <TimeStamp date={post.date} className="text-muted" />
@@ -252,12 +267,12 @@ function Neighbour({
           </>
         )}
       </Label>
-      <p className="u-display mt-3 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">
+      <p className="u-display text-ivory mt-3 text-2xl transition-colors duration-300 group-hover:text-white">
         {project.title}
       </p>
       <p
         className={cx(
-          'u-label mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-muted',
+          'u-label text-muted mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1',
           isNext && 'sm:justify-end',
         )}
       >

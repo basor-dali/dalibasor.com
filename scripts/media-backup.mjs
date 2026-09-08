@@ -43,11 +43,7 @@ import {
   usage,
   warn,
 } from './lib/log.mjs';
-import {
-  expandPath,
-  listManifestFiles,
-  readManifestFile,
-} from './lib/manifest.mjs';
+import { expandPath, listManifestFiles, readManifestFile } from './lib/manifest.mjs';
 import { originalExtensionCandidates } from './lib/derivatives.mjs';
 import { readR2Credentials } from './lib/r2.mjs';
 import { runPool } from './lib/upload.mjs';
@@ -95,7 +91,12 @@ function destinationFor(root, item, storedExt) {
   const stem = item.originalFilename
     ? item.originalFilename.replace(/\.[^.]+$/, '')
     : item.id;
-  return path.join(root, String(item.year), item.album || 'everyday', `${stem}${storedExt}`);
+  return path.join(
+    root,
+    String(item.year),
+    item.album || 'everyday',
+    `${stem}${storedExt}`,
+  );
 }
 
 /**
@@ -168,9 +169,13 @@ async function main() {
   heading(verifyOnly ? 'Verify' : 'Backup');
   info(`source    ${credentials.publicBaseUrl}`);
   if (root) info(`to        ${root}`);
-  info(`items     ${pluralize(items.length, 'photograph')} across ${pluralize(files.length, 'year')}`);
+  info(
+    `items     ${pluralize(items.length, 'photograph')} across ${pluralize(files.length, 'year')}`,
+  );
   if (videoCount > 0) {
-    warn(`${pluralize(videoCount, 'video')} skipped — video is on Cloudinary, not in this bucket.`);
+    warn(
+      `${pluralize(videoCount, 'video')} skipped — video is on Cloudinary, not in this bucket.`,
+    );
   }
   blank();
 
@@ -233,7 +238,11 @@ async function main() {
       downloaded += 1;
       bytes += buffer.length;
       done += 1;
-      step(done, items.length, `${colors.green('saved  ')} ${item.id}  ${formatBytes(buffer.length)}`);
+      step(
+        done,
+        items.length,
+        `${colors.green('saved  ')} ${item.id}  ${formatBytes(buffer.length)}`,
+      );
     } catch (err) {
       missing.push(`${item.id} — ${err.message}`);
       done += 1;

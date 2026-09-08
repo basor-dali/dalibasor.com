@@ -83,7 +83,9 @@ export function Row({
 }) {
   return (
     <figure className={cx(bleed && 'bleed-wide')}>
-      <div className="grid gap-3 sm:grid-cols-2 [&>figure]:m-0 [&_figcaption]:mt-2">{children}</div>
+      <div className="grid gap-3 sm:grid-cols-2 [&_figcaption]:mt-2 [&>figure]:m-0">
+        {children}
+      </div>
       {caption ? <figcaption>{caption}</figcaption> : null}
     </figure>
   );
@@ -132,21 +134,27 @@ export function Video({
 /** A pull quote. Larger and more theatrical than a blockquote. */
 export function Pull({ children, cite }: { children: ReactNode; cite?: string }) {
   return (
-    <aside className="bleed-wide my-16 border-y border-line py-10 sm:py-14">
+    <aside className="bleed-wide border-line my-16 border-y py-10 sm:py-14">
       <p className="u-serif mx-auto max-w-4xl text-center text-3xl leading-[1.15] text-white">
         {children}
       </p>
-      {cite ? <p className="u-label mt-6 text-center text-muted">{cite}</p> : null}
+      {cite ? <p className="u-label text-muted mt-6 text-center">{cite}</p> : null}
     </aside>
   );
 }
 
 /** A short aside in a lighter voice. */
-export function Note({ children, label = 'Note' }: { children: ReactNode; label?: string }) {
+export function Note({
+  children,
+  label = 'Note',
+}: {
+  children: ReactNode;
+  label?: string;
+}) {
   return (
-    <aside className="my-10 border-l border-line-strong pl-5">
-      <p className="u-label mb-2 text-muted">{label}</p>
-      <div className="text-sm text-muted [&>*+*]:mt-3">{children}</div>
+    <aside className="border-line-strong my-10 border-l pl-5">
+      <p className="u-label text-muted mb-2">{label}</p>
+      <div className="text-muted text-sm [&>*+*]:mt-3">{children}</div>
     </aside>
   );
 }
@@ -160,9 +168,9 @@ export function Note({ children, label = 'Note' }: { children: ReactNode; label?
  */
 export function Placeholder({ children }: { children?: ReactNode }) {
   return (
-    <div className="my-10 border border-dashed border-ember-deep/70 bg-ember-deep/[0.06] p-5 sm:p-7">
-      <p className="u-label mb-3 text-ember">Placeholder — replace this</p>
-      <div className="text-sm text-soft [&>*+*]:mt-3">
+    <div className="border-ember-deep/70 bg-ember-deep/[0.06] my-10 border border-dashed p-5 sm:p-7">
+      <p className="u-label text-ember mb-3">Placeholder — replace this</p>
+      <div className="text-soft text-sm [&>*+*]:mt-3">
         {children ?? (
           <p>
             <strong className="text-ivory">[DALI: WRITE THIS IN YOUR OWN WORDS]</strong>
@@ -173,10 +181,32 @@ export function Placeholder({ children }: { children?: ReactNode }) {
   );
 }
 
+/* --- tables --------------------------------------------------------------- */
+
+/**
+ * A table that scrolls inside itself rather than off the page.
+ *
+ * Handled here rather than asking the author to remember a wrapper: a table is
+ * ordinary markdown, and the day this matters is the day you write one with
+ * four columns and read the post on a phone.
+ *
+ * tabIndex is not decoration. Chromium gives a scroll container keyboard access
+ * only when it is focusable, so without it the hidden columns are unreachable
+ * by keyboard as well as invisible.
+ */
+function Table(props: React.ComponentProps<'table'>) {
+  return (
+    <div className="prose-scroll" tabIndex={0} role="region" aria-label="Table">
+      <table {...props} />
+    </div>
+  );
+}
+
 /* --- map ------------------------------------------------------------------ */
 
 export const mdxComponents: MDXComponents = {
   a: Anchor,
+  table: Table,
   Figure,
   Row,
   Video,

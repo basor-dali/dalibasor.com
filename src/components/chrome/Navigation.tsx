@@ -79,7 +79,8 @@ export function Navigation() {
       }
       if (event.key !== 'Tab') return;
 
-      const focusable = panelRef.current?.querySelectorAll<HTMLElement>('a[href], button');
+      const focusable =
+        panelRef.current?.querySelectorAll<HTMLElement>('a[href], button');
       if (!focusable || focusable.length === 0) return;
       const first = focusable[0]!;
       const last = focusable[focusable.length - 1]!;
@@ -110,7 +111,7 @@ export function Navigation() {
         className={cx(
           'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500',
           scrolled && !menuOpen
-            ? 'border-b border-line bg-ground/85 backdrop-blur-md'
+            ? 'border-line bg-ground/85 border-b backdrop-blur-md'
             : 'border-b border-transparent',
         )}
         style={{ height: 'var(--nav-height)' }}
@@ -122,7 +123,7 @@ export function Navigation() {
             aria-label={`${site.name} — home`}
             aria-current={isHome ? 'page' : undefined}
           >
-            <span className="u-label-lg block font-medium text-ivory transition-colors duration-300 group-hover:text-white">
+            <span className="u-label-lg text-ivory block font-medium transition-colors duration-300 group-hover:text-white">
               {site.name}
             </span>
           </Link>
@@ -158,7 +159,7 @@ export function Navigation() {
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            className="u-label -m-3 p-3 text-ivory md:hidden"
+            className="u-label text-ivory -m-3 p-3 md:hidden"
           >
             {menuOpen ? 'Close' : 'Menu'}
           </button>
@@ -173,14 +174,24 @@ export function Navigation() {
         aria-modal={menuOpen ? true : undefined}
         aria-label="Site menu"
         hidden={!menuOpen}
-        className="fixed inset-0 z-40 flex flex-col bg-ground md:hidden"
+        className="bg-ground fixed inset-0 z-40 flex flex-col md:hidden"
         style={menuOpen ? { animation: 'fade-in 0.3s var(--ease-out-quart)' } : undefined}
       >
+        {/* A scroll container, not a centred column.
+            The five links plus their notes are ~811px tall; an iPhone SE has
+            about 553px under Safari's toolbars, and body overflow is hidden
+            while the menu is open. Centred and unscrollable, "Now" and the
+            social row were simply unreachable — worse in landscape, where two
+            entries disappeared. `min-h-0` is load-bearing: flex children
+            default to min-height:auto, which keeps the nav at content height
+            and stops the scroll container ever engaging. `my-auto` on the
+            inner column keeps the centred look whenever it does fit. */}
         <nav
           aria-label="Primary"
-          className="u-pad flex flex-1 flex-col justify-center gap-1 pb-24"
+          className="u-pad flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-24"
           style={{ paddingTop: 'var(--nav-height)' }}
         >
+          <div className="my-auto flex flex-col gap-1">
           {primaryNav.map((item, index) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -188,7 +199,7 @@ export function Navigation() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className="group block border-b border-line py-5"
+                className="group border-line block border-b py-5"
                 style={
                   menuOpen
                     ? {
@@ -198,7 +209,7 @@ export function Navigation() {
                 }
               >
                 <span className="flex items-baseline gap-3">
-                  <span className="u-label w-6 shrink-0 text-muted">
+                  <span className="u-label text-muted w-6 shrink-0">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <span
@@ -211,14 +222,17 @@ export function Navigation() {
                   </span>
                 </span>
                 {item.note ? (
-                  <span className="mt-1.5 block pl-9 text-sm text-muted">{item.note}</span>
+                  <span className="text-muted mt-1.5 block pl-9 text-sm">
+                    {item.note}
+                  </span>
                 ) : null}
               </Link>
             );
           })}
+          </div>
         </nav>
 
-        <div className="u-pad flex flex-wrap items-center gap-x-6 gap-y-2 pb-10">
+        <div className="u-pad flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 pb-10">
           {site.social.map((social) => (
             <a
               key={social.label}

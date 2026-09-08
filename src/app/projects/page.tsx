@@ -1,5 +1,11 @@
 import type { Metadata } from 'next';
-import { EmptyState, MetaLine, PageHeader, SectionHeader, StatusDot } from '@/components/primitives';
+import {
+  EmptyState,
+  MetaLine,
+  PageHeader,
+  SectionHeader,
+  StatusDot,
+} from '@/components/primitives';
 import { ProjectFeature } from '@/components/projects/ProjectFeature';
 import { ProjectIndexRow } from '@/components/projects/ProjectIndexRow';
 import {
@@ -63,7 +69,8 @@ export default function ProjectsPage() {
 
   const building = projects.filter((project) => project.status === 'building').length;
   const abandoned = projects.filter((project) => project.status === 'abandoned').length;
-  const earliest = total > 0 ? Math.min(...projects.map((p) => yearOf(p.startDate))) : undefined;
+  const earliest =
+    total > 0 ? Math.min(...projects.map((p) => yearOf(p.startDate))) : undefined;
 
   return (
     <>
@@ -120,7 +127,7 @@ export default function ProjectsPage() {
                       size, with the count carrying the visual weight. It holds
                       its own narrow column and stays put while the rows scroll
                       past it. */}
-                  <header className="col-span-2 md:col-span-6 lg:col-span-3 lg:sticky lg:top-28 lg:self-start">
+                  <header className="col-span-2 md:col-span-6 lg:sticky lg:top-28 lg:col-span-3 lg:self-start">
                     <div className="flex items-baseline justify-between gap-5 lg:block">
                       <h3
                         className={cx(
@@ -141,7 +148,9 @@ export default function ProjectsPage() {
                         {String(group.projects.length).padStart(2, '0')}
                       </p>
                     </div>
-                    <p className="sr-only">{pluralize(group.projects.length, 'project')}</p>
+                    <p className="sr-only">
+                      {pluralize(group.projects.length, 'project')}
+                    </p>
                   </header>
 
                   <ul className="col-span-2 list-none p-0 md:col-span-6 lg:col-span-9">
@@ -179,8 +188,8 @@ function EmptyIndex() {
         <div className="col-span-2 md:col-span-6 lg:col-span-7">
           <EmptyState title="Nothing written up yet.">
             <p>
-              Robotics, electronics, IoT, software and hardware. Entries land here as they get
-              recorded — including the ones that stopped.
+              Robotics, electronics, IoT, software and hardware. Entries land here as they
+              get recorded — including the ones that stopped.
             </p>
           </EmptyState>
         </div>
@@ -191,9 +200,9 @@ function EmptyIndex() {
             {STATUS_ORDER.map((status) => (
               <li
                 key={status}
-                className="flex items-center justify-between gap-4 border-t border-line py-3.5"
+                className="border-line flex items-center justify-between gap-4 border-t py-3.5"
               >
-                <span className="u-label-lg flex items-center gap-2.5 text-soft">
+                <span className="u-label-lg text-soft flex items-center gap-2.5">
                   <StatusDot status={status} />
                   {STATUS_LABELS[status]}
                 </span>

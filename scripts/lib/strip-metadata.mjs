@@ -71,8 +71,10 @@ function segmentName(marker, payload) {
   const head = payload.subarray(0, 24).toString('latin1');
   switch (marker) {
     case MARKER.APP1:
-      if (head.startsWith('Exif')) return 'EXIF (APP1) — capture data, GPS, device serial';
-      if (head.startsWith('http://ns.adobe.com/xap')) return 'XMP (APP1) — editing history';
+      if (head.startsWith('Exif'))
+        return 'EXIF (APP1) — capture data, GPS, device serial';
+      if (head.startsWith('http://ns.adobe.com/xap'))
+        return 'XMP (APP1) — editing history';
       return 'APP1';
     case MARKER.APP2:
       if (head.startsWith('MPF')) return 'MPF (APP2) — multi-picture index';
@@ -140,7 +142,11 @@ export function stripJpegSegments(buffer, { keepIcc = true } = {}) {
     const marker = buffer[markerAt];
 
     // Standalone markers, no length field.
-    if (marker === MARKER.TEM || (marker >= 0xd0 && marker <= 0xd7) || marker === MARKER.SOI) {
+    if (
+      marker === MARKER.TEM ||
+      (marker >= 0xd0 && marker <= 0xd7) ||
+      marker === MARKER.SOI
+    ) {
       chunks.push(buffer.subarray(offset, markerAt + 1));
       offset = markerAt + 1;
       continue;
@@ -294,7 +300,8 @@ export async function prepareImageForUpload({ buffer, extension, orientation }) 
 
   let reason;
   if (HEIF_EXTS.has(ext)) reason = 'HEIC converted to JPEG, metadata dropped';
-  else if (!upright) reason = `rotation ${orientation} baked into the pixels, metadata dropped`;
+  else if (!upright)
+    reason = `rotation ${orientation} baked into the pixels, metadata dropped`;
   else reason = `${ext.replace('.', '') || 'image'} re-encoded, metadata dropped`;
 
   return {

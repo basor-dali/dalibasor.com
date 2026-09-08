@@ -64,26 +64,26 @@ export default function NowPage() {
           <div className="mt-14 space-y-14 sm:mt-20 sm:space-y-20">
             {groupByYear(numbered).map((group) => (
               <div key={group.year} className="u-grid">
-                <h3 className="u-display u-display-tight u-nums col-span-2 text-3xl text-mute md:col-span-2 lg:col-span-3 lg:sticky lg:top-32 lg:self-start">
+                <h3 className="u-display u-display-tight u-nums text-mute col-span-2 text-3xl md:col-span-2 lg:sticky lg:top-32 lg:col-span-3 lg:self-start">
                   {group.year}
                 </h3>
 
                 <ul className="col-span-2 m-0 list-none p-0 md:col-span-4 lg:col-span-8 lg:col-start-5">
                   {group.rows.map(({ entry: row, number }) => (
-                    <li key={row.period} className="border-t border-line last:border-b">
+                    <li key={row.period} className="border-line border-t last:border-b">
                       <Link
                         href={row.href}
                         className="group/row grid grid-cols-[2.75rem_minmax(0,1fr)] items-baseline gap-x-4 py-5 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:gap-x-8 sm:py-6"
                       >
-                        <span className="u-label u-nums text-muted transition-colors duration-300 group-hover/row:text-ember">
+                        <span className="u-label u-nums text-muted group-hover/row:text-ember transition-colors duration-300">
                           {number}
                         </span>
 
-                        <span className="u-display block min-w-0 text-xl text-ivory transition-colors duration-300 group-hover/row:text-white">
+                        <span className="u-display text-ivory block min-w-0 text-xl transition-colors duration-300 group-hover/row:text-white">
                           {recordLabel(row)}
                         </span>
 
-                        <span className="u-label col-start-2 mt-2 flex items-center gap-3 text-muted sm:col-start-3 sm:mt-0 sm:justify-end">
+                        <span className="u-label text-muted col-start-2 mt-2 flex items-center gap-3 sm:col-start-3 sm:mt-0 sm:justify-end">
                           {row.location}
                           <svg
                             viewBox="0 0 16 16"
@@ -93,7 +93,7 @@ export default function NowPage() {
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="1.4"
-                            className="shrink-0 text-line-strong transition duration-500 ease-[var(--ease-out-expo)] group-hover/row:translate-x-1 group-hover/row:text-ember motion-reduce:transform-none"
+                            className="text-line-strong group-hover/row:text-ember shrink-0 transition duration-500 ease-[var(--ease-out-expo)] group-hover/row:translate-x-1 motion-reduce:transform-none"
                           >
                             <path d="M3 8h10M9 4l4 4-4 4" />
                           </svg>
@@ -119,16 +119,20 @@ function NoEntriesYet() {
   return (
     <div className="u-page pt-36 pb-(--spacing-section) sm:pt-44">
       <hr className="u-rule" />
-      <p className="u-label mt-5 text-ember">Now</p>
+      <p className="u-label text-ember mt-5">Now</p>
 
       <h1 className="u-display u-display-tight mt-12 max-w-[14ch] text-4xl text-white sm:mt-16">
         Not written yet
       </h1>
 
-      <EmptyState className="mt-12 max-w-(--container-text-wide)" title="Nothing in the record">
+      <EmptyState
+        className="mt-12 max-w-(--container-text-wide)"
+        title="Nothing in the record"
+      >
         <p>
-          The first entry will appear here. Every one after it keeps its own address, so this page
-          becomes a month-by-month record rather than a page that gets overwritten.
+          The first entry will appear here. Every one after it keeps its own address, so
+          this page becomes a month-by-month record rather than a page that gets
+          overwritten.
         </p>
       </EmptyState>
 

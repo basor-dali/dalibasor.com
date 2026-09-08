@@ -47,13 +47,20 @@ function sha256(buffer) {
  * image and a fat one costs more than it saves.
  */
 export async function makeLqip(buffer) {
-  const base = sharp(buffer, { failOn: 'none', limitInputPixels: false }).resize(16, null, {
-    fit: 'inside',
-    withoutEnlargement: true,
-  });
+  const base = sharp(buffer, { failOn: 'none', limitInputPixels: false }).resize(
+    16,
+    null,
+    {
+      fit: 'inside',
+      withoutEnlargement: true,
+    },
+  );
 
   for (const quality of [35, 28, 20]) {
-    const encoded = await base.clone().webp({ quality, effort: 6, alphaQuality: 60 }).toBuffer();
+    const encoded = await base
+      .clone()
+      .webp({ quality, effort: 6, alphaQuality: 60 })
+      .toBuffer();
     const uri = `data:image/webp;base64,${encoded.toString('base64')}`;
     if (uri.length <= 520 || quality === 20) return uri;
   }
@@ -93,7 +100,11 @@ export async function processFile(file, context) {
   try {
     stats = fs.statSync(file.path);
   } catch (err) {
-    return { file, status: 'failed', reason: `cannot be read (${err.code || err.message})` };
+    return {
+      file,
+      status: 'failed',
+      reason: `cannot be read (${err.code || err.message})`,
+    };
   }
   if (stats.size === 0) {
     return { file, status: 'failed', reason: 'is empty (0 bytes)' };
@@ -103,7 +114,11 @@ export async function processFile(file, context) {
   try {
     original = fs.readFileSync(file.path);
   } catch (err) {
-    return { file, status: 'failed', reason: `cannot be read (${err.code || err.message})` };
+    return {
+      file,
+      status: 'failed',
+      reason: `cannot be read (${err.code || err.message})`,
+    };
   }
 
   // The dedupe key is the hash of the ORIGINAL bytes, not of the stripped
@@ -114,7 +129,12 @@ export async function processFile(file, context) {
   // No await between the check and the insert, so two pool workers cannot
   // both claim the same duplicate.
   if (seenHashes.has(hash)) {
-    return { file, status: 'duplicate', hash, reason: 'the same file appears twice in --dir' };
+    return {
+      file,
+      status: 'duplicate',
+      hash,
+      reason: 'the same file appears twice in --dir',
+    };
   }
   seenHashes.add(hash);
 
@@ -141,7 +161,10 @@ export async function processFile(file, context) {
   if (file.kind === 'image') {
     let probe;
     try {
-      probe = await sharp(original, { failOn: 'none', limitInputPixels: false }).metadata();
+      probe = await sharp(original, {
+        failOn: 'none',
+        limitInputPixels: false,
+      }).metadata();
     } catch (err) {
       const heic = file.ext === '.heic' || file.ext === '.heif';
       return {
@@ -168,7 +191,11 @@ export async function processFile(file, context) {
         orientation,
       });
     } catch (err) {
-      return { file, status: 'failed', reason: `metadata could not be stripped (${err.message})` };
+      return {
+        file,
+        status: 'failed',
+        reason: `metadata could not be stripped (${err.message})`,
+      };
     }
 
     // Dimensions come from the prepared buffer: after a rotation is baked in,
@@ -237,7 +264,11 @@ export async function processFile(file, context) {
         // The metadata-stripped full-resolution copy, kept as the "open
         // original" target and as one leg of the 3-2-1 backup. Skippable for
         // anyone who would rather not pay to store it twice.
-        const originalExtension = (prepared.extension || file.ext || '.jpg').toLowerCase();
+        const originalExtension = (
+          prepared.extension ||
+          file.ext ||
+          '.jpg'
+        ).toLowerCase();
 
         if (context.keepOriginal !== false) {
           await putObject(context.s3, {
@@ -270,7 +301,11 @@ export async function processFile(file, context) {
     /* --- Cloudinary ---------------------------------------------------- */
 
     if (dryRun) {
-      return { ...record, status: 'would-upload', publicId: `${targetFolder}/${publicIdLeaf(file.name)}` };
+      return {
+        ...record,
+        status: 'would-upload',
+        publicId: `${targetFolder}/${publicIdLeaf(file.name)}`,
+      };
     }
 
     try {
@@ -345,7 +380,8 @@ export async function processFile(file, context) {
       // ffmpeg, which the importer deliberately does not depend on.
       width: response.width || 1920,
       height: response.height || 1080,
-      duration: typeof response.duration === 'number' ? Math.round(response.duration) : undefined,
+      duration:
+        typeof response.duration === 'number' ? Math.round(response.duration) : undefined,
       existingNode: force ? existingNode : null,
     };
   } catch (err) {

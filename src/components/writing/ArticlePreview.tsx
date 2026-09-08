@@ -3,7 +3,14 @@ import type { ReactNode } from 'react';
 import type { CoverShape, PostSummary } from '@/types/content';
 import { CoverImage } from '@/components/media/MediaImage';
 import { Label } from '@/components/primitives';
-import { cx, formatDate, formatDayMonth, isoDate, ordinalLabel, truncate } from '@/lib/utils';
+import {
+  cx,
+  formatDate,
+  formatDayMonth,
+  isoDate,
+  ordinalLabel,
+  truncate,
+} from '@/lib/utils';
 
 /**
  * One post, four ways.
@@ -84,13 +91,17 @@ function summaryOf(post: PostSummary, max: number): string | undefined {
 function TagRun({ post, className }: { post: PostSummary; className?: string }) {
   if (post.tags.length === 0) return null;
   return (
-    <p className={cx('u-label text-muted', className)}>{post.tags.slice(0, 4).join(' · ')}</p>
+    <p className={cx('u-label text-muted', className)}>
+      {post.tags.slice(0, 4).join(' · ')}
+    </p>
   );
 }
 
 function ReadingTime({ post, className }: { post: PostSummary; className?: string }) {
   return (
-    <span className={cx('u-label u-nums text-muted', className)}>{post.readingMinutes} min</span>
+    <span className={cx('u-label u-nums text-muted', className)}>
+      {post.readingMinutes} min
+    </span>
   );
 }
 
@@ -101,38 +112,52 @@ function ReadingTime({ post, className }: { post: PostSummary; className?: strin
    line clickable without burying the accessible name under a paragraph of
    metadata, and without nesting interactive elements. */
 
-function RowPreview({ post, showYear, className, headingLevel = 3 }: ArticlePreviewProps) {
-
+function RowPreview({
+  post,
+  showYear,
+  className,
+  headingLevel = 3,
+}: ArticlePreviewProps) {
   return (
-    <article className={cx('group relative border-t border-line', className)}>
+    <article className={cx('group border-line relative border-t', className)}>
       {/* An ember hairline that draws itself across the rule on hover. */}
       <span
         aria-hidden="true"
-        className="absolute inset-x-0 -top-px h-px origin-left scale-x-0 bg-ember-deep transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100 motion-reduce:transition-none"
+        className="bg-ember-deep absolute inset-x-0 -top-px h-px origin-left scale-x-0 transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100 motion-reduce:transition-none"
       />
 
       <div className="grid grid-cols-1 gap-x-6 gap-y-2 py-6 sm:py-7 md:grid-cols-[7.5rem_minmax(0,1fr)_4.5rem] md:items-baseline">
         <time
           dateTime={isoDate(post.date)}
-          className="u-label u-nums text-muted transition-colors duration-300 group-hover:text-ember"
+          className="u-label u-nums text-muted group-hover:text-ember transition-colors duration-300"
         >
           {showYear ? formatDate(post.date) : formatDayMonth(post.date)}
         </time>
 
         <div className="min-w-0">
-          <Heading level={headingLevel} className="u-display text-xl text-ivory transition-colors duration-300 group-hover:text-white">
-            <Link href={post.href} className="after:absolute after:inset-0 after:content-['']">
+          <Heading
+            level={headingLevel}
+            className="u-display text-ivory text-xl transition-colors duration-300 group-hover:text-white"
+          >
+            <Link
+              href={post.href}
+              className="after:absolute after:inset-0 after:content-['']"
+            >
               {post.title}
             </Link>
           </Heading>
 
           {post.subtitle ? (
-            <p className="mt-2 max-w-(--container-text) text-sm text-muted">{post.subtitle}</p>
+            <p className="text-muted mt-2 max-w-(--container-text) text-sm">
+              {post.subtitle}
+            </p>
           ) : null}
 
           <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1.5">
             <TagRun post={post} />
-            {post.placeholder ? <span className="u-label text-ember">Unfinished</span> : null}
+            {post.placeholder ? (
+              <span className="u-label text-ember">Unfinished</span>
+            ) : null}
             <ReadingTime post={post} className="md:hidden" />
           </div>
         </div>
@@ -172,13 +197,19 @@ function TextPreview({
         ) : null}
       </div>
 
-      <Heading level={headingLevel} className="u-display mt-5 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">
-        <Link href={post.href} className="after:absolute after:inset-0 after:content-['']">
+      <Heading
+        level={headingLevel}
+        className="u-display text-ivory mt-5 text-2xl transition-colors duration-300 group-hover:text-white"
+      >
+        <Link
+          href={post.href}
+          className="after:absolute after:inset-0 after:content-['']"
+        >
           {post.title}
         </Link>
       </Heading>
 
-      {summary ? <p className="mt-4 text-sm text-muted">{summary}</p> : null}
+      {summary ? <p className="text-muted mt-4 text-sm">{summary}</p> : null}
       <TagRun post={post} className="mt-5" />
     </article>
   );
@@ -195,7 +226,6 @@ function PortraitPreview({
   className,
   headingLevel = 3,
 }: ArticlePreviewProps) {
-
   return (
     <article className={cx('group relative', className)}>
       {post.coverImage ? (
@@ -210,7 +240,10 @@ function PortraitPreview({
           className="transition-opacity duration-500 group-hover:opacity-90"
         />
       ) : (
-        <div aria-hidden="true" className="aspect-[4/5] w-full border border-line bg-surface" />
+        <div
+          aria-hidden="true"
+          className="border-line bg-surface aspect-[4/5] w-full border"
+        />
       )}
 
       <div className="flex items-baseline justify-between gap-4 pt-6">
@@ -220,8 +253,14 @@ function PortraitPreview({
         {eyebrow ? <Label className="text-ember">{eyebrow}</Label> : null}
       </div>
 
-      <Heading level={headingLevel} className="u-display mt-4 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">
-        <Link href={post.href} className="after:absolute after:inset-0 after:content-['']">
+      <Heading
+        level={headingLevel}
+        className="u-display text-ivory mt-4 text-2xl transition-colors duration-300 group-hover:text-white"
+      >
+        <Link
+          href={post.href}
+          className="after:absolute after:inset-0 after:content-['']"
+        >
           {post.title}
         </Link>
       </Heading>
@@ -279,26 +318,32 @@ function LeadPreview({
           className={cx(
             'relative z-10 col-span-2 md:col-span-6',
             cover
-              ? 'lg:col-span-6 lg:col-start-6 lg:-mt-32 lg:bg-ground lg:pt-10 lg:pl-10'
+              ? 'lg:bg-ground lg:col-span-6 lg:col-start-6 lg:-mt-32 lg:pt-10 lg:pl-10'
               : 'lg:col-span-9',
           )}
         >
-          {eyebrow ? <Label className="mb-5 block text-ember">{eyebrow}</Label> : null}
+          {eyebrow ? <Label className="text-ember mb-5 block">{eyebrow}</Label> : null}
 
-          <Heading level={headingLevel} className="u-display u-display-tight max-w-[15ch] text-3xl text-white">
-            <Link href={post.href} className="after:absolute after:inset-0 after:content-['']">
+          <Heading
+            level={headingLevel}
+            className="u-display u-display-tight max-w-[15ch] text-3xl text-white"
+          >
+            <Link
+              href={post.href}
+              className="after:absolute after:inset-0 after:content-['']"
+            >
               {post.title}
             </Link>
           </Heading>
 
           {post.subtitle ? (
-            <p className="u-serif mt-6 max-w-(--container-text) text-xl text-soft">
+            <p className="u-serif text-soft mt-6 max-w-(--container-text) text-xl">
               {post.subtitle}
             </p>
           ) : null}
 
           {summary && !post.subtitle ? (
-            <p className="mt-6 max-w-(--container-text) text-soft">{summary}</p>
+            <p className="text-soft mt-6 max-w-(--container-text)">{summary}</p>
           ) : null}
 
           <div className="mt-8 flex flex-wrap items-baseline gap-x-5 gap-y-2">

@@ -1,7 +1,13 @@
 import 'server-only';
 
 import type { CoverShape, Post, PostSummary, WritingFrontmatter } from '@/types/content';
-import { readingMinutes, slugify, toPlainText, yearOf } from '@/lib/utils';
+import {
+  readingMinutes,
+  slugify,
+  toDateString,
+  toPlainText,
+  yearOf,
+} from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
 
 /* ==========================================================================
@@ -30,8 +36,8 @@ const loadAll = once((): Post[] => {
       href: `/writing/${slug}`,
       title: data.title,
       subtitle: data.subtitle,
-      date: String(data.date),
-      year: yearOf(String(data.date)),
+      date: toDateString(data.date),
+      year: yearOf(toDateString(data.date)),
       tags,
       coverImage: data.coverImage,
       coverAlt: data.coverAlt,

@@ -36,10 +36,10 @@
   --color-ember-deep: #a8432a; /* fills, rules, decorative */
 
   /* --- fonts ----------------------------------------------------------- */
-  --font-display: var(--font-archivo), Archivo, "Helvetica Neue", Arial, sans-serif;
-  --font-sans: var(--font-archivo), Archivo, "Helvetica Neue", Arial, sans-serif;
-  --font-serif: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
-  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --font-display: var(--font-archivo), Archivo, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: var(--font-archivo), Archivo, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, Menlo, monospace;
 
   /* --- type scale ------------------------------------------------------
      Fluid, viewport-aware. The display sizes are deliberately extreme; the
@@ -314,7 +314,7 @@
   /* Tabular figures for anything that is a date, a count or a year. */
   .u-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1;
+    font-feature-settings: 'tnum' 1;
   }
 
   /* --- rules ----------------------------------------------------------- */
@@ -481,7 +481,7 @@
   }
 
   .prose ul > li::before {
-    content: "";
+    content: '';
     position: absolute;
     left: 0.15em;
     top: 0.82em;
@@ -717,4 +717,34 @@ body:has([data-admin='true']) {
 
 [data-admin='true'] :focus-visible {
   outline-color: currentColor;
+}
+
+/* ==========================================================================
+   Wide things inside an article
+   ==========================================================================
+   A table with four columns is wider than a 280px phone. The measure clips it
+   and `body { overflow-x: clip }` makes the overflow permanently unreachable —
+   the columns are simply gone, with no scrollbar to reveal them. So the table
+   scrolls inside its own box instead of the page scrolling sideways.
+
+   Focusable on purpose: Chromium does not give a scroll container keyboard
+   access unless it is in the tab order, so without tabindex a keyboard user
+   cannot reach the hidden columns either. */
+
+.prose-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  /* Room for the scrollbar so it never sits on top of the last row. */
+  padding-bottom: 0.5rem;
+}
+
+.prose-scroll:focus-visible {
+  outline: 2px solid var(--color-ember);
+  outline-offset: 4px;
+}
+
+.prose-scroll > table {
+  /* Let the table take its natural width rather than being squeezed to the
+     measure, which is what makes the scroll meaningful. */
+  min-width: max-content;
 }

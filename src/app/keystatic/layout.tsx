@@ -13,7 +13,11 @@ import { adminAvailable } from '@/lib/admin/guard';
  * If you ever want to edit from a phone, switch storage to `github` and put a
  * real login in front of it. See docs/CMS.md.
  */
-export default async function KeystaticLayout({ children }: { children: React.ReactNode }) {
+export default async function KeystaticLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   if (!(await adminAvailable())) notFound();
   return <>{children}</>;
 }

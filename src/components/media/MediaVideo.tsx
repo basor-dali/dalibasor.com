@@ -74,12 +74,12 @@ export function MediaVideo({
           aria-label={label}
           className="absolute inset-0 z-10 flex items-center justify-center transition-colors duration-500 hover:bg-black/20"
         >
-          <span className="flex h-16 w-16 items-center justify-center border border-ivory/50 bg-ground/40 backdrop-blur-[2px] transition-all duration-500 group-hover:border-ivory group-hover:bg-ground/60 sm:h-20 sm:w-20">
+          <span className="border-ivory/50 bg-ground/40 group-hover:border-ivory group-hover:bg-ground/60 flex h-16 w-16 items-center justify-center border backdrop-blur-[2px] transition-all duration-500 sm:h-20 sm:w-20">
             <PlayGlyph />
           </span>
         </button>
         {duration ? (
-          <span className="u-label absolute right-3 bottom-3 z-10 bg-ground/70 px-2 py-1 text-ivory backdrop-blur-[2px]">
+          <span className="u-label bg-ground/70 text-ivory absolute right-3 bottom-3 z-10 px-2 py-1 backdrop-blur-[2px]">
             {duration}
           </span>
         ) : null}
@@ -102,9 +102,12 @@ export function MediaVideo({
         {video.sources.map((source) => (
           <source key={source.src} src={source.src} type={source.type} />
         ))}
-        <p className="u-label p-4 text-muted">
+        <p className="u-label text-muted p-4">
           Your browser cannot play this video.{' '}
-          <a href={video.sources[video.sources.length - 1]?.src} className="u-link text-ivory">
+          <a
+            href={video.sources[video.sources.length - 1]?.src}
+            className="u-link text-ivory"
+          >
             Download it instead
           </a>
           .
@@ -122,7 +125,7 @@ function PlayGlyph() {
       height="20"
       aria-hidden="true"
       fill="currentColor"
-      className="translate-x-[2px] text-ivory"
+      className="text-ivory translate-x-[2px]"
     >
       <path d="M5 3.5 20 12 5 20.5z" />
     </svg>

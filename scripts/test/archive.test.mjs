@@ -121,7 +121,11 @@ describe('widthsFor', () => {
   it('is ascending and free of duplicates', () => {
     for (const native of [400, 1500, 2400, 4032]) {
       const widths = widthsFor(native);
-      assert.deepEqual(widths, [...widths].sort((a, b) => a - b), String(native));
+      assert.deepEqual(
+        widths,
+        [...widths].sort((a, b) => a - b),
+        String(native),
+      );
       assert.equal(new Set(widths).size, widths.length, String(native));
     }
   });
@@ -170,14 +174,27 @@ function jpegWithMetadata(base) {
     Buffer.from('II*\u0000', 'latin1'),
     Buffer.from('GPSLatitude 44.7866 GPSLongitude 20.4489 SerialNumber ABC123', 'latin1'),
   ]);
-  const iptc = Buffer.from('Photoshop 3.0\u0000SECRETPATH C:/Users/Someone/private', 'latin1');
-  return Buffer.concat([base.subarray(0, 2), app(0xe1, exif), app(0xed, iptc), base.subarray(2)]);
+  const iptc = Buffer.from(
+    'Photoshop 3.0\u0000SECRETPATH C:/Users/Someone/private',
+    'latin1',
+  );
+  return Buffer.concat([
+    base.subarray(0, 2),
+    app(0xe1, exif),
+    app(0xed, iptc),
+    base.subarray(2),
+  ]);
 }
 
 describe('metadata stripping', () => {
   it('removes GPS, serials and IPTC without touching a single pixel', async () => {
     const base = await sharp({
-      create: { width: 240, height: 160, channels: 3, background: { r: 180, g: 90, b: 40 } },
+      create: {
+        width: 240,
+        height: 160,
+        channels: 3,
+        background: { r: 180, g: 90, b: 40 },
+      },
     })
       .jpeg({ quality: 88 })
       .toBuffer();
@@ -201,7 +218,12 @@ describe('metadata stripping', () => {
 
   it('chooses the lossless path for an upright JPEG', async () => {
     const base = await sharp({
-      create: { width: 120, height: 80, channels: 3, background: { r: 20, g: 90, b: 60 } },
+      create: {
+        width: 120,
+        height: 80,
+        channels: 3,
+        background: { r: 20, g: 90, b: 60 },
+      },
     })
       .jpeg()
       .toBuffer();
@@ -218,7 +240,12 @@ describe('metadata stripping', () => {
 
   it('re-encodes rather than giving up when the file must be rotated', async () => {
     const base = await sharp({
-      create: { width: 120, height: 80, channels: 3, background: { r: 90, g: 20, b: 60 } },
+      create: {
+        width: 120,
+        height: 80,
+        channels: 3,
+        background: { r: 90, g: 20, b: 60 },
+      },
     })
       .jpeg()
       .toBuffer();
@@ -246,8 +273,14 @@ describe('metadata stripping', () => {
 
 describe('manifest round trip', () => {
   it('preserves hand-written words when technical fields are patched', async () => {
-    const { loadManifestDoc, saveManifestDoc, addItem, addAlbum, findItemNodeById, patchItemNode } =
-      await import('../lib/manifest.mjs');
+    const {
+      loadManifestDoc,
+      saveManifestDoc,
+      addItem,
+      addAlbum,
+      findItemNodeById,
+      patchItemNode,
+    } = await import('../lib/manifest.mjs');
 
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'manifest-test-'));
     const previous = process.cwd();
@@ -284,8 +317,16 @@ describe('manifest round trip', () => {
         hash: 'abc',
       });
 
-      assert.equal(String(node.get('caption')), 'A line Dali wrote.', 'caption was overwritten');
-      assert.equal(String(node.get('location')), 'Novi Sad, Serbia', 'location was overwritten');
+      assert.equal(
+        String(node.get('caption')),
+        'A line Dali wrote.',
+        'caption was overwritten',
+      );
+      assert.equal(
+        String(node.get('location')),
+        'Novi Sad, Serbia',
+        'location was overwritten',
+      );
       assert.equal(node.get('featured'), true, 'featured was overwritten');
       assert.equal(Number(node.get('width')), 2400, 'width was not refreshed');
 

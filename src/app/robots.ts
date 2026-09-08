@@ -17,7 +17,6 @@ import { ALLOW_INDEXING } from '@/lib/site';
  * crawl rather than needing a resubmission.
  */
 
-
 export default function robots(): MetadataRoute.Robots {
   if (!ALLOW_INDEXING) {
     return {

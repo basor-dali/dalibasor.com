@@ -38,11 +38,7 @@ Options:
   --help`);
 }
 
-const { flags, positional } = parseFlags(process.argv.slice(2), [
-  'tags',
-  'date',
-  'slug',
-]);
+const { flags, positional } = parseFlags(process.argv.slice(2), ['tags', 'date', 'slug']);
 
 if (flags.help) {
   printUsage();
@@ -78,7 +74,7 @@ const tags =
 const frontmatter = [
   '---',
   `title: ${yamlString(title)}`,
-  `date: ${date}`,
+  `date: ${yamlString(date)}`,
   tags.length > 0 ? `tags: [${tags.map(yamlString).join(', ')}]` : 'tags: []',
   flags.featured ? 'featured: true' : null,
   flags.draft ? 'draft: true' : null,

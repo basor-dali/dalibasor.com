@@ -55,7 +55,10 @@ export function SelectedProjects({ projects }: { projects: ProjectSummary[] }) {
         <div className="mt-7 flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
           <div>
             <Label className="mb-5 block">Selected work</Label>
-            <h2 id="home-projects" className="u-display u-display-tight text-4xl text-white">
+            <h2
+              id="home-projects"
+              className="u-display u-display-tight text-4xl text-white"
+            >
               Projects
             </h2>
           </div>
@@ -68,8 +71,8 @@ export function SelectedProjects({ projects }: { projects: ProjectSummary[] }) {
       {projects.length === 0 ? (
         <div className="u-page mt-14">
           <EmptyState title="Nothing here yet">
-            Projects appear here as they get written up — the ones that worked and the ones
-            that did not.{' '}
+            Projects appear here as they get written up — the ones that worked and the
+            ones that did not.{' '}
             <Link href="/projects" className="u-link u-link-reveal text-ivory">
               Projects
             </Link>
@@ -122,7 +125,7 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
               <hr className="u-rule flex-1" />
             </div>
 
-            <p className="u-label mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted">
+            <p className="u-label text-muted mt-6 flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="inline-flex items-center gap-2">
                 <StatusDot status={project.status} />
                 {STATUS_LABELS[project.status]}
@@ -138,13 +141,13 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
             </h3>
 
             {project.description ? (
-              <p className="mt-5 max-w-(--container-text) text-soft">
+              <p className="text-soft mt-5 max-w-(--container-text)">
                 {truncate(project.description, 200)}
               </p>
             ) : null}
 
             {technologies.length > 0 ? (
-              <p className="u-label mt-7 text-muted">
+              <p className="u-label text-muted mt-7">
                 {technologies.join('  /  ')}
                 {overflow > 0 ? `  /  +${overflow}` : ''}
               </p>

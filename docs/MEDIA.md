@@ -12,12 +12,12 @@ doing video properly means transcoding rather than resizing.
 
 Costs, at the scale this archive is built for:
 
-| | Cloudinary free | R2 |
-|---|---|---|
-| Storage | 25 credits/mo shared with bandwidth and transforms | 10 GB free, then $0.015/GB/mo |
-| Bandwidth | Consumes the same 25 credits | **Free, always** |
-| Max image | 10 MB / 25 MP | none |
-| 5,000 photographs + every derivative | over the cap | **~$0.40/month** |
+|                                      | Cloudinary free                                    | R2                            |
+| ------------------------------------ | -------------------------------------------------- | ----------------------------- |
+| Storage                              | 25 credits/mo shared with bandwidth and transforms | 10 GB free, then $0.015/GB/mo |
+| Bandwidth                            | Consumes the same 25 credits                       | **Free, always**              |
+| Max image                            | 10 MB / 25 MP                                      | none                          |
+| 5,000 photographs + every derivative | over the cap                                       | **~$0.40/month**              |
 
 ---
 
@@ -126,7 +126,7 @@ Run it when the ladder in `scripts/lib/derivatives.mjs` changes, when a new form
 worth adding, or when a redesign wants a width nobody built.
 
 Pixels come from your originals when `--from` finds a matching filename, and otherwise from
-the full-resolution copy already in the bucket. Only `--from` can produce a size *larger* than
+the full-resolution copy already in the bucket. Only `--from` can produce a size _larger_ than
 what was originally uploaded, and it picks up the new dimensions automatically if a better
 original has turned up since.
 

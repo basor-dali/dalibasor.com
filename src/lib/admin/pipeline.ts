@@ -29,7 +29,9 @@ function loadScript(relativePath: string): Promise<ScriptModule> {
   const absolute = path.join(process.cwd(), 'scripts', relativePath);
   const url = pathToFileURL(absolute).href;
 
-  const loading = import(/* turbopackIgnore: true */ /* webpackIgnore: true */ url) as Promise<ScriptModule>;
+  const loading = import(
+    /* turbopackIgnore: true */ /* webpackIgnore: true */ url
+  ) as Promise<ScriptModule>;
   cache.set(relativePath, loading);
   return loading;
 }
@@ -58,11 +60,19 @@ export type ManifestModule = {
   manifestPath: (year: number | string) => string;
   findManifestPath: (year: number | string) => string | null;
   listManifestFiles: () => string[];
-  loadManifestDoc: (year: number | string) => { doc: YamlDoc; file: string; existed: boolean };
+  loadManifestDoc: (year: number | string) => {
+    doc: YamlDoc;
+    file: string;
+    existed: boolean;
+  };
   saveManifestDoc: (doc: YamlDoc, file: string) => void;
   readManifestFile: (file: string) => unknown;
   addAlbum: (doc: YamlDoc, album: Record<string, unknown>) => boolean;
-  addItem: (doc: YamlDoc, item: Record<string, unknown>, options?: Record<string, unknown>) => unknown;
+  addItem: (
+    doc: YamlDoc,
+    item: Record<string, unknown>,
+    options?: Record<string, unknown>,
+  ) => unknown;
   findItemNodeByHash: (doc: YamlDoc, hash: string) => ItemNode | null;
   findItemNodeById: (doc: YamlDoc, id: string) => ItemNode | null;
   patchItemNode: (node: ItemNode, item: Record<string, unknown>) => void;
@@ -80,7 +90,12 @@ export type StripModule = {
     buffer: Buffer;
     extension: string;
     orientation?: number;
-  }) => Promise<{ buffer: Buffer; method: string; extension?: string; removed?: unknown[] }>;
+  }) => Promise<{
+    buffer: Buffer;
+    method: string;
+    extension?: string;
+    removed?: unknown[];
+  }>;
   VIDEO_METADATA_NOTE: string;
 };
 
@@ -137,7 +152,9 @@ export type TargetModule = {
 
 export const targetLib = () => loadScript('lib/target.mjs') as Promise<TargetModule>;
 export const processLib = () => loadScript('lib/process.mjs') as Promise<ProcessModule>;
-export const manifestLib = () => loadScript('lib/manifest.mjs') as Promise<ManifestModule>;
-export const stripLib = () => loadScript('lib/strip-metadata.mjs') as Promise<StripModule>;
+export const manifestLib = () =>
+  loadScript('lib/manifest.mjs') as Promise<ManifestModule>;
+export const stripLib = () =>
+  loadScript('lib/strip-metadata.mjs') as Promise<StripModule>;
 export const exifLib = () => loadScript('lib/exif.mjs') as Promise<ExifModule>;
 export const uploadLib = () => loadScript('lib/upload.mjs') as Promise<UploadModule>;

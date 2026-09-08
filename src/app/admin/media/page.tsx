@@ -31,12 +31,13 @@ export default async function MediaAdminPage() {
           label: process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || null,
           ready: Boolean(
             process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL &&
-              process.env.R2_BUCKET &&
-              process.env.R2_ACCESS_KEY_ID &&
-              process.env.R2_SECRET_ACCESS_KEY &&
-              (process.env.R2_ACCOUNT_ID || process.env.R2_ENDPOINT),
+            process.env.R2_BUCKET &&
+            process.env.R2_ACCESS_KEY_ID &&
+            process.env.R2_SECRET_ACCESS_KEY &&
+            (process.env.R2_ACCOUNT_ID || process.env.R2_ENDPOINT),
           ),
-          missingHint: 'R2 credentials are missing — see docs/MEDIA.md, then restart the dev server.',
+          missingHint:
+            'R2 credentials are missing — see docs/MEDIA.md, then restart the dev server.',
         }
       : provider === 'cloudinary'
         ? {
@@ -44,8 +45,8 @@ export default async function MediaAdminPage() {
             label: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || null,
             ready: Boolean(
               process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME &&
-                process.env.CLOUDINARY_API_KEY &&
-                process.env.CLOUDINARY_API_SECRET,
+              process.env.CLOUDINARY_API_KEY &&
+              process.env.CLOUDINARY_API_SECRET,
             ),
             missingHint:
               'Cloudinary credentials are missing — add them to .env.local and restart the dev server.',

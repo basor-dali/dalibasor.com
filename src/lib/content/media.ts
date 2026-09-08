@@ -311,9 +311,17 @@ export function getAllMediaItems(): MediaItem[] {
   });
 }
 
-export function getFeaturedMedia(limit = 12): MediaItem[] {
+export function getFeaturedMedia(
+  limit = 12,
+  type: 'image' | 'video' | 'any' = 'image',
+): MediaItem[] {
+  // Images by default. Both callers hand the result to something that renders
+  // an <img> — the homepage hero and "from the archive" — so a clip marked
+  // featured used to become a broken hero image, and on the homepage that is
+  // the LCP element. Nothing in the manifest stops you ticking Featured on a
+  // video, so the filter belongs here rather than at each call site.
   return getAllMediaItems()
-    .filter((item) => item.featured)
+    .filter((item) => item.featured && (type === 'any' || item.type === type))
     .slice(0, limit);
 }
 

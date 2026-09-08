@@ -8,7 +8,7 @@ import { MediaImage } from '@/components/media/MediaImage';
 import { YearSelector } from '@/components/media/YearSelector';
 import { EmptyState, Label, MetaLine, YearMark } from '@/components/primitives';
 import { EVERYDAY_LABEL, getArchiveYears, getYear } from '@/lib/content';
-import { mediaProvider } from '@/lib/media';
+import { mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import { cx, pluralize } from '@/lib/utils';
 import type { MediaItem } from '@/types/content';
@@ -37,7 +37,16 @@ function parseYear(value: string): number | undefined {
 
 function ogImage(item: MediaItem | undefined): string | undefined {
   if (!item || item.type !== 'image') return undefined;
-  return mediaProvider().imageUrl(item.publicId, { width: 1200, height: 630, fit: 'fill' });
+  // A photograph is the better share image, but only when a CDN is actually
+  // configured. On the local provider the URL points into /public/media, where
+  // nothing exists, and every unfurl would carry a dead image. Returning
+  // undefined falls back to the site card, which always resolves.
+  if (!providerCanResize()) return undefined;
+  return mediaProvider().imageUrl(item.publicId, {
+    width: 1200,
+    height: 630,
+    fit: 'fill',
+  });
 }
 
 export async function generateMetadata({
@@ -102,7 +111,9 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
     : [];
 
   const everydayHeading =
-    year.albums.length > 0 ? `Other moments from ${year.year}` : `${year.year} in photographs`;
+    year.albums.length > 0
+      ? `Other moments from ${year.year}`
+      : `${year.year} in photographs`;
 
   return (
     <article className="pb-(--spacing-section)">
@@ -121,7 +132,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
         <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
           <Link
             href="/photos"
-            className="u-label text-muted transition-colors duration-300 hover:text-ivory"
+            className="u-label text-muted hover:text-ivory transition-colors duration-300"
           >
             <span aria-hidden="true">&larr;</span> The archive
           </Link>
@@ -146,14 +157,16 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
                 item={cover}
                 ladder="bleed"
                 sizes={
-                  portraitCover ? '(min-width: 64rem) 40vw, 92vw' : '(min-width: 64rem) 72vw, 92vw'
+                  portraitCover
+                    ? '(min-width: 64rem) 40vw, 92vw'
+                    : '(min-width: 64rem) 72vw, 92vw'
                 }
                 ratio={frameRatio(cover, 0.62, 2.6)}
                 priority
               />
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-ground via-ground/45 to-transparent"
+                className="from-ground via-ground/45 pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t to-transparent"
               />
             </figure>
           </div>
@@ -167,7 +180,10 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
           <YearMark year={year.year} as="span" className="text-white" />
         </h1>
 
-        <MetaLine className="mt-10" items={counts.length > 0 ? counts : ['Nothing filed yet']} />
+        <MetaLine
+          className="mt-10"
+          items={counts.length > 0 ? counts : ['Nothing filed yet']}
+        />
       </header>
 
       {/* --- the year, in Dali's words ----------------------------------- */}
@@ -179,7 +195,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
                 <p
                   key={index}
                   className={cx(
-                    'u-serif text-2xl leading-[1.32] text-ivory',
+                    'u-serif text-ivory text-2xl leading-[1.32]',
                     index > 0 && 'mt-7',
                   )}
                 >
@@ -198,7 +214,9 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
             <hr className="u-rule mb-7" />
             <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
               <h2 className="u-display text-2xl text-white">Albums</h2>
-              <p className="u-label text-muted">{pluralize(year.albums.length, 'album')}</p>
+              <p className="u-label text-muted">
+                {pluralize(year.albums.length, 'album')}
+              </p>
             </div>
           </header>
           <AlbumGrid
@@ -219,7 +237,9 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
             <Label as="p">{EVERYDAY_LABEL}</Label>
             <div className="mt-3.5 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
               <h2 className="u-display text-2xl text-white">{everydayHeading}</h2>
-              <p className="u-label text-muted">{pluralize(year.everyday.length, 'frame')}</p>
+              <p className="u-label text-muted">
+                {pluralize(year.everyday.length, 'frame')}
+              </p>
             </div>
           </header>
           <MediaGrid
@@ -238,8 +258,9 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
         <div className="u-page mt-(--spacing-section-sm)">
           <EmptyState title={`Nothing filed under ${year.year} yet`}>
             <p>
-              The manifest for this year exists but has no photographs in it. Anything imported
-              into <span className="font-mono text-ivory">content/media/{year.year}.yml</span>{' '}
+              The manifest for this year exists but has no photographs in it. Anything
+              imported into{' '}
+              <span className="text-ivory font-mono">content/media/{year.year}.yml</span>{' '}
               shows up here.
             </p>
           </EmptyState>

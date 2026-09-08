@@ -64,13 +64,20 @@ const frontmatter = [
   `period: ${period}`,
   `title: ${yamlString(periodTitle(period))}`,
   `location: ${yamlString(location)}`,
-  `date: ${today().date}`,
+  `date: ${yamlString(today().date)}`,
   'placeholder: true',
   '---',
 ];
 
 // The headings Dali asked for. Every one is empty on purpose.
-const SECTIONS = ['Working', 'Building', 'Training', 'Reading', 'Traveling', 'Thinking About'];
+const SECTIONS = [
+  'Working',
+  'Building',
+  'Training',
+  'Reading',
+  'Traveling',
+  'Thinking About',
+];
 
 const body = `
 <Placeholder>
@@ -99,7 +106,9 @@ try {
     .reverse();
 
   if (existing.length > 0) {
-    detail(`Previous entry ${existing[0]} stays at /now/${existing[0]} — nothing was overwritten.`);
+    detail(
+      `Previous entry ${existing[0]} stays at /now/${existing[0]} — nothing was overwritten.`,
+    );
   }
 } catch {
   // A missing directory here is not worth reporting; the file was still written.

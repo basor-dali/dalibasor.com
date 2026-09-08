@@ -25,7 +25,7 @@ export function TimelineStrip({ years }: { years: TimelineYear[] }) {
 
   return (
     <section className="u-page py-(--spacing-section-sm)" aria-labelledby="home-timeline">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t border-line pt-6">
+      <div className="border-line flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t pt-6">
         <Label as="h2">
           <span id="home-timeline">Timeline</span>
         </Label>
@@ -37,11 +37,14 @@ export function TimelineStrip({ years }: { years: TimelineYear[] }) {
       <nav aria-label="Archive timeline" className="mt-10 overflow-x-auto pb-3 sm:mt-12">
         <ol className="flex min-w-max list-none items-start p-0 lg:min-w-full">
           {ordered.map((year, index) => (
-            <li key={year.year} className={cx('flex items-start', index > 0 && 'lg:flex-1')}>
+            <li
+              key={year.year}
+              className={cx('flex items-start', index > 0 && 'lg:flex-1')}
+            >
               {index > 0 ? (
                 <span
                   aria-hidden="true"
-                  className="mt-[3px] h-px w-10 bg-line sm:w-16 lg:w-auto lg:min-w-6 lg:flex-1"
+                  className="bg-line mt-[3px] h-px w-10 sm:w-16 lg:w-auto lg:min-w-6 lg:flex-1"
                 />
               ) : null}
               <YearNode year={year} isLatest={year.year === latest} />
@@ -74,7 +77,7 @@ function YearNode({ year, isLatest }: { year: TimelineYear; isLatest: boolean })
       >
         {year.year}
       </span>
-      <span className="u-label u-nums mt-1.5 block text-muted">
+      <span className="u-label u-nums text-muted mt-1.5 block">
         {hasContent ? year.total : <span aria-hidden="true">—</span>}
       </span>
     </>

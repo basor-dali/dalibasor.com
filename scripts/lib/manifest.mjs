@@ -144,16 +144,16 @@ export function writeFileAtomic(file, contents) {
    must not collapse to `or-e`. Keep the two implementations in step. */
 
 const TRANSLITERATE = {
-  'đ': 'd',
-  'ð': 'd',
-  'ø': 'o',
-  'ł': 'l',
-  'ß': 'ss',
-  'æ': 'ae',
-  'œ': 'oe',
-  'þ': 'th',
-  'ħ': 'h',
-  'ı': 'i',
+  đ: 'd',
+  ð: 'd',
+  ø: 'o',
+  ł: 'l',
+  ß: 'ss',
+  æ: 'ae',
+  œ: 'oe',
+  þ: 'th',
+  ħ: 'h',
+  ı: 'i',
 };
 
 export function slugify(input) {
@@ -161,9 +161,7 @@ export function slugify(input) {
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
-    .replace(/[đðøłßæœþħı]/g, (char) =>
-      TRANSLITERATE[char] ?? char,
-    )
+    .replace(/[đðøłßæœþħı]/g, (char) => TRANSLITERATE[char] ?? char)
     .replace(/['’]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -276,7 +274,10 @@ export function albumSlugs(doc) {
 export function findAlbumNode(doc, slug) {
   const seq = doc.get('albums', true);
   if (!YAML.isSeq(seq)) return null;
-  return seq.items.find((node) => YAML.isMap(node) && String(node.get('slug')) === slug) ?? null;
+  return (
+    seq.items.find((node) => YAML.isMap(node) && String(node.get('slug')) === slug) ??
+    null
+  );
 }
 
 /**
@@ -287,7 +288,10 @@ export function findAlbumNode(doc, slug) {
  * what the site already treats as "undated". A trailing comment tells Dali
  * what to add.
  */
-export function addAlbum(doc, { slug, title, subtitle, date, location, cover, note } = {}) {
+export function addAlbum(
+  doc,
+  { slug, title, subtitle, date, location, cover, note } = {},
+) {
   if (!slug) throw new Error('addAlbum needs a slug.');
   if (findAlbumNode(doc, slug)) return false;
 
@@ -371,7 +375,9 @@ export function findItemNodeById(doc, id) {
 }
 
 export function findItemNodeByPublicId(doc, publicId) {
-  return itemNodes(doc).find((node) => String(node.get('publicId') ?? '') === publicId) ?? null;
+  return (
+    itemNodes(doc).find((node) => String(node.get('publicId') ?? '') === publicId) ?? null
+  );
 }
 
 /**
@@ -410,7 +416,8 @@ export function addItem(doc, item, { capturedAtInferred = false } = {}) {
   if (capturedAtInferred && item.capturedAt) {
     const pair = node.items.find((entry) => String(entry.key?.value) === 'capturedAt');
     if (pair && pair.value && typeof pair.value === 'object') {
-      pair.value.comment = ' inferred from the file date - the file carried no capture date';
+      pair.value.comment =
+        ' inferred from the file date - the file carried no capture date';
     }
   }
 

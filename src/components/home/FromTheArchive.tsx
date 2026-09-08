@@ -30,7 +30,7 @@ const SPLIT_SIZES = '(min-width: 64rem) 31vw, (min-width: 40rem) 46vw, 100vw';
 export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
   return (
     <section
-      className="border-y border-line bg-ground-deep py-(--spacing-section)"
+      className="border-line bg-ground-deep border-y py-(--spacing-section)"
       aria-labelledby="home-found"
     >
       <div className="u-page">
@@ -43,11 +43,13 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
 
             {entry ? (
               <p className="mt-8">
-                <span className="u-label block text-muted">From</span>
-                <span className="u-display u-display-tight u-nums mt-1 block text-4xl text-ivory">
+                <span className="u-label text-muted block">From</span>
+                <span className="u-display u-display-tight u-nums text-ivory mt-1 block text-4xl">
                   {entry.year}
                 </span>
-                <span className="u-label mt-3 block text-muted">{KIND_LABEL[entry.kind]}</span>
+                <span className="u-label text-muted mt-3 block">
+                  {KIND_LABEL[entry.kind]}
+                </span>
               </p>
             ) : null}
           </div>
@@ -57,9 +59,9 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
             {entry ? (
               <Body entry={entry} />
             ) : (
-              <p className="u-serif max-w-(--container-text-wide) text-xl text-muted">
-                Nothing old enough to resurface yet. Once there is some history here, this is
-                where a photograph, a project or an entry from years back will turn up.
+              <p className="u-serif text-muted max-w-(--container-text-wide) text-xl">
+                Nothing old enough to resurface yet. Once there is some history here, this
+                is where a photograph, a project or an entry from years back will turn up.
               </p>
             )}
           </div>
@@ -84,7 +86,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
           </h3>
 
           {post.excerpt ? (
-            <p className="mt-5 max-w-(--container-text) text-soft">
+            <p className="text-soft mt-5 max-w-(--container-text)">
               {truncate(post.excerpt, 220)}
             </p>
           ) : null}
@@ -120,7 +122,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               placeholderLabel="Photograph"
             />
             <div>
-              <p className="u-label flex flex-wrap items-center gap-x-3 gap-y-1 text-muted">
+              <p className="u-label text-muted flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="inline-flex items-center gap-2">
                   <StatusDot status={project.status} />
                   {STATUS_LABELS[project.status]}
@@ -136,7 +138,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               </h3>
 
               {project.description ? (
-                <p className="mt-4 text-sm text-muted">{truncate(project.description, 160)}</p>
+                <p className="text-muted mt-4 text-sm">
+                  {truncate(project.description, 160)}
+                </p>
               ) : null}
 
               <LinkCue className="mt-6">Open</LinkCue>
@@ -165,7 +169,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
             )}
 
             <div>
-              {album.subtitle ? <p className="u-label text-muted">{album.subtitle}</p> : null}
+              {album.subtitle ? (
+                <p className="u-label text-muted">{album.subtitle}</p>
+              ) : null}
 
               <h3 className="u-display mt-3 text-2xl text-white">
                 <span className="u-link u-link-reveal">{album.title}</span>
@@ -175,7 +181,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
                 className="mt-5"
                 items={[
                   album.location,
-                  album.photoCount > 0 ? pluralize(album.photoCount, 'photograph') : undefined,
+                  album.photoCount > 0
+                    ? pluralize(album.photoCount, 'photograph')
+                    : undefined,
                   album.videoCount > 0 ? pluralize(album.videoCount, 'video') : undefined,
                 ]}
               />
@@ -201,7 +209,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
             />
 
             <div>
-              {item.caption ? <p className="u-serif text-xl text-ivory">{item.caption}</p> : null}
+              {item.caption ? (
+                <p className="u-serif text-ivory text-xl">{item.caption}</p>
+              ) : null}
 
               <MetaLine
                 className="mt-5"

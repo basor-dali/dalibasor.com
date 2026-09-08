@@ -2,12 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
-import {
-  manifestLib,
-  processLib,
-  targetLib,
-  type ItemNode,
-} from '@/lib/admin/pipeline';
+import { manifestLib, processLib, targetLib, type ItemNode } from '@/lib/admin/pipeline';
 
 /**
  * One file in, one archive entry out.
@@ -29,7 +24,15 @@ export const runtime = 'nodejs';
 export const maxDuration = 600;
 
 const IMAGE_EXTENSIONS = new Set([
-  '.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp', '.avif', '.tif', '.tiff',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.heic',
+  '.heif',
+  '.webp',
+  '.avif',
+  '.tif',
+  '.tiff',
 ]);
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.m4v', '.webm']);
 
@@ -71,15 +74,24 @@ export async function POST(request: Request): Promise<Response> {
   const force = String(form.get('force') ?? '') === 'true';
 
   if (!(blob instanceof File)) return json({ error: 'No file was sent.' }, 400);
-  if (!/^\d{4}$/.test(year)) return json({ error: 'A four digit year is required.' }, 400);
+  if (!/^\d{4}$/.test(year))
+    return json({ error: 'A four digit year is required.' }, 400);
 
   const name = path.basename(blob.name || 'upload');
   const ext = path.extname(name).toLowerCase();
-  const kind = IMAGE_EXTENSIONS.has(ext) ? 'image' : VIDEO_EXTENSIONS.has(ext) ? 'video' : null;
+  const kind = IMAGE_EXTENSIONS.has(ext)
+    ? 'image'
+    : VIDEO_EXTENSIONS.has(ext)
+      ? 'video'
+      : null;
 
   if (!kind) {
     return json(
-      { name, status: 'failed', reason: `${ext || 'that file type'} is not a supported format.` },
+      {
+        name,
+        status: 'failed',
+        reason: `${ext || 'that file type'} is not a supported format.`,
+      },
       200,
     );
   }
@@ -215,7 +227,6 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 }
-
 
 function json(body: unknown, status: number): Response {
   return Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });

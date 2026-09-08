@@ -34,24 +34,29 @@ function Neighbour({
 }) {
   return (
     <div className={cx('group relative py-9', className)}>
-      <Label className={cx('block', direction === 'Newer' && 'md:text-right')}>{direction}</Label>
+      <Label className={cx('block', direction === 'Newer' && 'md:text-right')}>
+        {direction}
+      </Label>
 
       {post ? (
         <>
           <p
             className={cx(
-              'u-display mt-5 text-xl text-ivory transition-colors duration-300 group-hover:text-white',
+              'u-display text-ivory mt-5 text-xl transition-colors duration-300 group-hover:text-white',
               direction === 'Newer' && 'md:text-right',
             )}
           >
-            <Link href={post.href} className="after:absolute after:inset-0 after:content-['']">
+            <Link
+              href={post.href}
+              className="after:absolute after:inset-0 after:content-['']"
+            >
               {post.title}
             </Link>
           </p>
           <time
             dateTime={isoDate(post.date)}
             className={cx(
-              'u-label u-nums mt-4 block text-muted',
+              'u-label u-nums text-muted mt-4 block',
               direction === 'Newer' && 'md:text-right',
             )}
           >
@@ -61,7 +66,7 @@ function Neighbour({
       ) : (
         <p
           className={cx(
-            'u-serif mt-5 text-xl text-muted',
+            'u-serif text-muted mt-5 text-xl',
             direction === 'Newer' && 'md:text-right',
           )}
         >
@@ -72,12 +77,17 @@ function Neighbour({
   );
 }
 
-export function ArticleFooter({ post, previous, next, related = [] }: ArticleFooterProps) {
+export function ArticleFooter({
+  post,
+  previous,
+  next,
+  related = [],
+}: ArticleFooterProps) {
   return (
     <footer className="u-page pb-(--spacing-section)">
       {/* --- colophon ------------------------------------------------------ */}
-      <div className="u-grid border-t border-line-strong pt-8">
-        <p className="u-label col-span-2 text-muted md:col-span-4 lg:col-span-6">
+      <div className="u-grid border-line-strong border-t pt-8">
+        <p className="u-label text-muted col-span-2 md:col-span-4 lg:col-span-6">
           Written on{' '}
           <time dateTime={isoDate(post.date)} className="u-nums text-soft">
             {formatDate(post.date)}
@@ -92,13 +102,13 @@ export function ArticleFooter({ post, previous, next, related = [] }: ArticleFoo
       {/* --- either side in time ------------------------------------------- */}
       <nav
         aria-label="Nearby entries"
-        className="mt-(--spacing-section-sm) grid border-t border-line md:grid-cols-2"
+        className="border-line mt-(--spacing-section-sm) grid border-t md:grid-cols-2"
       >
         <Neighbour
           post={previous}
           direction="Older"
           fallback="The beginning of the archive."
-          className="border-b border-line md:border-r md:border-b-0 md:pr-(--spacing-gutter)"
+          className="border-line border-b md:border-r md:border-b-0 md:pr-(--spacing-gutter)"
         />
         <Neighbour
           post={next}
@@ -117,12 +127,15 @@ export function ArticleFooter({ post, previous, next, related = [] }: ArticleFoo
               <li
                 key={entry.slug}
                 /* A staircase rather than three equal tiles. */
-                className={cx(
-                  index === 1 && 'md:mt-10',
-                  index === 2 && 'md:mt-20',
-                )}
+                className={cx(index === 1 && 'md:mt-10', index === 2 && 'md:mt-20')}
               >
-                <ArticlePreview post={entry} variant="text" index={index} numbered headingLevel={3} />
+                <ArticlePreview
+                  post={entry}
+                  variant="text"
+                  index={index}
+                  numbered
+                  headingLevel={3}
+                />
               </li>
             ))}
           </ol>

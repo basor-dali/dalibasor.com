@@ -2,7 +2,12 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { Post } from '@/types/content';
 import { getPost, getPostNeighbours, getPostSlugs, getRelatedPosts } from '@/lib/content';
-import { articleJsonLd, breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  jsonLdScript,
+  pageMetadata,
+} from '@/lib/metadata';
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { ArticleFooter } from '@/components/writing/ArticleFooter';
 import { ArticleHeader } from '@/components/writing/ArticleHeader';
@@ -50,8 +55,11 @@ export async function generateMetadata({
     title: post.title,
     description: descriptionFor(post),
     path: post.href,
-    /* The per-article card at ./opengraph-image is the better share image;
-       pageMetadata points at it by default, so nothing to override here. */
+    /* Articles are the one route with a card of their own — it sets the title,
+       date and tags. Opted into explicitly: pageMetadata defaults to the site
+       card, because assuming a per-route card is what left /about and every
+       project advertising an image that was never built. */
+    image: `${post.href}/opengraph-image`,
     type: 'article',
     publishedTime: isoDateTime(post.date),
     tags: post.tags,
@@ -62,10 +70,11 @@ export async function generateMetadata({
 /** Loud on purpose: unfinished writing should be embarrassing to leave up. */
 function PlaceholderNotice() {
   return (
-    <aside className="mb-14 border border-dashed border-ember-deep/70 bg-ember-deep/[0.06] p-6 sm:p-8">
-      <p className="u-label mb-3 text-ember">Unfinished</p>
-      <p className="text-sm text-soft">
-        This entry is scaffolding. The structure is in place; the writing has not been done yet.
+    <aside className="border-ember-deep/70 bg-ember-deep/[0.06] mb-14 border border-dashed p-6 sm:p-8">
+      <p className="u-label text-ember mb-3">Unfinished</p>
+      <p className="text-soft text-sm">
+        This entry is scaffolding. The structure is in place; the writing has not been
+        done yet.
       </p>
     </aside>
   );

@@ -46,7 +46,7 @@ export function LatestWriting({ posts }: { posts: PostSummary[] }) {
 
           {/* --- 002 / 003 — text only, offset from each other -------------- */}
           {pair.length > 0 ? (
-            <div className="u-grid mt-(--spacing-section-sm) border-t border-line pt-10 sm:pt-14">
+            <div className="u-grid border-line mt-(--spacing-section-sm) border-t pt-10 sm:pt-14">
               {pair.map((post, index) => (
                 <TextEntry
                   key={post.slug}
@@ -89,11 +89,11 @@ function Lead({ post }: { post: PostSummary }) {
             </h3>
 
             {post.subtitle ? (
-              <p className="u-serif mt-4 text-xl text-soft">{post.subtitle}</p>
+              <p className="u-serif text-soft mt-4 text-xl">{post.subtitle}</p>
             ) : null}
 
             {post.excerpt ? (
-              <p className="mt-6 max-w-(--container-text) text-soft">
+              <p className="text-soft mt-6 max-w-(--container-text)">
                 {truncate(post.excerpt, 220)}
               </p>
             ) : null}
@@ -113,7 +113,9 @@ function Lead({ post }: { post: PostSummary }) {
               <TagList
                 className="mt-5"
                 linked={false}
-                tags={post.tags.slice(0, 4).map((tag) => ({ label: tag, slug: slugify(tag) }))}
+                tags={post.tags
+                  .slice(0, 4)
+                  .map((tag) => ({ label: tag, slug: slugify(tag) }))}
               />
             ) : null}
           </div>
@@ -155,18 +157,16 @@ function TextEntry({
           <TimeStamp date={post.date} className="text-muted" />
         </div>
 
-        <h3 className="u-display mt-5 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">
+        <h3 className="u-display text-ivory mt-5 text-2xl transition-colors duration-300 group-hover:text-white">
           <span className="u-link u-link-reveal">{post.title}</span>
         </h3>
 
         {post.excerpt ? (
-          <p className="mt-4 text-sm text-muted">{truncate(post.excerpt, 160)}</p>
+          <p className="text-muted mt-4 text-sm">{truncate(post.excerpt, 160)}</p>
         ) : null}
 
         {post.tags.length > 0 ? (
-          <p className="u-label mt-5 text-muted">
-            {post.tags.slice(0, 3).join('  ·  ')}
-          </p>
+          <p className="u-label text-muted mt-5">{post.tags.slice(0, 3).join('  ·  ')}</p>
         ) : null}
       </Link>
     </article>
@@ -202,12 +202,12 @@ function TailEntry({ post }: { post: PostSummary }) {
               <TimeStamp date={post.date} className="text-muted" />
             </div>
 
-            <h3 className="u-display mt-5 text-2xl text-ivory transition-colors duration-300 group-hover:text-white">
+            <h3 className="u-display text-ivory mt-5 text-2xl transition-colors duration-300 group-hover:text-white">
               <span className="u-link u-link-reveal">{post.title}</span>
             </h3>
 
             {post.excerpt ? (
-              <p className="mt-4 max-w-(--container-text) text-sm text-muted">
+              <p className="text-muted mt-4 max-w-(--container-text) text-sm">
                 {truncate(post.excerpt, 200)}
               </p>
             ) : null}

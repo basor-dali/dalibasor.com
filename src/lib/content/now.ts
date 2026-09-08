@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { NowEntry, NowFrontmatter, NowSummary } from '@/types/content';
-import { formatPeriod, toPlainText, yearOf } from '@/lib/utils';
+import { formatPeriod, toDateString, toPlainText, yearOf } from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
 
 /**
@@ -33,7 +33,7 @@ const loadAll = once((): NowEntry[] => {
       href: `/now/${period}`,
       title: data?.title?.trim() || formatPeriod(period),
       location: data?.location,
-      date: data?.date ? String(data.date) : period,
+      date: data?.date ? toDateString(data.date) : period,
       year: yearOf(period),
       coverImage: data?.coverImage,
       coverAlt: data?.coverAlt,

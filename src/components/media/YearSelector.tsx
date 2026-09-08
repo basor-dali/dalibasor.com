@@ -73,7 +73,7 @@ function StepLink({
 
   if (!year) {
     return (
-      <p className={cx('u-label max-w-[14rem] text-muted', align)}>
+      <p className={cx('u-label text-muted max-w-[14rem]', align)}>
         {isEarlier ? 'The earliest year filed' : 'The most recent year'}
       </p>
     );
@@ -81,18 +81,18 @@ function StepLink({
 
   return (
     <Link href={`/photos/${year}`} className={cx('group block max-w-[14rem]', align)}>
-      <span className="u-label block text-muted transition-colors duration-300 group-hover:text-muted">
+      <span className="u-label text-muted group-hover:text-muted block transition-colors duration-300">
         {isEarlier ? 'Earlier' : 'Later'}
       </span>
-      <span className="u-display u-nums mt-3 block text-3xl text-ivory transition-colors duration-300 group-hover:text-white">
+      <span className="u-display u-nums text-ivory mt-3 block text-3xl transition-colors duration-300 group-hover:text-white">
         {isEarlier ? (
-          <span aria-hidden="true" className="mr-3 text-muted">
+          <span aria-hidden="true" className="text-muted mr-3">
             &larr;
           </span>
         ) : null}
         {year}
         {isEarlier ? null : (
-          <span aria-hidden="true" className="ml-3 text-muted">
+          <span aria-hidden="true" className="text-muted ml-3">
             &rarr;
           </span>
         )}

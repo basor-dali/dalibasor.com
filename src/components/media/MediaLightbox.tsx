@@ -11,12 +11,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import type { MediaItem } from '@/types/content';
-import {
-  formatDuration,
-  mediaAlt,
-  responsiveImage,
-  SIZES,
-} from '@/lib/media';
+import { formatDuration, mediaAlt, responsiveImage, SIZES } from '@/lib/media';
 import { cx, formatDate } from '@/lib/utils';
 import { MediaVideo } from './MediaVideo';
 
@@ -283,7 +278,7 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
       onMouseMove={wakeChrome}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      className="fixed inset-0 z-[100] bg-ground-deep/98 backdrop-blur-sm"
+      className="bg-ground-deep/98 fixed inset-0 z-[100] backdrop-blur-sm"
       style={{ animation: 'fade-in 0.25s var(--ease-out-quart)' }}
     >
       {/* The frame. Clicking the empty space around the photograph closes. */}
@@ -297,7 +292,11 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
 
       <figure className="pointer-events-none relative flex h-full w-full items-center justify-center p-3 sm:p-8 md:p-12">
         {item.type === 'video' ? (
-          <div className="pointer-events-auto w-full max-w-[min(100%,110rem)]">
+          // Keyed, so arrowing to the next clip mounts a fresh <video>. A media
+          // element that has already completed resource selection ignores its
+          // <source> children being swapped, so without this the caption, the
+          // counter and the URL all advanced while the first clip kept playing.
+          <div key={item.id} className="pointer-events-auto w-full max-w-[min(100%,110rem)]">
             <MediaVideo
               item={item}
               playOnMount
@@ -339,16 +338,16 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
         )}
       >
         {/* top bar */}
-        <div className="pointer-events-auto absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b from-ground-deep/80 to-transparent p-4 sm:p-6">
+        <div className="from-ground-deep/80 pointer-events-auto absolute inset-x-0 top-0 flex items-start justify-between gap-4 bg-gradient-to-b to-transparent p-4 sm:p-6">
           <p className="u-label text-muted">
             <span className="text-ivory">{String(index + 1).padStart(2, '0')}</span>
-            <span className="mx-1.5 text-muted">/</span>
+            <span className="text-muted mx-1.5">/</span>
             {String(count).padStart(2, '0')}
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="u-label -m-3 p-3 text-muted transition-colors hover:text-ivory"
+            className="u-label text-muted hover:text-ivory -m-3 p-3 transition-colors"
           >
             Close <span aria-hidden="true">✕</span>
           </button>
@@ -364,22 +363,24 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
 
         {/* caption */}
         {(item.caption || metaBits.length > 0) && (
-          <figcaption className="pointer-events-auto absolute inset-x-0 bottom-0 bg-gradient-to-t from-ground-deep/85 to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
+          <figcaption className="from-ground-deep/85 pointer-events-auto absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
             <div className="u-page">
               {item.caption ? (
-                <p className="max-w-2xl text-sm text-ivory sm:text-base">{item.caption}</p>
+                <p className="text-ivory max-w-2xl text-sm sm:text-base">
+                  {item.caption}
+                </p>
               ) : null}
               {metaBits.length > 0 ? (
-                <p className="u-label mt-2 text-muted">
+                <p className="u-label text-muted mt-2">
                   {metaBits.map((bit, i) => (
                     <span key={bit}>
-                      {i > 0 ? <span className="mx-2 text-line-strong">·</span> : null}
+                      {i > 0 ? <span className="text-line-strong mx-2">·</span> : null}
                       {bit}
                     </span>
                   ))}
                   {item.type === 'video' && item.duration ? (
                     <span>
-                      <span className="mx-2 text-line-strong">·</span>
+                      <span className="text-line-strong mx-2">·</span>
                       {formatDuration(item.duration)}
                     </span>
                   ) : null}
@@ -401,7 +402,7 @@ function NavButton({ side, onClick }: { side: 'left' | 'right'; onClick: () => v
       onClick={onClick}
       aria-label={side === 'left' ? 'Previous photograph' : 'Next photograph'}
       className={cx(
-        'pointer-events-auto absolute top-1/2 hidden -translate-y-1/2 p-6 text-muted transition-colors hover:text-ivory sm:block',
+        'text-muted hover:text-ivory pointer-events-auto absolute top-1/2 hidden -translate-y-1/2 p-6 transition-colors sm:block',
         side === 'left' ? 'left-0' : 'right-0',
       )}
     >

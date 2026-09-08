@@ -29,7 +29,14 @@ export default async function AdminPage() {
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px' }}>
-      <h1 style={{ fontSize: 30, fontWeight: 650, letterSpacing: '-0.02em', margin: '0 0 8px' }}>
+      <h1
+        style={{
+          fontSize: 30,
+          fontWeight: 650,
+          letterSpacing: '-0.02em',
+          margin: '0 0 8px',
+        }}
+      >
         Admin
       </h1>
       <p style={{ fontSize: 14, opacity: 0.7, margin: '0 0 32px', lineHeight: 1.6 }}>
@@ -54,7 +61,9 @@ export default async function AdminPage() {
               <strong style={{ display: 'block', fontSize: 16, marginBottom: 4 }}>
                 {tool.title}
               </strong>
-              <span style={{ fontSize: 13.5, opacity: 0.7, lineHeight: 1.6 }}>{tool.body}</span>
+              <span style={{ fontSize: 13.5, opacity: 0.7, lineHeight: 1.6 }}>
+                {tool.body}
+              </span>
             </Link>
           </li>
         ))}

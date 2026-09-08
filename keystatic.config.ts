@@ -82,7 +82,10 @@ const mdxComponents = {
     label: 'Row of photographs',
     description: 'Two or three side by side. Stacks on mobile.',
     schema: {
-      caption: fields.text({ label: 'Caption for the row', validation: { isRequired: false } }),
+      caption: fields.text({
+        label: 'Caption for the row',
+        validation: { isRequired: false },
+      }),
     },
   }),
 
@@ -91,7 +94,10 @@ const mdxComponents = {
     description: 'Nothing downloads until it is played.',
     schema: {
       src: fields.text({ label: 'Media public id', validation: { isRequired: true } }),
-      poster: fields.text({ label: 'Poster public id', validation: { isRequired: false } }),
+      poster: fields.text({
+        label: 'Poster public id',
+        validation: { isRequired: false },
+      }),
       caption: fields.text({ label: 'Caption', validation: { isRequired: false } }),
       width: fields.integer({ label: 'Source width', defaultValue: 1920 }),
       height: fields.integer({ label: 'Source height', defaultValue: 1080 }),
@@ -267,7 +273,10 @@ export default config({
         ...coverFields,
         gallery: fields.array(
           fields.object({
-            publicId: fields.text({ label: 'Media public id', validation: { isRequired: true } }),
+            publicId: fields.text({
+              label: 'Media public id',
+              validation: { isRequired: true },
+            }),
             type: fields.select({
               label: 'Type',
               options: [
@@ -279,7 +288,10 @@ export default config({
             alt: fields.text({ label: 'Alt text', validation: { isRequired: false } }),
             caption: fields.text({ label: 'Caption', validation: { isRequired: false } }),
             width: fields.integer({ label: 'Width', validation: { isRequired: false } }),
-            height: fields.integer({ label: 'Height', validation: { isRequired: false } }),
+            height: fields.integer({
+              label: 'Height',
+              validation: { isRequired: false },
+            }),
           }),
           {
             label: 'Gallery',
@@ -382,7 +394,9 @@ export default config({
             label: 'Timeline',
             description: 'Leave empty and the timeline disappears from the page.',
             itemLabel: (props) =>
-              [props.fields.when.value, props.fields.what.value].filter(Boolean).join(' — '),
+              [props.fields.when.value, props.fields.what.value]
+                .filter(Boolean)
+                .join(' — '),
           },
         ),
         placeholder: placeholderField,

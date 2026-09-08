@@ -38,9 +38,10 @@ export async function GET(request: Request): Promise<Response> {
     const years = files.map((file) => {
       const match = /(\d{4})\.ya?ml$/.exec(file);
       const value = match ? Number(match[1]) : 0;
-      const data = manifest.readManifestFile(file) as
-        | { albums?: { slug: string; title?: string }[]; items?: unknown[] }
-        | null;
+      const data = manifest.readManifestFile(file) as {
+        albums?: { slug: string; title?: string }[];
+        items?: unknown[];
+      } | null;
       return {
         year: value,
         albums: (data?.albums ?? []).map((album) => ({
@@ -80,7 +81,8 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const year = String(payload.year ?? '');
-  if (!/^\d{4}$/.test(year)) return json({ error: 'A four digit year is required.' }, 400);
+  if (!/^\d{4}$/.test(year))
+    return json({ error: 'A four digit year is required.' }, 400);
 
   const manifest = await manifestLib();
   const { doc, file } = manifest.loadManifestDoc(year);

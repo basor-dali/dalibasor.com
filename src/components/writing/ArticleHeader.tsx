@@ -50,7 +50,7 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
   return (
     <div>
       <dt className="u-label text-muted">{term}</dt>
-      <dd className="u-label u-nums mt-2 ml-0 text-soft">{children}</dd>
+      <dd className="u-label u-nums text-soft mt-2 ml-0">{children}</dd>
     </div>
   );
 }
@@ -63,14 +63,14 @@ export function ArticleHeader({ post }: { post: Post }) {
     <header className="u-page pt-36 sm:pt-44">
       <div className="u-grid">
         <div className="col-span-2 md:col-span-6 lg:col-span-8">
-          <Label className="mb-7 block text-ember">Writing</Label>
+          <Label className="text-ember mb-7 block">Writing</Label>
 
           <h1 className="u-display u-display-tight max-w-[16ch] text-4xl text-white">
             {post.title}
           </h1>
 
           {post.subtitle ? (
-            <p className="u-serif mt-8 max-w-(--container-text-wide) text-xl text-soft">
+            <p className="u-serif text-soft mt-8 max-w-(--container-text-wide) text-xl">
               {post.subtitle}
             </p>
           ) : null}

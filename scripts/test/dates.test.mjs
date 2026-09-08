@@ -18,6 +18,7 @@ import { describe, it } from 'node:test';
 
 import {
   formatDate,
+  toDateString,
   formatDayMonth,
   formatMonthYear,
   formatShortMonthYear,
@@ -90,9 +91,36 @@ describe(`dates (TZ=${TZ}, offset ${OFFSET}min)`, () => {
     }
   });
 
+  it('normalises a YAML Date back to the day that was written', () => {
+    // An unquoted `date: 2015-04-11` in frontmatter becomes a Date at UTC
+    // midnight. Read back with local getters on a host behind UTC it is the
+    // 10th, and String()d it becomes "Fri Apr 10 2015 …" — which then sorts
+    // ABOVE every ISO date, because a letter outranks a digit. One unquoted
+    // date used to send a backdated essay to the top of the archive.
+    assert.equal(toDateString(new Date('2015-04-11T00:00:00Z')), '2015-04-11');
+    assert.equal(toDateString(new Date('2026-01-01T00:00:00Z')), '2026-01-01');
+    assert.equal(toDateString(new Date('2026-12-31T00:00:00Z')), '2026-12-31');
+  });
+
+  it('leaves a string date exactly as written', () => {
+    assert.equal(toDateString('2026-09-07'), '2026-09-07');
+    assert.equal(toDateString(' 2026-09  '), '2026-09');
+    assert.equal(toDateString(undefined), '');
+    assert.equal(toDateString(new Date('nonsense')), '');
+  });
+
+  it('a normalised date sorts below a newer one, which is the whole point', () => {
+    const backdated = toDateString(new Date('2015-04-11T00:00:00Z'));
+    const recent = '2026-09-07';
+    assert.ok(recent.localeCompare(backdated) > 0, 'backdated entry sorted as newest');
+  });
+
   it('never returns Invalid Date, whatever it is handed', () => {
     for (const input of ['', 'not a date', '2026-13-45', '99', '2026-06-14T99:99:99']) {
-      assert.ok(!Number.isNaN(parseDate(input).getTime()), `${input} produced Invalid Date`);
+      assert.ok(
+        !Number.isNaN(parseDate(input).getTime()),
+        `${input} produced Invalid Date`,
+      );
     }
   });
 });

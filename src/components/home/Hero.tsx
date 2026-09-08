@@ -36,7 +36,7 @@ export function PlaceholderFrame({
     <div
       aria-hidden="true"
       className={cx(
-        'relative flex items-center justify-center overflow-hidden border border-line',
+        'border-line relative flex items-center justify-center overflow-hidden border',
         tone === 'surface-3' ? 'bg-surface-3' : 'bg-surface-2',
         className,
       )}
@@ -45,13 +45,15 @@ export function PlaceholderFrame({
       {/* registration marks, the way a print gets trimmed */}
       {marks ? (
         <>
-          <span className="pointer-events-none absolute top-3 left-3 h-3 w-3 border-t border-l border-line-strong" />
-          <span className="pointer-events-none absolute top-3 right-3 h-3 w-3 border-t border-r border-line-strong" />
-          <span className="pointer-events-none absolute bottom-3 left-3 h-3 w-3 border-b border-l border-line-strong" />
-          <span className="pointer-events-none absolute right-3 bottom-3 h-3 w-3 border-r border-b border-line-strong" />
+          <span className="border-line-strong pointer-events-none absolute top-3 left-3 h-3 w-3 border-t border-l" />
+          <span className="border-line-strong pointer-events-none absolute top-3 right-3 h-3 w-3 border-t border-r" />
+          <span className="border-line-strong pointer-events-none absolute bottom-3 left-3 h-3 w-3 border-b border-l" />
+          <span className="border-line-strong pointer-events-none absolute right-3 bottom-3 h-3 w-3 border-r border-b" />
         </>
       ) : null}
-      {label ? <span className="u-label px-6 text-center text-muted">{label}</span> : null}
+      {label ? (
+        <span className="u-label text-muted px-6 text-center">{label}</span>
+      ) : null}
     </div>
   );
 }
@@ -121,7 +123,7 @@ export function LinkCue({
   return (
     <span
       className={cx(
-        'u-label inline-flex items-baseline gap-2 text-muted transition-colors duration-300 group-hover:text-ivory',
+        'u-label text-muted group-hover:text-ivory inline-flex items-baseline gap-2 transition-colors duration-300',
         className,
       )}
     >
@@ -163,7 +165,7 @@ export function Hero({
     <section className="relative pb-(--spacing-section)">
       {/* --- masthead strip ------------------------------------------------ */}
       <div className="u-page pt-[calc(var(--nav-height)+2.5rem)] sm:pt-[calc(var(--nav-height)+4rem)]">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-line pb-4">
+        <div className="border-line flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b pb-4">
           <p className="u-label text-muted">
             Personal archive <span aria-hidden="true">·</span> {site.location}
           </p>
@@ -193,7 +195,7 @@ export function Hero({
         {/* keeps the wordmark legible whatever photograph ends up here */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ground via-ground/55 to-transparent"
+          className="from-ground via-ground/55 pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t to-transparent"
         />
       </div>
 
@@ -204,21 +206,20 @@ export function Hero({
             Whitespace between block boxes is dropped visually, so it costs
             nothing on screen. */}
         <h1 className="u-display text-5xl text-white uppercase">
-          <span className="block">Dali</span>{' '}
-          <span className="block">Basor</span>
+          <span className="block">Dali</span> <span className="block">Basor</span>
         </h1>
       </div>
 
       {/* --- descriptor ----------------------------------------------------- */}
       <div className="u-page mt-10 sm:mt-14">
         <div className="u-grid items-end">
-          <p className="u-serif col-span-2 max-w-(--container-text) text-xl text-soft md:col-span-6 lg:col-span-5">
+          <p className="u-serif text-soft col-span-2 max-w-(--container-text) text-xl md:col-span-6 lg:col-span-5">
             {site.descriptor}
           </p>
-          <p className="u-label col-span-2 text-muted md:col-span-6 lg:col-span-4 lg:col-start-9 lg:text-right">
+          <p className="u-label text-muted col-span-2 md:col-span-6 lg:col-span-4 lg:col-start-9 lg:text-right">
             Technology <span aria-hidden="true">/</span> Projects{' '}
-            <span aria-hidden="true">/</span> Life <span aria-hidden="true">/</span> Travel{' '}
-            <span aria-hidden="true">/</span> Photography
+            <span aria-hidden="true">/</span> Life <span aria-hidden="true">/</span>{' '}
+            Travel <span aria-hidden="true">/</span> Photography
           </p>
         </div>
       </div>

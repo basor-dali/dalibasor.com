@@ -56,12 +56,12 @@ export function EmptyFrame({
   return (
     <div
       className={cx(
-        'u-frame flex items-center justify-center border border-line bg-surface-2',
+        'u-frame border-line bg-surface-2 flex items-center justify-center border',
         className,
       )}
       style={style}
     >
-      <span className="u-label px-4 text-center text-muted">{label}</span>
+      <span className="u-label text-muted px-4 text-center">{label}</span>
     </div>
   );
 }
@@ -104,7 +104,8 @@ export function AlbumCard({
   const ratio = isFeature ? frameRatio(cover, 1.15, 2.6) : frameRatio(cover, 0.72, 2.2);
 
   const count = albumCountLabel(album.photoCount, album.videoCount);
-  const dateLabel = !album.subtitle && album.date ? formatMonthYear(album.date) : undefined;
+  const dateLabel =
+    !album.subtitle && album.date ? formatMonthYear(album.date) : undefined;
   const meta = [count, album.location, dateLabel].filter(Boolean) as string[];
 
   return (
@@ -129,7 +130,7 @@ export function AlbumCard({
         )}
 
         {typeof index === 'number' ? (
-          <span className="u-label pointer-events-none absolute top-0 left-0 bg-ground/70 px-2.5 py-2 text-ivory/90 backdrop-blur-[2px]">
+          <span className="u-label bg-ground/70 text-ivory/90 pointer-events-none absolute top-0 left-0 px-2.5 py-2 backdrop-blur-[2px]">
             {ordinalLabel(index)}
           </span>
         ) : null}
@@ -138,17 +139,17 @@ export function AlbumCard({
           <>
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ground-deep/90 via-ground-deep/30 to-transparent"
+              className="from-ground-deep/90 via-ground-deep/30 pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t to-transparent"
             />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 sm:p-7">
               <Heading className="u-display u-display-tight max-w-[16ch] text-3xl text-white">
                 {album.title}
               </Heading>
               {album.subtitle ? (
-                <p className="u-serif mt-2 text-xl text-ivory/85">{album.subtitle}</p>
+                <p className="u-serif text-ivory/85 mt-2 text-xl">{album.subtitle}</p>
               ) : null}
               {meta.length > 0 ? (
-                <p className="u-label mt-4 text-ivory/70">{meta.join('  ·  ')}</p>
+                <p className="u-label text-ivory/70 mt-4">{meta.join('  ·  ')}</p>
               ) : null}
             </div>
           </>
@@ -157,18 +158,18 @@ export function AlbumCard({
 
       {isFeature ? null : (
         <div className="mt-5">
-          <Heading className="u-display max-w-[22ch] text-xl text-ivory transition-colors duration-300 group-hover:text-white">
+          <Heading className="u-display text-ivory max-w-[22ch] text-xl transition-colors duration-300 group-hover:text-white">
             {album.title}
           </Heading>
           {album.subtitle ? (
-            <p className="u-serif mt-1.5 text-lg text-muted">{album.subtitle}</p>
+            <p className="u-serif text-muted mt-1.5 text-lg">{album.subtitle}</p>
           ) : null}
           {meta.length > 0 ? (
-            <p className="u-label mt-3.5 text-muted">{meta.join('  ·  ')}</p>
+            <p className="u-label text-muted mt-3.5">{meta.join('  ·  ')}</p>
           ) : null}
           <span
             aria-hidden="true"
-            className="mt-5 block h-px w-full origin-left scale-x-0 bg-ember-deep transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100 motion-reduce:transform-none"
+            className="bg-ember-deep mt-5 block h-px w-full origin-left scale-x-0 transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100 motion-reduce:transform-none"
           />
         </div>
       )}

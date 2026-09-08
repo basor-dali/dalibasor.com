@@ -29,7 +29,11 @@ export function absoluteUrl(path: string): string {
 export function pageMetadata(input: PageMetaInput): Metadata {
   const url = absoluteUrl(input.path);
   const description = input.description ?? site.description;
-  const image = input.image ? absoluteUrl(input.image) : absoluteUrl(`${input.path}/opengraph-image`);
+  // Default to the site card, which always exists. Assuming a per-route
+  // opengraph-image meant /about, /projects and every project page advertised
+  // a card that was never built, so those links unfurled with no image at all
+  // in Slack, iMessage and everywhere else. A route with its own card opts in.
+  const image = absoluteUrl(input.image ?? '/opengraph-image');
 
   return {
     title: input.title,
@@ -49,7 +53,9 @@ export function pageMetadata(input: PageMetaInput): Metadata {
       siteName: site.name,
       locale: site.locale,
       type: input.type === 'profile' ? 'profile' : (input.type ?? 'website'),
-      images: [{ url: image, width: 1200, height: 630, alt: input.imageAlt ?? input.title }],
+      images: [
+        { url: image, width: 1200, height: 630, alt: input.imageAlt ?? input.title },
+      ],
       ...(input.type === 'article'
         ? {
             publishedTime: input.publishedTime,
@@ -126,9 +132,8 @@ export function breadcrumbJsonLd(trail: { name: string; path: string }[]) {
 /** Renders a JSON-LD block. Kept in one place so escaping is handled once. */
 export function jsonLdScript(data: unknown): { __html: string } {
   return {
-    __html: JSON.stringify(data, (_key, value) => (value === undefined ? undefined : value)).replace(
-      /</g,
-      '\\u003c',
-    ),
+    __html: JSON.stringify(data, (_key, value) =>
+      value === undefined ? undefined : value,
+    ).replace(/</g, '\\u003c'),
   };
 }

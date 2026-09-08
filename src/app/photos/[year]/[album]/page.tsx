@@ -5,9 +5,16 @@ import { albumCountLabel } from '@/components/media/AlbumCard';
 import { PhotoEssay } from '@/components/media/PhotoEssay';
 import { ArrowLink, EmptyState, Label } from '@/components/primitives';
 import { getAlbum, getAlbumParams, getAlbums } from '@/lib/content';
-import { mediaProvider } from '@/lib/media';
+import { mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
-import { cx, formatDate, formatDayMonth, formatMonthYear, isoDate, ordinalLabel } from '@/lib/utils';
+import {
+  cx,
+  formatDate,
+  formatDayMonth,
+  formatMonthYear,
+  isoDate,
+  ordinalLabel,
+} from '@/lib/utils';
 import type { MediaItem, ResolvedAlbum } from '@/types/content';
 
 /**
@@ -39,7 +46,16 @@ function findAlbum(params: Params): ResolvedAlbum | undefined {
 
 function ogImage(item: MediaItem | undefined): string | undefined {
   if (!item || item.type !== 'image') return undefined;
-  return mediaProvider().imageUrl(item.publicId, { width: 1200, height: 630, fit: 'fill' });
+  // A photograph is the better share image, but only when a CDN is actually
+  // configured. On the local provider the URL points into /public/media, where
+  // nothing exists, and every unfurl would carry a dead image. Returning
+  // undefined falls back to the site card, which always resolves.
+  if (!providerCanResize()) return undefined;
+  return mediaProvider().imageUrl(item.publicId, {
+    width: 1200,
+    height: 630,
+    fit: 'fill',
+  });
 }
 
 /** The span the photographs were actually taken over, when EXIF knows. */
@@ -124,7 +140,7 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
         <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
           <Link
             href={`/photos/${album.year}`}
-            className="u-label text-muted transition-colors duration-300 hover:text-ivory"
+            className="u-label text-muted hover:text-ivory transition-colors duration-300"
           >
             <span aria-hidden="true">&larr;</span> {album.year}
           </Link>
@@ -141,14 +157,18 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
               {album.title}
             </h1>
             {album.subtitle ? (
-              <p className="u-serif mt-6 max-w-[22ch] text-2xl text-muted">{album.subtitle}</p>
+              <p className="u-serif text-muted mt-6 max-w-[22ch] text-2xl">
+                {album.subtitle}
+              </p>
             ) : null}
           </div>
 
           <div className="col-span-2 md:col-span-6 lg:col-span-3 lg:col-start-10 lg:self-end">
             <ul className="list-none space-y-2.5 p-0">
               <li className="u-label text-muted">{countLabel}</li>
-              {album.location ? <li className="u-label text-muted">{album.location}</li> : null}
+              {album.location ? (
+                <li className="u-label text-muted">{album.location}</li>
+              ) : null}
               {dateLabel ? <li className="u-label text-muted">{dateLabel}</li> : null}
             </ul>
           </div>
@@ -163,7 +183,10 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
               {noteParagraphs.map((paragraph, index) => (
                 <p
                   key={index}
-                  className={cx('u-serif text-xl leading-[1.5] text-ivory', index > 0 && 'mt-6')}
+                  className={cx(
+                    'u-serif text-ivory text-xl leading-[1.5]',
+                    index > 0 && 'mt-6',
+                  )}
                 >
                   {paragraph}
                 </p>
@@ -190,9 +213,9 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
           <EmptyState title="This album is still empty">
             <p>
               The album is declared in{' '}
-              <span className="font-mono text-ivory">content/media/{album.year}.yml</span>.
-              Photographs tagged with{' '}
-              <span className="font-mono text-ivory">album: {album.slug}</span> land here.
+              <span className="text-ivory font-mono">content/media/{album.year}.yml</span>
+              . Photographs tagged with{' '}
+              <span className="text-ivory font-mono">album: {album.slug}</span> land here.
             </p>
           </EmptyState>
         </div>
@@ -204,9 +227,9 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
 
         <div className="mt-8 flex flex-wrap items-baseline justify-between gap-x-10 gap-y-6">
           <Link href={`/photos/${album.year}`} className="group block">
-            <span className="u-label block text-muted">Back to</span>
-            <span className="u-display u-nums mt-3.5 block text-3xl text-ivory transition-colors duration-300 group-hover:text-white">
-              <span aria-hidden="true" className="mr-3 text-muted">
+            <span className="u-label text-muted block">Back to</span>
+            <span className="u-display u-nums text-ivory mt-3.5 block text-3xl transition-colors duration-300 group-hover:text-white">
+              <span aria-hidden="true" className="text-muted mr-3">
                 &larr;
               </span>
               {album.year}
@@ -218,17 +241,19 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
         {others.length > 0 ? (
           <nav aria-label={`Other albums from ${album.year}`} className="mt-16 sm:mt-24">
             <Label as="p">More from {album.year}</Label>
-            <ul className="mt-6 list-none divide-y divide-line border-t border-b border-line p-0">
+            <ul className="divide-line border-line mt-6 list-none divide-y border-t border-b p-0">
               {others.map((entry) => (
                 <li key={entry.slug}>
                   <Link
                     href={entry.href}
                     className="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 py-5"
                   >
-                    <span className="u-display text-xl text-ivory transition-colors duration-300 group-hover:text-white">
+                    <span className="u-display text-ivory text-xl transition-colors duration-300 group-hover:text-white">
                       {entry.title}
                       {entry.subtitle ? (
-                        <span className="u-serif ml-3 text-lg text-muted">{entry.subtitle}</span>
+                        <span className="u-serif text-muted ml-3 text-lg">
+                          {entry.subtitle}
+                        </span>
                       ) : null}
                     </span>
                     <span className="u-label text-muted">

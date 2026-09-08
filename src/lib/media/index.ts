@@ -42,7 +42,8 @@ export function mediaProvider(): MediaProvider {
   const configured = process.env.NEXT_PUBLIC_MEDIA_PROVIDER?.toLowerCase();
 
   if (configured === 'r2' && hasR2()) cachedImage = createR2Provider();
-  else if (configured === 'cloudinary' && hasCloudinary()) cachedImage = createCloudinaryProvider();
+  else if (configured === 'cloudinary' && hasCloudinary())
+    cachedImage = createCloudinaryProvider();
   else cachedImage = createLocalProvider();
 
   return cachedImage;
@@ -61,10 +62,13 @@ export function videoProvider(): MediaProvider {
   if (cachedVideo) return cachedVideo;
 
   const configured = (
-    process.env.NEXT_PUBLIC_VIDEO_PROVIDER || process.env.NEXT_PUBLIC_MEDIA_PROVIDER || ''
+    process.env.NEXT_PUBLIC_VIDEO_PROVIDER ||
+    process.env.NEXT_PUBLIC_MEDIA_PROVIDER ||
+    ''
   ).toLowerCase();
 
-  if (configured === 'cloudinary' && hasCloudinary()) cachedVideo = createCloudinaryProvider();
+  if (configured === 'cloudinary' && hasCloudinary())
+    cachedVideo = createCloudinaryProvider();
   else if (configured === 'r2' && hasR2()) cachedVideo = createR2Provider();
   else if (hasCloudinary()) cachedVideo = createCloudinaryProvider();
   else cachedVideo = mediaProvider();
@@ -173,7 +177,11 @@ export function responsiveImage(
 
   const displayWidth = widths[widths.length - 1]!;
   const sizesValue = resolveSizes(options.sizes);
-  const transform: ImageTransform = { width: displayWidth, fit, availableWidths: generated ?? undefined };
+  const transform: ImageTransform = {
+    width: displayWidth,
+    fit,
+    availableWidths: generated ?? undefined,
+  };
 
   const formats = (item.formats?.length ? item.formats : []) as LadderFormat[];
   const sources =

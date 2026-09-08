@@ -71,7 +71,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState<ManifestItem[]>([]);
   const [dirty, setDirty] = useState<Record<string, Partial<ManifestItem>>>({});
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>(
+    'idle',
+  );
   const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -82,7 +84,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
     if (!res.ok) return;
     const data = (await res.json()) as { years: YearSummary[] };
     setYears(data.years ?? []);
-    setYear((current) => current || String(data.years?.[0]?.year ?? new Date().getFullYear()));
+    setYear(
+      (current) => current || String(data.years?.[0]?.year ?? new Date().getFullYear()),
+    );
   }, []);
 
   useEffect(() => {
@@ -153,7 +157,10 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
         if (albumTitle) form.set('albumTitle', albumTitle);
 
         try {
-          const res = await fetch('/api/admin/media/upload', { method: 'POST', body: form });
+          const res = await fetch('/api/admin/media/upload', {
+            method: 'POST',
+            body: form,
+          });
           const data = (await res.json()) as {
             status?: QueueEntry['status'];
             reason?: string;
@@ -243,11 +250,20 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
       <header style={styles.header}>
         <h1 style={styles.h1}>Media</h1>
         <p style={styles.sub}>
-          Photographs and video, imported into <code>content/media/{year || 'YYYY'}.yml</code>.
+          Photographs and video, imported into{' '}
+          <code>content/media/{year || 'YYYY'}.yml</code>.
           {destination.ready ? (
             <>
-              {' '}Uploading to <strong>{destination.name === 'r2' ? 'R2' : 'Cloudinary'}</strong>
-              {destination.label ? <> — <code>{destination.label}</code></> : null}.
+              {' '}
+              Uploading to{' '}
+              <strong>{destination.name === 'r2' ? 'R2' : 'Cloudinary'}</strong>
+              {destination.label ? (
+                <>
+                  {' '}
+                  — <code>{destination.label}</code>
+                </>
+              ) : null}
+              .
             </>
           ) : (
             <strong style={{ color: '#b3261e' }}> {destination.missingHint}</strong>
@@ -340,7 +356,11 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
         >
           <p style={{ margin: 0, fontSize: 15 }}>
             Drag photographs and video here, or{' '}
-            <button type="button" onClick={() => fileInput.current?.click()} style={styles.linkBtn}>
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              style={styles.linkBtn}
+            >
               choose files
             </button>
             .
@@ -382,7 +402,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                   disabled={busy || waiting === 0 || !destination.ready}
                   style={styles.primaryBtn}
                 >
-                  {busy ? 'Uploading…' : `Upload ${waiting} file${waiting === 1 ? '' : 's'}`}
+                  {busy
+                    ? 'Uploading…'
+                    : `Upload ${waiting} file${waiting === 1 ? '' : 's'}`}
                 </button>
               </span>
             </div>
@@ -390,11 +412,15 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
             <ul style={styles.queue}>
               {queue.map((entry) => (
                 <li key={entry.key} style={styles.queueItem}>
-                  <span style={{ ...styles.dot, background: statusColor(entry.status) }} />
+                  <span
+                    style={{ ...styles.dot, background: statusColor(entry.status) }}
+                  />
                   <span style={styles.queueName}>{entry.file.name}</span>
                   <span style={styles.queueMeta}>
                     {entry.reason ?? entry.status}
-                    {entry.status === 'waiting' ? ` · ${formatBytes(entry.file.size)}` : ''}
+                    {entry.status === 'waiting'
+                      ? ` · ${formatBytes(entry.file.size)}`
+                      : ''}
                   </span>
                 </li>
               ))}
@@ -428,8 +454,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
         </div>
 
         <p style={styles.hint}>
-          Locations are typed by hand and always broad — coordinates are stripped at import and
-          never published. Re-importing never overwrites anything you write here.
+          Locations are typed by hand and always broad — coordinates are stripped at
+          import and never published. Re-importing never overwrites anything you write
+          here.
         </p>
 
         {items.length === 0 ? (
@@ -459,7 +486,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                       }}
                       title={`${item.id}\n${item.publicId}\n${item.width}×${item.height}`}
                     >
-                      {item.type === 'video' ? <span style={styles.videoTag}>VIDEO</span> : null}
+                      {item.type === 'video' ? (
+                        <span style={styles.videoTag}>VIDEO</span>
+                      ) : null}
                     </div>
                     <span style={styles.idLabel}>{item.album ?? 'everyday'}</span>
                   </td>
@@ -534,31 +563,181 @@ const styles: Record<string, React.CSSProperties> = {
   page: { maxWidth: 1100, margin: '0 auto', padding: '40px 24px 96px' },
   header: { marginBottom: 28 },
   h1: { fontSize: 30, fontWeight: 650, letterSpacing: '-0.02em', margin: '0 0 8px' },
-  h2: { fontSize: 14, fontWeight: 650, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 16px', opacity: 0.65 },
+  h2: {
+    fontSize: 14,
+    fontWeight: 650,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    margin: '0 0 16px',
+    opacity: 0.65,
+  },
   sub: { margin: '0 0 4px', fontSize: 14, opacity: 0.75, lineHeight: 1.6 },
-  card: { border: '1px solid #e2ddd6', borderRadius: 6, padding: 24, marginBottom: 20, background: '#fff' },
-  cardHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 12, flexWrap: 'wrap' },
+  card: {
+    border: '1px solid #e2ddd6',
+    borderRadius: 6,
+    padding: 24,
+    marginBottom: 20,
+    background: '#fff',
+  },
+  cardHead: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
   row: { display: 'flex', gap: 16, flexWrap: 'wrap' },
-  field: { display: 'flex', flexDirection: 'column', gap: 6, flex: '1 1 220px', minWidth: 0 },
-  label: { fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', opacity: 0.6 },
-  input: { padding: '9px 11px', border: '1px solid #cfc9c2', borderRadius: 4, fontSize: 14, font: 'inherit', minWidth: 0 },
-  cellInput: { width: '100%', padding: '7px 9px', border: '1px solid #ddd8d1', borderRadius: 4, fontSize: 13, font: 'inherit', minWidth: 0 },
+  field: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    flex: '1 1 220px',
+    minWidth: 0,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    opacity: 0.6,
+  },
+  input: {
+    padding: '9px 11px',
+    border: '1px solid #cfc9c2',
+    borderRadius: 4,
+    fontSize: 14,
+    font: 'inherit',
+    minWidth: 0,
+  },
+  cellInput: {
+    width: '100%',
+    padding: '7px 9px',
+    border: '1px solid #ddd8d1',
+    borderRadius: 4,
+    fontSize: 13,
+    font: 'inherit',
+    minWidth: 0,
+  },
   hint: { fontSize: 12.5, opacity: 0.6, margin: '12px 0 0', lineHeight: 1.6 },
-  dropzone: { border: '2px dashed #c9c4bd', borderRadius: 6, padding: '40px 24px', textAlign: 'center', transition: 'background .2s, border-color .2s' },
-  queueBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 20, flexWrap: 'wrap' },
-  queue: { listStyle: 'none', margin: '12px 0 0', padding: 0, maxHeight: 260, overflowY: 'auto', border: '1px solid #eee9e2', borderRadius: 4 },
-  queueItem: { display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderBottom: '1px solid #f2eee8', fontSize: 13 },
-  queueName: { flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  dropzone: {
+    border: '2px dashed #c9c4bd',
+    borderRadius: 6,
+    padding: '40px 24px',
+    textAlign: 'center',
+    transition: 'background .2s, border-color .2s',
+  },
+  queueBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginTop: 20,
+    flexWrap: 'wrap',
+  },
+  queue: {
+    listStyle: 'none',
+    margin: '12px 0 0',
+    padding: 0,
+    maxHeight: 260,
+    overflowY: 'auto',
+    border: '1px solid #eee9e2',
+    borderRadius: 4,
+  },
+  queueItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '7px 12px',
+    borderBottom: '1px solid #f2eee8',
+    fontSize: 13,
+  },
+  queueName: {
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
   queueMeta: { fontSize: 12, opacity: 0.6, flexShrink: 0 },
   dot: { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
   table: { width: '100%', borderCollapse: 'collapse', marginTop: 16, fontSize: 13 },
-  th: { textAlign: 'left', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.55, padding: '0 8px 8px 0', fontWeight: 600 },
-  td: { padding: '8px 8px 8px 0', borderTop: '1px solid #f0ebe4', verticalAlign: 'middle' },
-  thumb: { width: 64, height: 44, borderRadius: 3, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', flexShrink: 0 },
-  videoTag: { position: 'absolute', bottom: 3, right: 3, fontSize: 8, letterSpacing: '0.08em', background: 'rgba(0,0,0,.6)', color: '#fff', padding: '1px 3px', borderRadius: 2 },
-  idLabel: { display: 'block', fontSize: 10, opacity: 0.5, marginTop: 4, letterSpacing: '0.04em' },
-  primaryBtn: { padding: '8px 14px', border: 0, borderRadius: 4, background: '#a8432a', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', font: 'inherit' },
-  secondaryBtn: { padding: '8px 14px', border: '1px solid #cfc9c2', borderRadius: 4, background: 'transparent', fontSize: 13, cursor: 'pointer', font: 'inherit' },
-  linkBtn: { border: 0, background: 'none', padding: 0, font: 'inherit', color: '#a8432a', textDecoration: 'underline', cursor: 'pointer' },
-  notice: { border: '1px solid #e6b8ad', background: '#fdf3ef', color: '#7a2f1c', padding: '12px 16px', borderRadius: 5, marginBottom: 20, fontSize: 14 },
+  th: {
+    textAlign: 'left',
+    fontSize: 11,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    opacity: 0.55,
+    padding: '0 8px 8px 0',
+    fontWeight: 600,
+  },
+  td: {
+    padding: '8px 8px 8px 0',
+    borderTop: '1px solid #f0ebe4',
+    verticalAlign: 'middle',
+  },
+  thumb: {
+    width: 64,
+    height: 44,
+    borderRadius: 3,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'relative',
+    flexShrink: 0,
+  },
+  videoTag: {
+    position: 'absolute',
+    bottom: 3,
+    right: 3,
+    fontSize: 8,
+    letterSpacing: '0.08em',
+    background: 'rgba(0,0,0,.6)',
+    color: '#fff',
+    padding: '1px 3px',
+    borderRadius: 2,
+  },
+  idLabel: {
+    display: 'block',
+    fontSize: 10,
+    opacity: 0.5,
+    marginTop: 4,
+    letterSpacing: '0.04em',
+  },
+  primaryBtn: {
+    padding: '8px 14px',
+    border: 0,
+    borderRadius: 4,
+    background: '#a8432a',
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    font: 'inherit',
+  },
+  secondaryBtn: {
+    padding: '8px 14px',
+    border: '1px solid #cfc9c2',
+    borderRadius: 4,
+    background: 'transparent',
+    fontSize: 13,
+    cursor: 'pointer',
+    font: 'inherit',
+  },
+  linkBtn: {
+    border: 0,
+    background: 'none',
+    padding: 0,
+    font: 'inherit',
+    color: '#a8432a',
+    textDecoration: 'underline',
+    cursor: 'pointer',
+  },
+  notice: {
+    border: '1px solid #e6b8ad',
+    background: '#fdf3ef',
+    color: '#7a2f1c',
+    padding: '12px 16px',
+    borderRadius: 5,
+    marginBottom: 20,
+    fontSize: 14,
+  },
 };

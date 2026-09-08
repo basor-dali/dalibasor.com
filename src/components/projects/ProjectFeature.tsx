@@ -75,7 +75,7 @@ export function ProjectFeature({
           <Stamp project={project} ordinal={ordinal} className="mb-5 sm:mb-7" />
           {cover}
           <div className="u-grid mt-7 sm:mt-9">
-            <Heading className="u-display u-display-tight col-span-2 text-3xl text-white transition-colors duration-500 group-hover:text-ivory md:col-span-6 lg:col-span-7">
+            <Heading className="u-display u-display-tight group-hover:text-ivory col-span-2 text-3xl text-white transition-colors duration-500 md:col-span-6 lg:col-span-7">
               {project.title}
             </Heading>
             <div className="col-span-2 md:col-span-6 lg:col-span-4 lg:col-start-9">
@@ -106,12 +106,12 @@ export function ProjectFeature({
             anything. */}
         <div
           className={cx(
-            'col-span-2 md:col-span-6 lg:col-span-6 lg:row-start-1 lg:self-end lg:bg-ground lg:pt-7',
+            'lg:bg-ground col-span-2 md:col-span-6 lg:col-span-6 lg:row-start-1 lg:self-end lg:pt-7',
             imageFirst ? 'lg:col-start-7 lg:pl-7' : 'lg:col-start-1 lg:pr-7',
           )}
         >
           <Stamp project={project} ordinal={ordinal} className="mb-4" />
-          <Heading className="u-display u-display-tight text-2xl text-white transition-colors duration-500 group-hover:text-ivory">
+          <Heading className="u-display u-display-tight group-hover:text-ivory text-2xl text-white transition-colors duration-500">
             {project.title}
           </Heading>
           <Body project={project} className="mt-4" />
@@ -135,7 +135,7 @@ function Stamp({
   return (
     <p
       className={cx(
-        'u-label flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3.5 text-muted',
+        'u-label border-line text-muted flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-3.5',
         className,
       )}
     >
@@ -159,12 +159,12 @@ function Body({ project, className }: { project: ProjectSummary; className?: str
   return (
     <div className={className}>
       {project.description ? (
-        <p className="max-w-[46ch] text-soft">{project.description}</p>
+        <p className="text-soft max-w-[46ch]">{project.description}</p>
       ) : null}
       {project.technologies.length > 0 ? (
-        <p className="u-label mt-5 text-muted">{project.technologies.join('  /  ')}</p>
+        <p className="u-label text-muted mt-5">{project.technologies.join('  /  ')}</p>
       ) : null}
-      <span className="u-label mt-6 inline-flex items-baseline gap-2 text-ember">
+      <span className="u-label text-ember mt-6 inline-flex items-baseline gap-2">
         {/* The whole feature is the link, so the underline is driven by the
             card's hover rather than the span's own. */}
         <span className="u-link u-link-reveal group-hover:[background-size:100%_1px]">
@@ -239,17 +239,20 @@ export function PlaceholderFrame({
   const style: CSSProperties = { ['--ar' as string]: ratio };
 
   return (
-    <div className={cx('u-frame border border-line bg-surface-2', className)} style={style}>
+    <div
+      className={cx('u-frame border-line bg-surface-2 border', className)}
+      style={style}
+    >
       <svg
         aria-hidden="true"
         preserveAspectRatio="none"
         viewBox="0 0 100 100"
-        className="absolute inset-0 h-full w-full text-line"
+        className="text-line absolute inset-0 h-full w-full"
       >
         <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.25" />
         <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.25" />
       </svg>
-      <span className="u-label absolute bottom-3 left-3 text-muted sm:bottom-4 sm:left-4">
+      <span className="u-label text-muted absolute bottom-3 left-3 sm:bottom-4 sm:left-4">
         {label}
       </span>
     </div>

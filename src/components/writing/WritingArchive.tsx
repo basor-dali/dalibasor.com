@@ -66,7 +66,13 @@ export function WritingArchive({
     for (const post of posts) {
       map.set(
         post.slug,
-        [post.title, post.subtitle ?? '', post.excerpt ?? '', post.tags.join(' '), post.year]
+        [
+          post.title,
+          post.subtitle ?? '',
+          post.excerpt ?? '',
+          post.tags.join(' '),
+          post.year,
+        ]
           .join(' ')
           .toLowerCase(),
       );
@@ -76,7 +82,11 @@ export function WritingArchive({
 
   const tagSlugs = useMemo(() => {
     const map = new Map<string, string[]>();
-    for (const post of posts) map.set(post.slug, post.tags.map((value) => slugify(value)));
+    for (const post of posts)
+      map.set(
+        post.slug,
+        post.tags.map((value) => slugify(value)),
+      );
     return map;
   }, [posts]);
 
@@ -143,10 +153,10 @@ export function WritingArchive({
       <div className="js-writing-filters">
         <div className="u-grid items-end">
           <div className="col-span-2 md:col-span-6 lg:col-span-5">
-            <label htmlFor={searchId} className="u-label mb-3 block text-muted">
+            <label htmlFor={searchId} className="u-label text-muted mb-3 block">
               Search
             </label>
-            <div className="relative flex items-center border-b border-line transition-colors duration-300 focus-within:border-ember">
+            <div className="border-line focus-within:border-ember relative flex items-center border-b transition-colors duration-300">
               <input
                 id={searchId}
                 type="text"
@@ -155,13 +165,13 @@ export function WritingArchive({
                 placeholder="Title, subject or year"
                 autoComplete="off"
                 spellCheck={false}
-                className="w-full bg-transparent py-3 pr-16 text-lg text-ivory outline-none placeholder:text-base placeholder:text-muted"
+                className="text-ivory placeholder:text-muted w-full bg-transparent py-3 pr-16 text-lg outline-none placeholder:text-base"
               />
               {query ? (
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="u-label absolute right-0 text-muted transition-colors duration-300 hover:text-ivory"
+                  className="u-label text-muted hover:text-ivory absolute right-0 transition-colors duration-300"
                 >
                   Clear
                 </button>
@@ -214,7 +224,7 @@ export function WritingArchive({
                   type="button"
                   onClick={() => setAllTagsShown((value) => !value)}
                   aria-expanded={allTagsShown}
-                  className="u-label px-3 py-2 text-muted underline decoration-line-strong underline-offset-4 transition-colors duration-300 hover:text-ivory"
+                  className="u-label text-muted decoration-line-strong hover:text-ivory px-3 py-2 underline underline-offset-4 transition-colors duration-300"
                 >
                   {allTagsShown ? 'Fewer subjects' : `${hiddenTagCount} more`}
                 </button>
@@ -225,7 +235,7 @@ export function WritingArchive({
       </div>
 
       {/* --- count -------------------------------------------------------- */}
-      <div className="mt-12 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-b border-line-strong pb-4">
+      <div className="border-line-strong mt-12 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-b pb-4">
         <p className="u-label u-nums text-muted" aria-live="polite">
           {filtering
             ? `${filtered.length} of ${posts.length} ${posts.length === 1 ? 'entry' : 'entries'}`
@@ -255,10 +265,10 @@ export function WritingArchive({
               className="u-grid pt-10 pb-(--spacing-section-sm) last:pb-0"
             >
               <div className="col-span-2 self-start md:col-span-6 lg:sticky lg:top-[calc(var(--nav-height)_+_2.5rem)] lg:col-span-3">
-                <h3 className="u-display u-display-tight u-nums text-3xl text-mute 2xl:text-4xl">
+                <h3 className="u-display u-display-tight u-nums text-mute text-3xl 2xl:text-4xl">
                   {group.year}
                 </h3>
-                <p className="u-label mt-4 text-muted">
+                <p className="u-label text-muted mt-4">
                   {pluralize(group.posts.length, 'entry', 'entries')}
                 </p>
               </div>

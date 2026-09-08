@@ -28,23 +28,23 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 
 ## Scripts
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Development server, bound to localhost only |
-| `npm run dev:lan` | Same, reachable on your network for phone testing |
-| `npm run build` | Production build (also typechecks) |
-| `npm test` | Tests for the parts that fail silently |
-| `npm run typecheck` | TypeScript only |
-| `npm run lint` | ESLint |
-| `npm run media:import` | Upload and index photos/video — see the content guide |
-| `npm run media:regenerate` | Rebuild derivatives after a ladder or design change |
-| `npm run media:backup` | Download every photograph back out of the bucket |
-| `npm run media:check` | Validate every media manifest |
-| `npm run new:post` | Scaffold a post |
-| `npm run new:project` | Scaffold a project |
-| `npm run new:now` | Scaffold this month's Now entry |
-| `npm run new:year` | Create a year manifest |
-| `npm run new:album` | Add an album to a year |
+| Command                    | What it does                                          |
+| -------------------------- | ----------------------------------------------------- |
+| `npm run dev`              | Development server, bound to localhost only           |
+| `npm run dev:lan`          | Same, reachable on your network for phone testing     |
+| `npm run build`            | Production build (also typechecks)                    |
+| `npm test`                 | Tests for the parts that fail silently                |
+| `npm run typecheck`        | TypeScript only                                       |
+| `npm run lint`             | ESLint                                                |
+| `npm run media:import`     | Upload and index photos/video — see the content guide |
+| `npm run media:regenerate` | Rebuild derivatives after a ladder or design change   |
+| `npm run media:backup`     | Download every photograph back out of the bucket      |
+| `npm run media:check`      | Validate every media manifest                         |
+| `npm run new:post`         | Scaffold a post                                       |
+| `npm run new:project`      | Scaffold a project                                    |
+| `npm run new:now`          | Scaffold this month's Now entry                       |
+| `npm run new:year`         | Create a year manifest                                |
+| `npm run new:album`        | Add an album to a year                                |
 
 ## Stack
 

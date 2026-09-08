@@ -2,7 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getFeaturedPosts, getPosts, getTags, getWritingYears } from '@/lib/content';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
-import { EmptyState, Label, MetaLine, PageHeader, SectionHeader } from '@/components/primitives';
+import {
+  EmptyState,
+  Label,
+  MetaLine,
+  PageHeader,
+  SectionHeader,
+} from '@/components/primitives';
 import { ArticlePreview } from '@/components/writing/ArticlePreview';
 import { WritingArchive } from '@/components/writing/WritingArchive';
 import { pluralize } from '@/lib/utils';
@@ -70,7 +76,8 @@ export default function WritingIndexPage() {
       {posts.length === 0 ? (
         <div className="u-page pb-(--spacing-section)">
           <EmptyState title="Nothing published yet">
-            The first entries are still being written. Everything that lands here stays here.
+            The first entries are still being written. Everything that lands here stays
+            here.
           </EmptyState>
         </div>
       ) : (
@@ -128,7 +135,7 @@ export default function WritingIndexPage() {
                   <li key={tag.slug}>
                     <Link
                       href={`/writing/tag/${tag.slug}`}
-                      className="u-label text-muted transition-colors duration-300 hover:text-ivory"
+                      className="u-label text-muted hover:text-ivory transition-colors duration-300"
                     >
                       {tag.tag}
                       <span className="u-nums ml-2 opacity-70">{tag.count}</span>

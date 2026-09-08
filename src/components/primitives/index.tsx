@@ -72,12 +72,10 @@ export function SectionHeader({
           {eyebrow ? <Label className="mb-3 block">{eyebrow}</Label> : null}
           <Heading className="u-display text-2xl text-white">{title}</Heading>
         </div>
-        {link ? (
-          <ArrowLink href={link.href}>{link.label}</ArrowLink>
-        ) : null}
+        {link ? <ArrowLink href={link.href}>{link.label}</ArrowLink> : null}
       </div>
       {description ? (
-        <div className="mt-4 max-w-(--container-text) text-soft">{description}</div>
+        <div className="text-soft mt-4 max-w-(--container-text)">{description}</div>
       ) : null}
     </header>
   );
@@ -164,7 +162,12 @@ export function MetaLine({
   if (present.length === 0) return null;
 
   return (
-    <p className={cx('u-label flex flex-wrap items-center gap-x-2 gap-y-1 text-muted', className)}>
+    <p
+      className={cx(
+        'u-label text-muted flex flex-wrap items-center gap-x-2 gap-y-1',
+        className,
+      )}
+    >
       {present.map((item, index) => (
         <span key={index} className="flex items-center gap-x-2">
           {index > 0 ? (
@@ -199,12 +202,14 @@ export function TagList({
           {linked ? (
             <Link
               href={`/writing/tag/${tag.slug}`}
-              className="u-label border border-line px-2 py-1 text-muted transition-colors duration-300 hover:border-line-strong hover:text-ivory"
+              className="u-label border-line text-muted hover:border-line-strong hover:text-ivory border px-2 py-1 transition-colors duration-300"
             >
               {tag.label}
             </Link>
           ) : (
-            <span className="u-label border border-line px-2 py-1 text-muted">{tag.label}</span>
+            <span className="u-label border-line text-muted border px-2 py-1">
+              {tag.label}
+            </span>
           )}
         </li>
       ))}
@@ -247,7 +252,7 @@ export function YearMark({
   return (
     <Tag
       className={cx(
-        'u-display u-display-tight u-nums block text-colossal font-semibold',
+        'u-display u-display-tight u-nums text-colossal block font-semibold',
         className,
       )}
     >
@@ -280,9 +285,11 @@ export function PageHeader({
   return (
     <header className={cx('u-page pt-36 pb-(--spacing-section-sm) sm:pt-44', className)}>
       {eyebrow ? <Label className="mb-6 block">{eyebrow}</Label> : null}
-      <h1 className="u-display u-display-tight max-w-[16ch] text-4xl text-white">{title}</h1>
+      <h1 className="u-display u-display-tight max-w-[16ch] text-4xl text-white">
+        {title}
+      </h1>
       {lede ? (
-        <p className="u-serif mt-8 max-w-(--container-text) text-xl text-soft">{lede}</p>
+        <p className="u-serif text-soft mt-8 max-w-(--container-text) text-xl">{lede}</p>
       ) : null}
       {meta ? <div className="mt-8">{meta}</div> : null}
       {children}
@@ -302,10 +309,10 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cx('border border-line px-6 py-16 text-center', className)}>
-      <p className="u-display text-xl text-ivory">{title}</p>
+    <div className={cx('border-line border px-6 py-16 text-center', className)}>
+      <p className="u-display text-ivory text-xl">{title}</p>
       {children ? (
-        <div className="mx-auto mt-3 max-w-md text-sm text-muted">{children}</div>
+        <div className="text-muted mx-auto mt-3 max-w-md text-sm">{children}</div>
       ) : null}
     </div>
   );

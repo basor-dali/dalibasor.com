@@ -40,7 +40,7 @@ export function SiteChrome({
     <>
       <a
         href="#main"
-        className="u-label sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:border focus:border-line-strong focus:bg-ground focus:px-4 focus:py-3 focus:text-ivory"
+        className="u-label focus:border-line-strong focus:bg-ground focus:text-ivory sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:border focus:px-4 focus:py-3"
       >
         Skip to content
       </a>

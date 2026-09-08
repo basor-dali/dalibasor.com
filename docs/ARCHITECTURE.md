@@ -121,15 +121,15 @@ face detection and no automatic tagging of people, by choice.
 
 Server Components by default. `'use client'` appears in exactly the places that need it:
 
-| Component | Why it is a client component |
-|---|---|
-| `Navigation` | scroll state, mobile menu, focus trapping |
-| `MediaLightbox` | keyboard, swipe, portal, history |
-| `MediaGrid` | progressive reveal, opening the lightbox |
-| `MediaVideo` | play state |
-| `WritingArchive` | in-memory filtering |
-| `SearchClient` | fetch-on-interaction and scoring |
-| `error.tsx` | React requires it |
+| Component        | Why it is a client component              |
+| ---------------- | ----------------------------------------- |
+| `Navigation`     | scroll state, mobile menu, focus trapping |
+| `MediaLightbox`  | keyboard, swipe, portal, history          |
+| `MediaGrid`      | progressive reveal, opening the lightbox  |
+| `MediaVideo`     | play state                                |
+| `WritingArchive` | in-memory filtering                       |
+| `SearchClient`   | fetch-on-interaction and scoring          |
+| `error.tsx`      | React requires it                         |
 
 The image fade-in is a notable exception: rather than per-image React state, one capture-phase
 `load` listener inlined in `<head>` tags images as they decode, and CSS does the rest. On a page
@@ -139,7 +139,7 @@ gated behind a `.js-media` class so photographs are simply visible if scripting 
 ## Styling
 
 Tailwind CSS v4, configured entirely in CSS (`src/app/globals.css`). There is no
-`tailwind.config.js`; the `@theme` block *is* the design system.
+`tailwind.config.js`; the `@theme` block _is_ the design system.
 
 Three layers:
 
@@ -203,13 +203,13 @@ and use it in that one component.
 
 ## Where to change things
 
-| I want to… | Go to |
-|---|---|
-| change a colour or the type scale | `src/app/globals.css` (`@theme`) |
-| change the fonts | `src/app/fonts.ts` |
-| change navigation or social links | `src/lib/site.ts` |
-| add a component usable inside posts | `src/components/mdx/components.tsx` |
-| change how an image is sized | `src/lib/media/provider.ts` (`SIZES`, `WIDTH_LADDERS`) |
-| swap the media CDN | add a file to `src/lib/media/`, extend `index.ts` |
-| add a frontmatter field | `src/types/content.ts`, then its loader in `src/lib/content/` |
-| change the importer | `scripts/media-import.mjs` |
+| I want to…                          | Go to                                                         |
+| ----------------------------------- | ------------------------------------------------------------- |
+| change a colour or the type scale   | `src/app/globals.css` (`@theme`)                              |
+| change the fonts                    | `src/app/fonts.ts`                                            |
+| change navigation or social links   | `src/lib/site.ts`                                             |
+| add a component usable inside posts | `src/components/mdx/components.tsx`                           |
+| change how an image is sized        | `src/lib/media/provider.ts` (`SIZES`, `WIDTH_LADDERS`)        |
+| swap the media CDN                  | add a file to `src/lib/media/`, extend `index.ts`             |
+| add a frontmatter field             | `src/types/content.ts`, then its loader in `src/lib/content/` |
+| change the importer                 | `scripts/media-import.mjs`                                    |

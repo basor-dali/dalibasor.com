@@ -41,27 +41,26 @@ title: Getting Strong Again
 date: 2026-09-20
 tags: [Fitness, Life]
 ---
-
 Your words. Exactly as you want them.
 ```
 
 ### Frontmatter fields
 
-| Field | Required | What it does |
-|---|---|---|
-| `title` | yes | The headline |
-| `date` | yes | `YYYY-MM-DD`. Drives ordering and the archive grouping |
-| `slug` | no | Defaults to the filename. **Once published, never change it** — it is a permanent URL |
-| `subtitle` | no | A short editorial line under the title |
-| `tags` | no | `[Life, Technology]`. Free-form; tag pages are generated automatically |
-| `coverImage` | no | A media public id, e.g. `dalibasor/2026/serbia/img_0042` |
-| `coverAlt` | no | Alt text for the cover |
-| `coverShape` | no | `wide` (default), `tall` or `square` — a hint for listings |
-| `location` | no | e.g. `Belgrade, Serbia`. Shown as a small label |
-| `featured` | no | `true` promotes it on the homepage and archive |
-| `draft` | no | `true` hides it in production |
-| `excerpt` | no | Used in listings and metadata. **Optional on purpose** — do not force one |
-| `placeholder` | no | `true` marks the post as scaffolding you have not written yet |
+| Field         | Required | What it does                                                                          |
+| ------------- | -------- | ------------------------------------------------------------------------------------- |
+| `title`       | yes      | The headline                                                                          |
+| `date`        | yes      | `YYYY-MM-DD`. Drives ordering and the archive grouping                                |
+| `slug`        | no       | Defaults to the filename. **Once published, never change it** — it is a permanent URL |
+| `subtitle`    | no       | A short editorial line under the title                                                |
+| `tags`        | no       | `[Life, Technology]`. Free-form; tag pages are generated automatically                |
+| `coverImage`  | no       | A media public id, e.g. `dalibasor/2026/serbia/img_0042`                              |
+| `coverAlt`    | no       | Alt text for the cover                                                                |
+| `coverShape`  | no       | `wide` (default), `tall` or `square` — a hint for listings                            |
+| `location`    | no       | e.g. `Belgrade, Serbia`. Shown as a small label                                       |
+| `featured`    | no       | `true` promotes it on the homepage and archive                                        |
+| `draft`       | no       | `true` hides it in production                                                         |
+| `excerpt`     | no       | Used in listings and metadata. **Optional on purpose** — do not force one             |
+| `placeholder` | no       | `true` marks the post as scaffolding you have not written yet                         |
 
 ### Writing style
 
@@ -71,16 +70,22 @@ the layout.
 
 ### Things you can put in a post
 
-Plain markdown covers almost everything: headings, lists, links, **bold**, *italic*,
+Plain markdown covers almost everything: headings, lists, links, **bold**, _italic_,
 `code`, code fences, tables, blockquotes, footnotes[^1], horizontal rules.
 
 Beyond that there are six components:
 
 ```mdx
-<Figure src="dalibasor/2026/serbia/img_0042" alt="Description" caption="Belgrade, August" />
-<Figure src="..." alt="..." bleed />            {/* breaks out past the reading width */}
+<Figure
+  src="dalibasor/2026/serbia/img_0042"
+  alt="Description"
+  caption="Belgrade, August"
+/>
+<Figure src="..." alt="..." bleed /> {/* breaks out past the reading width */}
 
-<Row>                                            {/* two or three side by side */}
+<Row>
+  {' '}
+  {/* two or three side by side */}
   <Figure src="..." alt="..." />
   <Figure src="..." alt="..." />
 </Row>
@@ -130,22 +135,22 @@ links:
 ---
 ```
 
-| Field | Required | Notes |
-|---|---|---|
-| `title` | yes | |
-| `status` | yes | `building` · `experiment` · `finished` · `paused` · `abandoned` |
-| `startDate` | yes | `2025`, `2025-01` or a full date |
-| `endDate` | no | Adding one turns `2025 —` into `2025 — 2026` |
-| `description` | no | One or two lines, shown in listings |
-| `technologies` | no | |
-| `collaborators` | no | Names, shown as-is |
-| `coverImage` | no | Media public id |
-| `gallery` | no | See below |
-| `links` | no | `[{ label, href }]` |
-| `relatedWriting` | no | Post slugs — they get linked from the project |
-| `featured` | no | Promotes it on the homepage |
-| `order` | no | Higher sorts first, overriding status ordering |
-| `draft` | no | |
+| Field            | Required | Notes                                                           |
+| ---------------- | -------- | --------------------------------------------------------------- |
+| `title`          | yes      |                                                                 |
+| `status`         | yes      | `building` · `experiment` · `finished` · `paused` · `abandoned` |
+| `startDate`      | yes      | `2025`, `2025-01` or a full date                                |
+| `endDate`        | no       | Adding one turns `2025 —` into `2025 — 2026`                    |
+| `description`    | no       | One or two lines, shown in listings                             |
+| `technologies`   | no       |                                                                 |
+| `collaborators`  | no       | Names, shown as-is                                              |
+| `coverImage`     | no       | Media public id                                                 |
+| `gallery`        | no       | See below                                                       |
+| `links`          | no       | `[{ label, href }]`                                             |
+| `relatedWriting` | no       | Post slugs — they get linked from the project                   |
+| `featured`       | no       | Promotes it on the homepage                                     |
+| `order`          | no       | Higher sorts first, overriding status ordering                  |
+| `draft`          | no       |                                                                 |
 
 **`abandoned` is a real status, not a failure.** The archive is meant to show the things that
 did not work. Mark them and leave them up.
@@ -154,7 +159,13 @@ Gallery entries:
 
 ```yaml
 gallery:
-  - { publicId: dalibasor/projects/remow/bench-01, width: 4032, height: 3024, alt: "Bench test", caption: "First full run" }
+  - {
+      publicId: dalibasor/projects/remow/bench-01,
+      width: 4032,
+      height: 3024,
+      alt: 'Bench test',
+      caption: 'First full run',
+    }
   - { publicId: dalibasor/projects/remow/clip-01, type: video, width: 1920, height: 1080 }
 ```
 
@@ -267,7 +278,7 @@ items:
     height: 3024
     capturedAt: 2026-07-14T18:22:00
     caption: The last night before we drove back.
-    location: Belgrade, Serbia      # broad, and only if you want it public
+    location: Belgrade, Serbia # broad, and only if you want it public
     alt: Three people on a balcony at dusk
     featured: false
 ```
@@ -290,7 +301,7 @@ Featured photographs are used for year previews, the homepage archive section an
 
 ```yaml
 year: 2026
-cover: 2026-serbia-0007        # a media id, or a raw publicId
+cover: 2026-serbia-0007 # a media id, or a raw publicId
 
 albums:
   - slug: serbia
@@ -332,17 +343,11 @@ title: October 2026
 location: Wichita, Kansas
 date: 2026-10-02
 ---
-
 ## Working
-
 ...
-
 ## Building
-
 ...
-
 ## Training
-
 ...
 ```
 
@@ -365,9 +370,9 @@ frontmatter:
 title: About
 coverImage: dalibasor/about/portrait
 timeline:
-  - { when: "1993", what: "Born", where: "Bosnia and Herzegovina" }
-  - { when: "2004", what: "Moved to the United States" }
-  - { when: "2019 — now", what: "Viaanix" }
+  - { when: '1993', what: 'Born', where: 'Bosnia and Herzegovina' }
+  - { when: '2004', what: 'Moved to the United States' }
+  - { when: '2019 — now', what: 'Viaanix' }
 ---
 ```
 

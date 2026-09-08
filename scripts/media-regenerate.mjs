@@ -68,7 +68,15 @@ import {
 import { runPool } from './lib/upload.mjs';
 
 const IMAGE_EXTENSIONS = new Set([
-  '.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp', '.avif', '.tif', '.tiff',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.heic',
+  '.heif',
+  '.webp',
+  '.avif',
+  '.tif',
+  '.tiff',
 ]);
 
 function printUsage() {
@@ -236,12 +244,18 @@ async function main() {
     ? listManifestFiles().map((file) => Number(path.basename(file).slice(0, 4)))
     : [Number(flags.year)];
 
-  if (years.some((year) => !Number.isFinite(year))) fail('--year must be a four digit year.');
+  if (years.some((year) => !Number.isFinite(year)))
+    fail('--year must be a four digit year.');
 
   const originals = indexOriginals(flags.from ? expandPath(String(flags.from)) : null);
 
-  heading(`Regenerate — ${flags.all ? 'every year' : years[0]}${albumFilter ? ` / ${albumFilter}` : ''}`);
-  if (flags.from) info(`originals ${originals.size} file(s) indexed from ${expandPath(String(flags.from))}`);
+  heading(
+    `Regenerate — ${flags.all ? 'every year' : years[0]}${albumFilter ? ` / ${albumFilter}` : ''}`,
+  );
+  if (flags.from)
+    info(
+      `originals ${originals.size} file(s) indexed from ${expandPath(String(flags.from))}`,
+    );
   else info('originals from the bucket (pass --from to use local files)');
   info(`formats   ${LADDER_FORMATS.join(', ')} + one jpeg fallback`);
   if (dryRun) warn('Dry run — nothing will be uploaded or written.');
@@ -286,7 +300,10 @@ async function main() {
         // a bigger original has turned up, this is where the archive gets to
         // take advantage of it.
         const sharp = (await import('sharp')).default;
-        const meta = await sharp(source.buffer, { failOn: 'none', limitInputPixels: false }).metadata();
+        const meta = await sharp(source.buffer, {
+          failOn: 'none',
+          limitInputPixels: false,
+        }).metadata();
         const nativeWidth = meta.width ?? Number(node.get('width')) ?? 1600;
 
         const derived = await generateDerivatives(source.buffer, {
@@ -355,8 +372,12 @@ async function main() {
   if (dryRun) {
     detail('Nothing was uploaded and nothing was written.');
   } else {
-    success('Manifests updated. Old derivatives at widths no longer generated are left in place —');
-    detail('they cost storage but break nothing. Delete them from the bucket if you care.');
+    success(
+      'Manifests updated. Old derivatives at widths no longer generated are left in place —',
+    );
+    detail(
+      'they cost storage but break nothing. Delete them from the bucket if you care.',
+    );
   }
 
   if (totalFailed > 0) process.exitCode = 1;

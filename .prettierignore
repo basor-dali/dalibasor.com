@@ -1,5 +1,22 @@
 .next
 node_modules
 out
-public/search-index.json
 package-lock.json
+public/search-index.json
+
+# The archive is not prettier's to format.
+#
+# Two concrete reasons, both verified rather than theoretical:
+#
+#   1. It BREAKS THE BUILD. Prettier's markdown printer rewrites an MDX comment
+#      `{/* … */}` into `{/_ … _/}`, which the MDX compiler then refuses to
+#      parse. Every post scaffolded by `npm run new:post` contains such a
+#      comment, so `npm run format` would arm this in every new essay.
+#
+#   2. The manifests already have a canonical formatter. scripts/lib/manifest.mjs
+#      writes deterministic, fixed-key-order YAML with the width lists inline.
+#      Reformatting them here would churn the archive's git history and fight
+#      the importer on every run.
+#
+# And more generally: this is prose. Nothing should reflow Dali's paragraphs.
+content/

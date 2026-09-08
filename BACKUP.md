@@ -12,11 +12,11 @@ control.** Everything below is either plain text in Git or a file on a disk you 
 
 Back up three things:
 
-| # | What | Where it lives | How bad if lost |
-|---|------|----------------|-----------------|
-| 1 | Your writing and metadata | This Git repository | Catastrophic — irreplaceable |
-| 2 | Your original photos and videos | Your own disks (never only Cloudinary) | Catastrophic — irreplaceable |
-| 3 | The site code | This Git repository | Annoying, rebuildable |
+| #   | What                            | Where it lives                         | How bad if lost              |
+| --- | ------------------------------- | -------------------------------------- | ---------------------------- |
+| 1   | Your writing and metadata       | This Git repository                    | Catastrophic — irreplaceable |
+| 2   | Your original photos and videos | Your own disks (never only Cloudinary) | Catastrophic — irreplaceable |
+| 3   | The site code                   | This Git repository                    | Annoying, rebuildable        |
 
 If you only ever do one thing: **keep `/content` and your photo originals backed up in two
 physical places plus one offsite.** Everything else can be reconstructed.

@@ -207,7 +207,7 @@ export function PhotoEssay({
             <span className="u-label text-muted">{items.length - shownCount} more</span>
           </div>
           <noscript>
-            <p className="u-label py-8 text-center text-muted">
+            <p className="u-label text-muted py-8 text-center">
               {items.length - shownCount} more frames load as you scroll.
             </p>
           </noscript>
@@ -300,7 +300,10 @@ function BlockView({
               : '(min-width: 48rem) 46vw, 92vw'
           }
           posterWidth={isTriptych ? 800 : 1200}
-          className={cx('min-w-0', isTriptych && offset === 0 && 'col-span-2 md:col-span-1')}
+          className={cx(
+            'min-w-0',
+            isTriptych && offset === 0 && 'col-span-2 md:col-span-1',
+          )}
           style={{ flex: `${aspect(item).toFixed(4)} 1 0%` }}
           compact={isTriptych}
         />
@@ -378,7 +381,7 @@ function EssayFrame({
             <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <span
                 className={cx(
-                  'flex items-center justify-center border border-ivory/40 bg-ground/40 backdrop-blur-[2px] transition-colors duration-500 group-hover:border-ivory/85',
+                  'border-ivory/40 bg-ground/40 group-hover:border-ivory/85 flex items-center justify-center border backdrop-blur-[2px] transition-colors duration-500',
                   compact ? 'h-11 w-11' : 'h-14 w-14 sm:h-20 sm:w-20',
                 )}
               >
@@ -388,7 +391,7 @@ function EssayFrame({
                   height={compact ? 13 : 18}
                   fill="currentColor"
                   aria-hidden="true"
-                  className="translate-x-px text-ivory"
+                  className="text-ivory translate-x-px"
                 >
                   <path d="M5 3.5 20 12 5 20.5z" />
                 </svg>
@@ -419,12 +422,17 @@ function FrameCaption({ item, compact }: { item: MediaItem; compact: boolean }) 
     >
       {item.caption ? (
         <span
-          className={cx('max-w-(--container-text) text-muted', compact ? 'text-xs' : 'text-sm')}
+          className={cx(
+            'text-muted max-w-(--container-text)',
+            compact ? 'text-xs' : 'text-sm',
+          )}
         >
           {item.caption}
         </span>
       ) : null}
-      {bits.length > 0 ? <span className="u-label text-muted">{bits.join('  ·  ')}</span> : null}
+      {bits.length > 0 ? (
+        <span className="u-label text-muted">{bits.join('  ·  ')}</span>
+      ) : null}
     </figcaption>
   );
 }

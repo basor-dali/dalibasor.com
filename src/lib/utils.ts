@@ -22,16 +22,18 @@ const TRANSLITERATE: Record<string, string> = {
 };
 
 export function slugify(input: string): string {
-  return input
-    .normalize('NFKD')
-    // Strip combining diacritics (U+0300–U+036F): č → c, š → s, ž → z, é → e.
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[đðøłßæœþħı]/g, (char) => TRANSLITERATE[char] ?? char)
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
+  return (
+    input
+      .normalize('NFKD')
+      // Strip combining diacritics (U+0300–U+036F): č → c, š → s, ž → z, é → e.
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[đðøłßæœþħı]/g, (char) => TRANSLITERATE[char] ?? char)
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80)
+  );
 }
 
 /* ==========================================================================
@@ -55,6 +57,33 @@ const MONTHS = [
   'November',
   'December',
 ] as const;
+
+/**
+ * Normalise a frontmatter date to a plain `YYYY-MM-DD` string.
+ *
+ * YAML resolves an unquoted `date: 2015-04-11` to a Date, and js-yaml builds
+ * it in the host timezone — so on a UTC-5 machine it becomes April 10, and
+ * `String()` turns it into "Fri Apr 10 2015 …". The loaders sort those with
+ * localeCompare, where a letter outranks a digit, so one unquoted date sends a
+ * backdated essay to the top of the archive as the newest entry.
+ *
+ * The scaffolders quote their dates, but a hand-written post or an entry from
+ * the CMS can still arrive this way, so it is normalised on the way in.
+ */
+export function toDateString(value: unknown): string {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return '';
+    // UTC getters, not local ones. js-yaml builds a date-only scalar at UTC
+    // midnight, so on any host behind UTC the local getters read back the
+    // previous day — `2015-04-11` became `2015-04-10`, which is the same class
+    // of off-by-one-day bug this function exists to remove.
+    const y = value.getUTCFullYear();
+    const m = String(value.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(value.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return String(value ?? '').trim();
+}
 
 /** A wall-clock timestamp with no offset: `2026-06-14T19:31:02`, `2026-06-14 19:31`. */
 const NAIVE_TIMESTAMP = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
@@ -81,16 +110,15 @@ export function parseDate(value: string): Date {
   // date — `2026-13-45` looks exactly like `YYYY-MM-DD` and is not a day. Left
   // unchecked it produced an Invalid Date that walked straight past the
   // fallback and rendered as "NaN" in a caption.
-  const candidate =
-    /^\d{4}$/.test(trimmed)
-      ? `${trimmed}-01-01T00:00:00Z`
-      : /^\d{4}-\d{2}$/.test(trimmed)
-        ? `${trimmed}-01T00:00:00Z`
-        : /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
-          ? `${trimmed}T00:00:00Z`
-          : NAIVE_TIMESTAMP.test(trimmed)
-            ? `${trimmed.replace(' ', 'T')}Z`
-            : trimmed;
+  const candidate = /^\d{4}$/.test(trimmed)
+    ? `${trimmed}-01-01T00:00:00Z`
+    : /^\d{4}-\d{2}$/.test(trimmed)
+      ? `${trimmed}-01T00:00:00Z`
+      : /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
+        ? `${trimmed}T00:00:00Z`
+        : NAIVE_TIMESTAMP.test(trimmed)
+          ? `${trimmed.replace(' ', 'T')}Z`
+          : trimmed;
 
   const parsed = new Date(candidate);
   return Number.isNaN(parsed.getTime()) ? new Date('1970-01-01T00:00:00Z') : parsed;
@@ -186,7 +214,11 @@ export function ordinalLabel(index: number, pad = 3): string {
   return String(index + 1).padStart(pad, '0');
 }
 
-export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
+export function pluralize(
+  count: number,
+  singular: string,
+  plural = `${singular}s`,
+): string {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 

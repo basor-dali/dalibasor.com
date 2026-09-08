@@ -46,11 +46,7 @@ import {
 } from './lib/manifest.mjs';
 import { processFile, uploadErrorMessage } from './lib/process.mjs';
 import { LADDER_FORMATS } from './lib/derivatives.mjs';
-import {
-  configureR2,
-  missingR2Credentials,
-  readR2Credentials,
-} from './lib/r2.mjs';
+import { configureR2, missingR2Credentials, readR2Credentials } from './lib/r2.mjs';
 import { VIDEO_METADATA_NOTE } from './lib/strip-metadata.mjs';
 import {
   configureCloudinary,
@@ -257,7 +253,6 @@ function scanDirectory(root) {
   return { found, skipped };
 }
 
-
 /* ==========================================================================
    Main
    ========================================================================== */
@@ -323,7 +318,9 @@ async function main() {
     process.exit(1);
   }
 
-  const concurrency = args.values.concurrency ? Number.parseInt(args.values.concurrency, 10) : 4;
+  const concurrency = args.values.concurrency
+    ? Number.parseInt(args.values.concurrency, 10)
+    : 4;
   if (!Number.isFinite(concurrency) || concurrency < 1 || concurrency > 32) {
     error(`--concurrency must be between 1 and 32. Got "${args.values.concurrency}".`);
     process.exit(1);
@@ -388,8 +385,7 @@ async function main() {
         blank();
         error(
           `R2 credentials are missing: ${missing.join(', ')}.
-` +
-            'Add them to .env.local. See docs/MEDIA.md for how to create the bucket.',
+` + 'Add them to .env.local. See docs/MEDIA.md for how to create the bucket.',
         );
         process.exit(1);
       }
@@ -423,8 +419,12 @@ async function main() {
 
   heading(`Import — ${year}${album ? ` / ${album}` : ' / everyday'}`);
   info(`from     ${dir}`);
-  info(`to       ${dryRun ? colors.yellow('(dry run — nothing is uploaded)') : targetFolder}`);
-  info(`via      ${target === 'r2' ? 'R2 — sizes generated here, uploaded as static files' : 'Cloudinary'}`);
+  info(
+    `to       ${dryRun ? colors.yellow('(dry run — nothing is uploaded)') : targetFolder}`,
+  );
+  info(
+    `via      ${target === 'r2' ? 'R2 — sizes generated here, uploaded as static files' : 'Cloudinary'}`,
+  );
   if (envFiles.length > 0) detail(`credentials from ${envFiles.join(', ')}`);
 
   const { found, skipped } = scanDirectory(dir);
@@ -512,7 +512,10 @@ async function main() {
       step(done, files.length, `${colors.grey('skipped ')} ${label} — ${result.reason}`);
     } else {
       const dims = result.width ? `${result.width}x${result.height}` : 'video';
-      const verb = result.status === 'would-upload' ? colors.yellow('would    ') : colors.green('uploaded');
+      const verb =
+        result.status === 'would-upload'
+          ? colors.yellow('would    ')
+          : colors.green('uploaded');
       step(
         done,
         files.length,
@@ -597,13 +600,17 @@ async function main() {
       colors.grey(`   ${formatBytes(bytesRead)} read · ${formatBytes(bytesSent)} sent`),
   );
   if (duplicates.length > 0) {
-    log(`  ${colors.grey('skipped    ')}  ${pad(duplicates.length, width)}${colors.grey('   already in the manifest')}`);
+    log(
+      `  ${colors.grey('skipped    ')}  ${pad(duplicates.length, width)}${colors.grey('   already in the manifest')}`,
+    );
   }
   if (failures.length > 0) {
     log(`  ${colors.red('failed     ')}  ${pad(failures.length, width)}`);
   }
   if (skipped.length > 0) {
-    log(`  ${colors.grey('unsupported')}  ${pad(skipped.length, width)}${colors.grey('   wrong file type')}`);
+    log(
+      `  ${colors.grey('unsupported')}  ${pad(skipped.length, width)}${colors.grey('   wrong file type')}`,
+    );
   }
   detail(`${formatDuration(Date.now() - started)} elapsed`);
 
@@ -645,9 +652,13 @@ async function main() {
     bullet(
       `${displayPath(manifestFile)} — ${appended.length} item(s) added` +
         (patched.length > 0 ? `, ${patched.length} refreshed` : '') +
-        (appended.length > 0 ? ` (${appended[0]} … ${appended[appended.length - 1]})` : ''),
+        (appended.length > 0
+          ? ` (${appended[0]} … ${appended[appended.length - 1]})`
+          : ''),
     );
-    bullet('Add captions and locations where they matter. Locations are always typed by hand.');
+    bullet(
+      'Add captions and locations where they matter. Locations are always typed by hand.',
+    );
     if (album) {
       bullet(`Set the album date:  albums: → slug: ${album} → date: ${year}-MM`);
       bullet(`Set the album cover: cover: ${appended[0] ?? `${year}-${album}-0001`}`);
@@ -656,7 +667,9 @@ async function main() {
     }
     bullet('Mark the best few with  featured: true');
     bullet('npm run media:check');
-    bullet(`git add ${displayPath(manifestFile)} && git commit -m "Photos: ${year}${album ? ` ${album}` : ''}"`);
+    bullet(
+      `git add ${displayPath(manifestFile)} && git commit -m "Photos: ${year}${album ? ` ${album}` : ''}"`,
+    );
   }
 
   blank();

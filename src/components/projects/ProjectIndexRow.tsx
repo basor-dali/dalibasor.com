@@ -37,7 +37,7 @@ export function ProjectIndexRow({
     <li>
       <Link
         href={project.href}
-        className="group grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2.5 border-t border-line py-5 transition-colors duration-500 hover:border-line-strong sm:grid-cols-[3.5rem_minmax(0,1fr)] sm:gap-x-6 sm:py-6 lg:grid-cols-[3rem_minmax(0,1fr)_9rem_minmax(0,11rem)] lg:gap-x-6 xl:gap-x-10"
+        className="group border-line hover:border-line-strong grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2.5 border-t py-5 transition-colors duration-500 sm:grid-cols-[3.5rem_minmax(0,1fr)] sm:gap-x-6 sm:py-6 lg:grid-cols-[3rem_minmax(0,1fr)_9rem_minmax(0,11rem)] lg:gap-x-6 xl:gap-x-10"
       >
         <span className={cx('u-label u-nums', dimmed ? 'text-muted' : 'text-muted')}>
           {ordinal}
@@ -47,13 +47,15 @@ export function ProjectIndexRow({
           <Heading
             className={cx(
               'u-display text-xl transition-colors duration-300 sm:text-2xl',
-              dimmed ? 'text-soft group-hover:text-ivory' : 'text-ivory group-hover:text-white',
+              dimmed
+                ? 'text-soft group-hover:text-ivory'
+                : 'text-ivory group-hover:text-white',
             )}
           >
             {project.title}
           </Heading>
           {project.description ? (
-            <p className="mt-2 line-clamp-2 max-w-[54ch] text-sm text-muted">
+            <p className="text-muted mt-2 line-clamp-2 max-w-[54ch] text-sm">
               {project.description}
             </p>
           ) : null}
@@ -73,7 +75,9 @@ export function ProjectIndexRow({
         </p>
 
         <div className="col-start-2 flex items-baseline justify-between gap-4 lg:col-start-auto">
-          <p className="u-label min-w-0 text-muted">{project.technologies.join('  /  ')}</p>
+          <p className="u-label text-muted min-w-0">
+            {project.technologies.join('  /  ')}
+          </p>
           <svg
             viewBox="0 0 16 16"
             width="11"
@@ -82,7 +86,7 @@ export function ProjectIndexRow({
             fill="none"
             stroke="currentColor"
             strokeWidth="1.4"
-            className="hidden shrink-0 -translate-x-1.5 self-center text-ember opacity-0 transition-all duration-500 ease-[var(--ease-out-expo)] group-hover:translate-x-0 group-hover:opacity-100 lg:block"
+            className="text-ember hidden shrink-0 -translate-x-1.5 self-center opacity-0 transition-all duration-500 ease-[var(--ease-out-expo)] group-hover:translate-x-0 group-hover:opacity-100 lg:block"
           >
             <path d="M3 8h10M9 4l4 4-4 4" />
           </svg>

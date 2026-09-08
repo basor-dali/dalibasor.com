@@ -7,10 +7,10 @@ to <http://localhost:3000/admin>.
 npm run dev
 ```
 
-| Tool | URL | What it edits |
-|---|---|---|
-| Keystatic | `/keystatic` | Writing, projects, Now entries, About |
-| Media | `/admin/media` | Photographs and video, per year and album |
+| Tool      | URL            | What it edits                             |
+| --------- | -------------- | ----------------------------------------- |
+| Keystatic | `/keystatic`   | Writing, projects, Now entries, About     |
+| Media     | `/admin/media` | Photographs and video, per year and album |
 
 **Neither exists on the deployed site**, and neither answers to anything but this machine.
 See [Why there is no login](#why-there-is-no-login) — it is worth two minutes.
@@ -23,7 +23,7 @@ There is no password on `/admin` or `/keystatic`, and adding one would not make 
 Anyone who can reach localhost on this machine can already open `content/` in a text editor and
 edit the same files. A login there guards nothing, and is one more thing to lose.
 
-The boundary that matters is not *who* you are, it is *where the request came from*. Two locks:
+The boundary that matters is not _who_ you are, it is _where the request came from_. Two locks:
 
 **1. Production does not have them.** The pages and all four API routes return a plain 404 in a
 production build — indistinguishable from a route that was never built. They write to the
@@ -204,10 +204,10 @@ folder, then run the importer later to pick the files up into the manifest.
 
 ## If something breaks
 
-| Symptom | Cause |
-|---|---|
-| `/keystatic` or `/admin` is 404 | You are on a production build. These are dev-only. |
-| Media tool says credentials are missing | No `.env.local`, or the dev server was not restarted after adding it. |
-| An entry will not open in Keystatic | Frontmatter does not match the schema — a bad `status` or a malformed date. Open the file directly. |
-| A photo page looks wrong | `npm run media:check` |
-| An upload says "already in the manifest" | It is. Same file, same content hash. |
+| Symptom                                  | Cause                                                                                               |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `/keystatic` or `/admin` is 404          | You are on a production build. These are dev-only.                                                  |
+| Media tool says credentials are missing  | No `.env.local`, or the dev server was not restarted after adding it.                               |
+| An entry will not open in Keystatic      | Frontmatter does not match the schema — a bad `status` or a malformed date. Open the file directly. |
+| A photo page looks wrong                 | `npm run media:check`                                                                               |
+| An upload says "already in the manifest" | It is. Same file, same content hash.                                                                |

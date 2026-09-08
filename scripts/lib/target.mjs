@@ -124,7 +124,9 @@ export function resolveTarget({
 
   return {
     target: 'r2',
-    targetFolder: [r2.prefix, String(year), album || 'everyday'].filter(Boolean).join('/'),
+    targetFolder: [r2.prefix, String(year), album || 'everyday']
+      .filter(Boolean)
+      .join('/'),
     missing,
     s3: missing.length > 0 || dryRun ? null : configureR2(r2),
     bucket: r2.bucket,

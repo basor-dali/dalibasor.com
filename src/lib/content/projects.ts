@@ -7,7 +7,7 @@ import {
   type ProjectStatus,
   type ProjectSummary,
 } from '@/types/content';
-import { slugify, toPlainText, yearOf } from '@/lib/utils';
+import { slugify, toDateString, toPlainText, yearOf } from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
 
 /* ==========================================================================
@@ -63,8 +63,8 @@ const loadAll = once((): Project[] => {
     }
 
     const slug = data.slug?.trim() || slugify(basename);
-    const startDate = String(data.startDate);
-    const endDate = data.endDate ? String(data.endDate) : undefined;
+    const startDate = toDateString(data.startDate);
+    const endDate = data.endDate ? toDateString(data.endDate) : undefined;
 
     return {
       slug,

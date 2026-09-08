@@ -99,7 +99,8 @@ export async function objectExists(s3, bucket, key) {
     await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
     return true;
   } catch (error) {
-    if (error?.$metadata?.httpStatusCode === 404 || error?.name === 'NotFound') return false;
+    if (error?.$metadata?.httpStatusCode === 404 || error?.name === 'NotFound')
+      return false;
     throw error;
   }
 }
@@ -108,12 +109,22 @@ export async function objectExists(s3, bucket, key) {
 function isRetryable(error) {
   const status = error?.$metadata?.httpStatusCode;
   if (status && status >= 500) return true;
-  return ['ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ENOTFOUND', 'EPIPE'].includes(error?.code);
+  return ['ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ENOTFOUND', 'EPIPE'].includes(
+    error?.code,
+  );
 }
 
 export async function putObject(
   s3,
-  { bucket, key, body, contentType, cacheControl = IMMUTABLE_CACHE_CONTROL, retries = 3, onRetry },
+  {
+    bucket,
+    key,
+    body,
+    contentType,
+    cacheControl = IMMUTABLE_CACHE_CONTROL,
+    retries = 3,
+    onRetry,
+  },
 ) {
   let attempt = 0;
 
@@ -143,7 +154,12 @@ export function uploadErrorMessage(error) {
   const status = error?.$metadata?.httpStatusCode;
   const name = error?.name || '';
 
-  if (status === 401 || status === 403 || name === 'InvalidAccessKeyId' || name === 'SignatureDoesNotMatch') {
+  if (
+    status === 401 ||
+    status === 403 ||
+    name === 'InvalidAccessKeyId' ||
+    name === 'SignatureDoesNotMatch'
+  ) {
     return `R2 rejected the credentials (${status ?? name}) — check R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY`;
   }
   if (name === 'NoSuchBucket') {

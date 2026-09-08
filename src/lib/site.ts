@@ -66,7 +66,11 @@ export type NavItem = {
 
 export const primaryNav: NavItem[] = [
   { href: '/writing', label: 'Writing', note: 'Essays, notes and things I got wrong' },
-  { href: '/projects', label: 'Projects', note: 'Things I am building, finished and abandoned' },
+  {
+    href: '/projects',
+    label: 'Projects',
+    note: 'Things I am building, finished and abandoned',
+  },
   { href: '/photos', label: 'Photos + Video', note: 'The archive, year by year' },
   { href: '/about', label: 'About', note: 'Where I came from and what I do' },
   { href: '/now', label: 'Now', note: 'What I am doing at this moment in my life' },

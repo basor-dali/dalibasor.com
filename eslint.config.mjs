@@ -16,13 +16,7 @@ const nextTypescript = require('eslint-config-next/typescript');
 
 const config = [
   {
-    ignores: [
-      '.next/**',
-      'node_modules/**',
-      'out/**',
-      'public/**',
-      'next-env.d.ts',
-    ],
+    ignores: ['.next/**', 'node_modules/**', 'out/**', 'public/**', 'next-env.d.ts'],
   },
 
   ...coreWebVitals,

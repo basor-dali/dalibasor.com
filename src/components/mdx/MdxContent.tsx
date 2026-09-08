@@ -34,7 +34,11 @@ export function MdxContent({ source }: { source: string }) {
               rehypeAutolinkHeadings,
               {
                 behavior: 'append',
-                properties: { className: ['heading-anchor'], ariaHidden: true, tabIndex: -1 },
+                properties: {
+                  className: ['heading-anchor'],
+                  ariaHidden: true,
+                  tabIndex: -1,
+                },
                 content: { type: 'text', value: '#' },
               },
             ],
