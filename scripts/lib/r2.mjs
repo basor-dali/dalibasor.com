@@ -68,6 +68,28 @@ export function configureR2(credentials) {
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,
     },
+    /* Send a checksum only where the operation actually requires one.
+       ------------------------------------------------------------------
+       Since v3.729 the SDK defaults both of these to WHEN_SUPPORTED, which
+       puts `x-amz-checksum-crc32` on every PutObject. AWS S3 wants that. The
+       S3-compatible stores this file exists to stay portable to do not all
+       accept it — Backblaze B2 rejects the header outright, and older MinIO
+       does too — so the default quietly costs the portability that is the
+       whole reason for using the S3 API rather than a Cloudflare SDK.
+
+       R2 itself does accept it today, and it is accepted here in the only
+       form R2 has ever been reliable with: both upload call sites pass a
+       Buffer, so the SDK signs the whole payload up front. A stream body
+       would switch it to `aws-chunked` with a trailing checksum and
+       STREAMING-UNSIGNED-PAYLOAD-TRAILER, which is the shape R2 has refused
+       with a 501. Worth knowing before anyone changes `body:` in process.mjs
+       to a read stream for large originals.
+
+       WHEN_REQUIRED keeps the checksums that some operations mandate and
+       drops the rest. Verified against a local server: with this set, no
+       x-amz-checksum-crc32 and no x-amz-sdk-checksum-algorithm goes out. */
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
 
   return client;
