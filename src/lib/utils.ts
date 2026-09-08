@@ -178,6 +178,10 @@ export function formatPeriod(period: string): string {
 /** Strips MDX/markdown syntax down to something searchable and countable. */
 export function toPlainText(mdx: string): string {
   return mdx
+    // MDX expression comments first. Without this the component reference that
+    // every scaffolded post carries leaked into the search index and into every
+    // feed description as "{/ Components you can use here: , /}".
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/`[^`]*`/g, ' ')
     .replace(/<[^>]+>/g, ' ')

@@ -17,8 +17,12 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
             <p className="u-label text-muted mt-3">{site.location}</p>
             {span ? (
               <p className="u-label text-muted mt-8">
-                Archive {span.from} <span aria-hidden="true">—</span> {span.to}
+                {/* "to" belongs between the years, not after them — the old
+                    order read aloud as "Archive 2016 2026 to". */}
+                Archive {span.from}
+                <span aria-hidden="true"> — </span>
                 <span className="sr-only"> to </span>
+                {span.to}
               </p>
             ) : null}
           </div>

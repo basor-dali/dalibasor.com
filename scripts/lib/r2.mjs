@@ -13,6 +13,7 @@
 
 import { HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { loadEnv } from './upload.mjs';
+import { slugify } from './manifest.mjs';
 
 export const DEFAULT_PREFIX = 'dalibasor';
 
@@ -83,15 +84,28 @@ export function baseKeyFor(prefix, year, album, leaf) {
  * The original filename is kept in the manifest for provenance; this is only
  * the address. Extensions are dropped because a photograph is a folder here,
  * not a file.
+ *
+ * Two things this has to get right, both of which it once got wrong.
+ *
+ * TRANSLITERATION. It used its own slug rule that stripped anything non-ASCII,
+ * so `Đorđe.jpg` became `or-e`. It now shares slugify with the rest of the
+ * project, which knows that Đ is a letter rather than noise.
+ *
+ * UNIQUENESS. A name that reduces to nothing — `Ελλάδα.jpg`, `日本.jpg`,
+ * `Ужице.png`, `___.jpg` — used to become the literal string "image", so a
+ * folder of them all resolved to ONE key and each upload silently overwrote the
+ * last. You would finish an import with five manifest entries pointing at a
+ * single photograph, and nothing anywhere would report a problem.
+ *
+ * So the content hash is part of the address. Two different photographs cannot
+ * collide, the same photograph re-imported lands on the same key, and the
+ * readable part of the name survives for anyone browsing the bucket.
  */
-export function keyLeaf(filename) {
-  const withoutExtension = filename.replace(/\.[^.]+$/, '');
-  const slug = withoutExtension
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60);
-  return slug || 'image';
+export function keyLeaf(filename, hash = '') {
+  const stem = String(filename ?? '').replace(/\.[^.]+$/, '');
+  const slug = slugify(stem).slice(0, 60) || 'photo';
+  const suffix = String(hash).slice(0, 8);
+  return suffix ? `${slug}-${suffix}` : slug;
 }
 
 export async function objectExists(s3, bucket, key) {

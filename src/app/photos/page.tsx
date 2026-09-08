@@ -212,6 +212,14 @@ function YearBlock({
   ].filter(Boolean) as string[];
   const countLine = counts.length > 0 ? counts.join('  ·  ') : 'Nothing filed yet';
 
+  // `frames` holds photographs only, so a year with video and no stills has no
+  // lead — but it is not empty. Saying "nothing filed" directly above a count
+  // line reading "2 videos" is simply false.
+  const emptyLabel =
+    summary.totalCount === 0
+      ? `Nothing filed under ${year} yet`
+      : `${year} — video only`;
+
   const note = summary.note
     ? truncate(summary.note.replace(/\s+/g, ' ').trim(), 150)
     : undefined;
@@ -236,7 +244,7 @@ function YearBlock({
                   imgClassName={IMAGE_HOVER}
                 />
               ) : (
-                <EmptyFrame ratio="3 / 2" label={`Nothing filed under ${year} yet`} />
+                <EmptyFrame ratio="3 / 2" label={emptyLabel} />
               )}
               {/* The numeral runs across the foot of the photograph — the
                   gradient is what keeps it legible over a bright frame. */}

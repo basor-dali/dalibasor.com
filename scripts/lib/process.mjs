@@ -227,7 +227,7 @@ export async function processFile(file, context) {
     /* --- R2: generate every size here, upload static files ------------ */
 
     if (context.target === 'r2') {
-      const base = baseKeyFor(context.prefix, year, album, keyLeaf(file.name));
+      const base = baseKeyFor(context.prefix, year, album, keyLeaf(file.name, hash));
 
       if (dryRun) {
         return { ...record, status: 'would-upload', publicId: base };

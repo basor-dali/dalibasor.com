@@ -18,7 +18,11 @@ export const archivo = Archivo({
   display: 'swap',
   variable: '--font-archivo',
   // Latin-ext covers the Bosnian/Serbian diacritics — č, ć, ž, š, đ.
-  axes: ['wdth'],
+  //
+  // Deliberately no `axes: ['wdth']`. The width axis was requested and never
+  // used — nothing in the stylesheet sets font-stretch or
+  // font-variation-settings — and a second variation axis is most of the
+  // file's weight, downloaded on every page view.
   weight: 'variable',
   fallback: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
   adjustFontFallback: true,
@@ -29,7 +33,10 @@ export const instrumentSerif = Instrument_Serif({
   display: 'swap',
   variable: '--font-instrument-serif',
   weight: '400',
-  style: ['normal', 'italic'],
+  // Upright only. The one italic on the site is `.prose em`, which is body copy
+  // in the sans face — so the serif italic was fetched on every page and
+  // applied on none.
+  style: 'normal',
   fallback: ['Georgia', 'Times New Roman', 'serif'],
   adjustFontFallback: true,
 });

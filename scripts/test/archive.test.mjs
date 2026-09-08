@@ -151,8 +151,32 @@ describe('object keys', () => {
 
   it('produces URL-safe keys from awkward filenames', () => {
     for (const name of ['IMG 0042.JPG', 'Đorđe.jpeg', 'a/b.png', '  .jpg']) {
-      assert.match(keyLeaf(name), /^[a-z0-9-]+$/, name);
+      assert.match(keyLeaf(name, 'abcdef1234'), /^[a-z0-9-]+$/, name);
     }
+  });
+
+  it('keeps Balkan letters rather than deleting them', () => {
+    // Its own slug rule used to strip anything non-ASCII, so Đorđe.jpg became
+    // "or-e". The key is a permanent address; it should carry the name.
+    assert.match(keyLeaf('Đorđe.jpg', 'aaaaaaaa'), /^dorde-/);
+    assert.match(keyLeaf('Užice.png', 'bbbbbbbb'), /^uzice-/);
+  });
+
+  it('never lets two different photographs share a key', () => {
+    // Every one of these reduces to nothing, and all five used to become the
+    // literal key "image" — so an import of a folder like this silently
+    // overwrote each photograph with the next and left the manifest pointing
+    // five entries at one file.
+    const names = ['Ελλάδα.jpg', '日本.jpg', 'Ужице.png', '___.jpg', '!!!.jpg'];
+    const keys = names.map((n, i) => keyLeaf(n, `hash${i}0000000`));
+    assert.equal(new Set(keys).size, names.length, `collision among: ${keys.join(', ')}`);
+    for (const key of keys) assert.match(key, /^photo-/);
+  });
+
+  it('is deterministic: the same file always lands on the same key', () => {
+    assert.equal(keyLeaf('IMG_1.jpg', 'deadbeef99'), keyLeaf('IMG_1.jpg', 'deadbeef99'));
+    // …and the same NAME with different content does not.
+    assert.notEqual(keyLeaf('IMG_1.jpg', 'aaaaaaaa'), keyLeaf('IMG_1.jpg', 'bbbbbbbb'));
   });
 });
 
