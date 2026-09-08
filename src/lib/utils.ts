@@ -56,13 +56,43 @@ const MONTHS = [
   'December',
 ] as const;
 
-/** Parses `2026`, `2026-09`, `2026-09-07` or a full ISO string, always as UTC. */
+/** A wall-clock timestamp with no offset: `2026-06-14T19:31:02`, `2026-06-14 19:31`. */
+const NAIVE_TIMESTAMP = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
+
+/**
+ * Parses `2026`, `2026-09`, `2026-09-07` or a full ISO string, always as UTC.
+ *
+ * The naive-timestamp branch is the one that matters. EXIF records the wall
+ * clock on the camera with no offset, and that is what the importer writes into
+ * `capturedAt`. JavaScript reads such a string in the *host's* timezone, and
+ * every formatter here then reads it back with getUTC* — so on a UTC-5 machine a
+ * photograph taken at 19:31 on June 14 renders as June 15, and rebuilding the
+ * same repo on a UTC runner silently changes the date with no content change.
+ *
+ * "7pm on the 14th" is the only fact EXIF gives us; it is not an instant, and
+ * pinning it to UTC is what keeps it reading as the 14th everywhere, forever.
+ * Strings that DO carry an offset denote a real instant and are left alone.
+ */
 export function parseDate(value: string): Date {
   const trimmed = value.trim();
-  if (/^\d{4}$/.test(trimmed)) return new Date(`${trimmed}-01-01T00:00:00Z`);
-  if (/^\d{4}-\d{2}$/.test(trimmed)) return new Date(`${trimmed}-01T00:00:00Z`);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return new Date(`${trimmed}T00:00:00Z`);
-  const parsed = new Date(trimmed);
+
+  // Every branch funnels through one validity check at the end. The shapes
+  // below are matched by pattern, and a pattern match is not proof of a real
+  // date — `2026-13-45` looks exactly like `YYYY-MM-DD` and is not a day. Left
+  // unchecked it produced an Invalid Date that walked straight past the
+  // fallback and rendered as "NaN" in a caption.
+  const candidate =
+    /^\d{4}$/.test(trimmed)
+      ? `${trimmed}-01-01T00:00:00Z`
+      : /^\d{4}-\d{2}$/.test(trimmed)
+        ? `${trimmed}-01T00:00:00Z`
+        : /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
+          ? `${trimmed}T00:00:00Z`
+          : NAIVE_TIMESTAMP.test(trimmed)
+            ? `${trimmed.replace(' ', 'T')}Z`
+            : trimmed;
+
+  const parsed = new Date(candidate);
   return Number.isNaN(parsed.getTime()) ? new Date('1970-01-01T00:00:00Z') : parsed;
 }
 

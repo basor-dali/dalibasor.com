@@ -14,7 +14,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"scripts/test/**/*.test.mjs\"",
+    "test": "node scripts/run-tests.mjs",
     "format": "prettier --write .",
     "media:import": "node scripts/media-import.mjs",
     "media:regenerate": "node scripts/media-regenerate.mjs",

@@ -2,7 +2,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
-import { manifestLib, processLib, uploadLib, type ItemNode } from '@/lib/admin/pipeline';
+import {
+  manifestLib,
+  processLib,
+  targetLib,
+  type ItemNode,
+} from '@/lib/admin/pipeline';
 
 /**
  * One file in, one archive entry out.
@@ -79,27 +84,23 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const [manifest, upload, processMod] = await Promise.all([
+  const [manifest, targetMod, processMod] = await Promise.all([
     manifestLib(),
-    uploadLib(),
+    targetLib(),
     processLib(),
   ]);
 
-  // Credentials are read the same way the CLI reads them, so a missing key
-  // fails here with the same message rather than halfway through a batch.
-  upload.loadEnv();
-  const credentials = upload.readCredentials();
-  if (!credentials.cloudName || !credentials.apiKey || !credentials.apiSecret) {
-    return json(
-      {
-        error:
-          'Cloudinary credentials are missing. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, ' +
-          'CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET to .env.local, then restart the dev server.',
-      },
-      400,
-    );
+  const album = albumRaw ? manifest.slugify(albumRaw) : undefined;
+
+  // Exactly the resolution the CLI performs — same module, same rules. This
+  // route used to hardcode Cloudinary, so on an R2 archive it uploaded to the
+  // wrong backend and wrote manifest entries the site renders as 404s.
+  let destination;
+  try {
+    destination = targetMod.resolveTarget({ year, album, kind, dryRun: false });
+  } catch (error) {
+    return json({ error: (error as Error).message }, 400);
   }
-  upload.configureCloudinary();
 
   // The browser hands us bytes, not a path, and processFile works from a path
   // (video is streamed to Cloudinary rather than buffered). This temp copy is
@@ -111,8 +112,6 @@ export async function POST(request: Request): Promise<Response> {
     const bytes = Buffer.from(await blob.arrayBuffer());
     fs.writeFileSync(tempPath, bytes);
 
-    const album = albumRaw ? manifest.slugify(albumRaw) : undefined;
-
     return await withManifestLock(async () => {
       const { doc, file: manifestFile } = manifest.loadManifestDoc(year);
 
@@ -123,12 +122,6 @@ export async function POST(request: Request): Promise<Response> {
         });
       }
 
-      const targetFolder = upload.folderFor(
-        process.env.CLOUDINARY_FOLDER || upload.DEFAULT_FOLDER,
-        year,
-        album,
-      );
-
       const result = await processMod.processFile(
         { path: tempPath, name, ext, kind, relative: name },
         {
@@ -136,7 +129,13 @@ export async function POST(request: Request): Promise<Response> {
           album,
           dryRun: false,
           force,
-          targetFolder,
+          targetFolder: destination.targetFolder,
+          target: destination.target,
+          s3: destination.s3,
+          bucket: destination.bucket,
+          prefix: destination.prefix,
+          formats: destination.formats,
+          keepOriginal: destination.keepOriginal,
           // Per-request dedupe set: cross-file duplicates are caught by the
           // manifest hash lookup inside processFile, which is the durable one.
           seenHashes: new Set<string>(),

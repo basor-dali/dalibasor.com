@@ -93,6 +93,20 @@ export function listDirectories(dir: string): string[] {
  * is request-scoped.
  */
 export function once<T>(loader: () => T): () => T {
+  // In development, do not memoise at all.
+  //
+  // A static build is a short-lived process where reading each file once is
+  // the whole point. A dev server is long-lived, and caching for its lifetime
+  // means content written while it runs never appears: save a post in
+  // Keystatic, drag a photograph into /admin/media, or edit a manifest by
+  // hand, and the page keeps serving what was on disk at boot. The admin tools
+  // write files for a living, so caching here made them look broken — an
+  // upload would succeed and its album page would 404 until a restart.
+  //
+  // Re-reading costs a few milliseconds per request on a personal archive, and
+  // buys a working edit-and-see loop.
+  if (process.env.NODE_ENV !== 'production') return loader;
+
   let value: T;
   let loaded = false;
   return () => {

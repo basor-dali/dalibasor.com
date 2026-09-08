@@ -110,6 +110,32 @@ export type ProcessModule = {
   uploadErrorMessage: (error: unknown) => string;
 };
 
+export type TargetContext = {
+  target: 'r2' | 'cloudinary';
+  targetFolder: string;
+  missing: string[];
+  s3: unknown;
+  bucket?: string;
+  prefix?: string;
+  formats: string[];
+  keepOriginal: boolean;
+};
+
+export type TargetModule = {
+  resolveTarget: (input: {
+    target?: string;
+    year: number | string;
+    album?: string;
+    kind?: 'image' | 'video';
+    dryRun?: boolean;
+    root?: string;
+  }) => TargetContext;
+  resolveTargetName: (explicit?: string) => 'r2' | 'cloudinary';
+  describeTarget: (target: string) => string;
+  TARGETS: string[];
+};
+
+export const targetLib = () => loadScript('lib/target.mjs') as Promise<TargetModule>;
 export const processLib = () => loadScript('lib/process.mjs') as Promise<ProcessModule>;
 export const manifestLib = () => loadScript('lib/manifest.mjs') as Promise<ManifestModule>;
 export const stripLib = () => loadScript('lib/strip-metadata.mjs') as Promise<StripModule>;

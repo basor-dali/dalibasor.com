@@ -53,7 +53,16 @@ const CONCURRENCY = 3;
 const IMAGE_EXT = /\.(jpe?g|png|heic|heif|webp|avif|tiff?)$/i;
 const VIDEO_EXT = /\.(mp4|mov|m4v|webm)$/i;
 
-export function MediaAdmin({ cloudName }: { cloudName: string | null }) {
+export type Destination = {
+  name: 'r2' | 'cloudinary' | 'none';
+  /** Public identifier for the backend — a bucket URL or a cloud name. */
+  label: string | null;
+  /** Whether the credentials to actually upload are present. */
+  ready: boolean;
+  missingHint: string;
+};
+
+export function MediaAdmin({ destination }: { destination: Destination }) {
   const [years, setYears] = useState<YearSummary[]>([]);
   const [year, setYear] = useState('');
   const [album, setAlbum] = useState('');
@@ -235,12 +244,13 @@ export function MediaAdmin({ cloudName }: { cloudName: string | null }) {
         <h1 style={styles.h1}>Media</h1>
         <p style={styles.sub}>
           Photographs and video, imported into <code>content/media/{year || 'YYYY'}.yml</code>.
-          {cloudName ? (
-            <> Uploading to <strong>{cloudName}</strong>.</>
+          {destination.ready ? (
+            <>
+              {' '}Uploading to <strong>{destination.name === 'r2' ? 'R2' : 'Cloudinary'}</strong>
+              {destination.label ? <> — <code>{destination.label}</code></> : null}.
+            </>
           ) : (
-            <strong style={{ color: '#b3261e' }}>
-              {' '}No Cloudinary credentials — add them to .env.local and restart.
-            </strong>
+            <strong style={{ color: '#b3261e' }}> {destination.missingHint}</strong>
           )}
         </p>
         <p style={styles.sub}>
@@ -369,7 +379,7 @@ export function MediaAdmin({ cloudName }: { cloudName: string | null }) {
                 <button
                   type="button"
                   onClick={runQueue}
-                  disabled={busy || waiting === 0 || !cloudName}
+                  disabled={busy || waiting === 0 || !destination.ready}
                   style={styles.primaryBtn}
                 >
                   {busy ? 'Uploading…' : `Upload ${waiting} file${waiting === 1 ? '' : 's'}`}

@@ -339,13 +339,33 @@ async function main() {
   // Where photographs go. R2 stores pre-generated static files; Cloudinary
   // transforms on demand. Images default to whatever the site is configured to
   // read from, so the importer and the website cannot disagree.
-  const target = String(
-    args.flags.target || process.env.NEXT_PUBLIC_MEDIA_PROVIDER || 'cloudinary',
-  ).toLowerCase();
+  //
+  // `args.values`, not `args.flags`: --target takes a value, and reading it
+  // from the wrong bag meant the flag parsed fine and was then silently
+  // ignored, sending a whole batch to the other backend without a word.
+  const requested = args.values.target || process.env.NEXT_PUBLIC_MEDIA_PROVIDER;
+
+  if (!requested) {
+    blank();
+    error(
+      'Cannot tell where photographs should go.\n' +
+        'Set NEXT_PUBLIC_MEDIA_PROVIDER in .env.local, or pass --target r2 | cloudinary.\n' +
+        'Guessing here would upload a whole batch to a backend the site does not read.',
+    );
+    process.exit(1);
+  }
+
+  const target = String(requested).toLowerCase();
 
   if (!TARGETS.includes(target)) {
     blank();
-    error(`--target must be one of: ${TARGETS.join(', ')}. Got "${target}".`);
+    error(
+      `--target must be one of: ${TARGETS.join(', ')}. Got "${target}".` +
+        (target === 'local'
+          ? '\n"local" is a delivery fallback that serves files from /public/media — ' +
+            'there is nothing to import into.'
+          : ''),
+    );
     process.exit(1);
   }
 
