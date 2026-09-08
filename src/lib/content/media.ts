@@ -84,6 +84,22 @@ function normalizeManifest(year: number, raw: unknown, source: string): YearMani
         .map((item, index) => normalizeItem(item, year, index, albumSlugs, source))
     : [];
 
+  // The same guard writing.ts applies to slugs. An id addresses a photograph in
+  // the lightbox and in a shared ?photo= link, so a repeat makes one of the two
+  // unreachable forever — and it is exactly what a hand-edit or a split year
+  // file introduces without anyone noticing.
+  const seenIds = new Map<string, number>();
+  for (const [index, item] of items.entries()) {
+    const first = seenIds.get(item.id);
+    if (first !== undefined) {
+      throw new Error(
+        `Duplicate media id "${item.id}" in ${source}, at items[${first}] and items[${index}]. ` +
+          'Ids are permanent addresses. Run `npm run media:check` to find them all.',
+      );
+    }
+    seenIds.set(item.id, index);
+  }
+
   return {
     year,
     note: input.note,

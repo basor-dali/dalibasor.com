@@ -95,7 +95,8 @@ export function Navigation() {
 
     document.addEventListener('keydown', onKeyDown);
     // Move focus into the panel so a screen reader lands inside the menu.
-    panelRef.current?.querySelector<HTMLElement>('a[href]')?.focus();
+    // The Close control is first, which is the right landing spot for a dialog.
+    panelRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus();
 
     return () => {
       body.style.overflow = previous;
@@ -177,6 +178,28 @@ export function Navigation() {
         className="bg-ground fixed inset-0 z-40 flex flex-col md:hidden"
         style={menuOpen ? { animation: 'fade-in 0.3s var(--ease-out-quart)' } : undefined}
       >
+        {/* A close control inside the dialog.
+            The trigger that opened this sits in the bar behind it, covered by
+            the panel — so an aria-modal dialog offered no way out except the
+            Escape key, which is not discoverable and not available on a touch
+            screen. First child, so it is also the first thing the focus trap
+            and a screen-reader swipe reach. */}
+        <div
+          className="u-page flex shrink-0 items-center justify-end"
+          style={{ height: 'var(--nav-height)' }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              menuButtonRef.current?.focus();
+            }}
+            className="u-label text-ivory -m-3 p-3"
+          >
+            Close <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+
         {/* A scroll container, not a centred column.
             The five links plus their notes are ~811px tall; an iPhone SE has
             about 553px under Safari's toolbars, and body overflow is hidden
@@ -188,8 +211,7 @@ export function Navigation() {
             inner column keeps the centred look whenever it does fit. */}
         <nav
           aria-label="Primary"
-          className="u-pad flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-24"
-          style={{ paddingTop: 'var(--nav-height)' }}
+          className="u-pad flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-10"
         >
           <div className="my-auto flex flex-col gap-1">
             {primaryNav.map((item, index) => {

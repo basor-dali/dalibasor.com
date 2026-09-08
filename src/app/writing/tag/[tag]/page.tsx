@@ -95,6 +95,12 @@ export default async function WritingTagPage({
       </PageHeader>
 
       <section className="u-page pb-(--spacing-section)">
+        {/* The archive renders year headings at h3; without this the outline
+
+            jumps straight from the page h1. */}
+
+        <h2 className="sr-only">Entries by year</h2>
+
         <WritingArchive
           posts={posts}
           emptyTitle="Nothing filed here yet"

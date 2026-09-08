@@ -318,6 +318,40 @@ function checkManifest(file, report) {
       report.warn(where, 'no `alt` or `caption`. A generic description will be used.');
     }
 
+    /* the derivative record, which the R2 provider reads to build a srcSet */
+    if (item.type === 'image') {
+      const hasVariants = Array.isArray(item.variants) && item.variants.length > 0;
+      const hasFormats = Array.isArray(item.formats) && item.formats.length > 0;
+
+      // Only half the record is a real defect: the two are written together by
+      // the importer, so one without the other means a hand-edit went wrong.
+      // The item renders as a lone JPEG with no AVIF or WebP, which looks
+      // exactly like a photograph that has not finished loading.
+      if (hasVariants !== hasFormats) {
+        report.error(
+          where,
+          `has \`${hasVariants ? 'variants' : 'formats'}\` but not ` +
+            `\`${hasVariants ? 'formats' : 'variants'}\`. They are written together — ` +
+            'with only one, the site serves a single JPEG and no responsive sizes.',
+        );
+      }
+
+      if (hasVariants) {
+        const widths = item.variants.map(Number);
+        if (widths.some((w) => !Number.isFinite(w) || w < MIN_SANE_DIMENSION)) {
+          report.error(where, `\`variants\` contains something that is not a width: ${item.variants.join(', ')}.`);
+        }
+        const native = Number(item.width);
+        if (Number.isFinite(native) && widths.some((w) => w > native)) {
+          report.warn(
+            where,
+            `\`variants\` claims a width larger than the photograph (${native}px). ` +
+              'Nothing upscales, so those files were probably never written.',
+          );
+        }
+      }
+    }
+
     /* dates */
     if (item.capturedAt && Number.isNaN(new Date(item.capturedAt).getTime())) {
       report.error(where, `\`capturedAt: ${item.capturedAt}\` is not a valid date.`);

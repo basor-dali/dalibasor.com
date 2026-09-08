@@ -3,6 +3,7 @@ import 'server-only';
 import type { ArchiveEntry } from '@/types/content';
 import { site } from '@/lib/site';
 import { hashString, yearOf } from '@/lib/utils';
+import { once } from './fs';
 import { getAllAlbums, getArchiveYears, getFeaturedMedia, getYear } from './media';
 import { getNowEntries } from './now';
 import { getPosts } from './writing';
@@ -111,7 +112,7 @@ export type TimelineYear = {
   href?: string;
 };
 
-export function getTimeline(): TimelineYear[] {
+export const getTimeline = once((): TimelineYear[] => {
   const posts = getPosts();
   const projects = getProjects();
   const mediaYears = new Set(getArchiveYears());
@@ -147,7 +148,7 @@ export function getTimeline(): TimelineYear[] {
         href: media ? media.href : undefined,
       };
     });
-}
+});
 
 /** The first and last years the archive knows about. */
 export function getArchiveSpan(): { from: number; to: number } {

@@ -177,7 +177,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
           style={cover ? { marginTop: 'calc(var(--text-colossal) * -0.27)' } : undefined}
         >
           <span className="sr-only">Photographs and video from {year.year}</span>
-          <YearMark year={year.year} as="span" className="text-white" />
+          <YearMark year={year.year} as="span" className="text-white" aria-hidden="true" />
         </h1>
 
         <MetaLine

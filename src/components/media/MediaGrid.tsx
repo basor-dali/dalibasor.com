@@ -223,7 +223,7 @@ function GridCell({
 
         {/* A whisper of a scrim on hover so the label stays legible on a
             bright photograph, and nothing at all otherwise. */}
-        <span className="from-ground-deep/55 pointer-events-none absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+        <span className="from-ground-deep/55 pointer-events-none absolute inset-0 bg-gradient-to-t via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100" />
 
         {isVideo ? (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -243,7 +243,7 @@ function GridCell({
         ) : null}
 
         {(stamp || item.location || (isVideo && item.duration)) && (
-          <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2.5 opacity-0 transition-opacity duration-500 group-hover:opacity-100 sm:p-3">
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2.5 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 sm:p-3">
             <span className="u-label text-ivory/85 truncate">
               {item.location ?? stamp}
             </span>

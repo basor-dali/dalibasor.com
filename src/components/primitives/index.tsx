@@ -244,13 +244,20 @@ export function YearMark({
   year,
   className,
   as: Tag = 'span',
+  'aria-hidden': ariaHidden,
 }: {
   year: number | string;
   className?: string;
   as?: 'span' | 'h1' | 'h2';
+  /**
+   * Hide the numeral from assistive tech when the surrounding heading already
+   * says the year — otherwise "2019" is announced twice in a row.
+   */
+  'aria-hidden'?: boolean | 'true' | 'false';
 }) {
   return (
     <Tag
+      aria-hidden={ariaHidden}
       className={cx(
         'u-display u-display-tight u-nums text-colossal block font-semibold',
         className,
