@@ -89,7 +89,8 @@ export function createCloudinaryProvider(): MediaProvider {
     videoSources(publicId, transform: VideoTransform = {}) {
       const cloud = cloudName();
       const id = encodeId(publicId);
-      const quality = typeof transform.quality === 'number' ? `q_${transform.quality}` : 'q_auto';
+      const quality =
+        typeof transform.quality === 'number' ? `q_${transform.quality}` : 'q_auto';
       const width = transform.width ? `,w_${Math.round(transform.width)},c_limit` : '';
 
       const sources: VideoSource[] = [];
@@ -113,17 +114,15 @@ export function createCloudinaryProvider(): MediaProvider {
 
     videoPosterUrl(publicId, transform) {
       // `so_auto` picks a representative frame rather than a black first frame.
-      const t = imageTransformString({ ...transform, format: transform.format ?? 'auto' });
+      const t = imageTransformString({
+        ...transform,
+        format: transform.format ?? 'auto',
+      });
       return `${BASE}/${cloudName()}/video/upload/so_auto,${t}/${encodeId(publicId)}.jpg`;
     },
 
     placeholderUrl(publicId) {
       return `${BASE}/${cloudName()}/image/upload/f_auto,q_10,c_limit,w_24,e_blur:400/${encodeId(publicId)}`;
-    },
-
-    originalUrl(publicId, kind) {
-      const resource = kind === 'video' ? 'video' : 'image';
-      return `${BASE}/${cloudName()}/${resource}/upload/${encodeId(publicId)}`;
     },
   };
 }

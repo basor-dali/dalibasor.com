@@ -1,9 +1,4 @@
-import type {
-  ImageSource,
-  ImageTransform,
-  MediaProvider,
-  VideoSource,
-} from './provider';
+import type { ImageSource, ImageTransform, MediaProvider, VideoSource } from './provider';
 
 /**
  * R2 delivery.
@@ -106,7 +101,9 @@ export function createR2Provider(): MediaProvider {
     videoSources(publicId): VideoSource[] {
       // Video still lives on Cloudinary; see videoProvider() in ./index.ts.
       // If a video ever does land in R2 it is a plain progressive MP4.
-      return [{ src: `${base()}/${encodeKey(publicId)}/original.mp4`, type: 'video/mp4' }];
+      return [
+        { src: `${base()}/${encodeKey(publicId)}/original.mp4`, type: 'video/mp4' },
+      ];
     },
 
     videoPosterUrl(publicId, transform) {
@@ -119,11 +116,6 @@ export function createR2Provider(): MediaProvider {
       // single fallback JPEG is 1024 — so this asks for WebP, which every
       // browser that can run this code supports.
       return `${base()}/${encodeKey(publicId)}/320.webp`;
-    },
-
-    originalUrl(publicId, kind) {
-      const extension = kind === 'video' ? 'mp4' : 'jpg';
-      return `${base()}/${encodeKey(publicId)}/original.${extension}`;
     },
   };
 }

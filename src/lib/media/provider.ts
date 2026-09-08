@@ -61,7 +61,11 @@ export interface MediaProvider {
    * A `srcSet` string across the given widths. The browser picks; we never
    * ship a 6000px original into a 400px slot.
    */
-  imageSrcSet(publicId: string, widths: number[], transform?: Partial<ImageTransform>): string;
+  imageSrcSet(
+    publicId: string,
+    widths: number[],
+    transform?: Partial<ImageTransform>,
+  ): string;
 
   /**
    * Per-format <source> entries for a <picture>, best first.
@@ -70,7 +74,11 @@ export interface MediaProvider {
    * `f_auto`) has nothing to offer here and omits it, and the component falls
    * back to a plain <img> with one srcSet.
    */
-  imageSources?(publicId: string, widths: number[], formats: LadderFormat[]): ImageSource[];
+  imageSources?(
+    publicId: string,
+    widths: number[],
+    formats: LadderFormat[],
+  ): ImageSource[];
 
   /** Playable video sources, best first. Adaptive streaming when available. */
   videoSources(publicId: string, transform?: VideoTransform): VideoSource[];
@@ -83,9 +91,6 @@ export interface MediaProvider {
    * inline `lqip` — normally the importer bakes one in and this is unused.
    */
   placeholderUrl(publicId: string): string;
-
-  /** Link to the highest-quality deliverable version, for "open original". */
-  originalUrl(publicId: string, kind: 'image' | 'video'): string;
 }
 
 /* ==========================================================================

@@ -20,7 +20,9 @@ function toPath(publicId: string): string {
 
 /** Local files keep their extension in the public id; add one if missing. */
 function withExtension(publicId: string, fallback: string): string {
-  return /\.[a-z0-9]{2,5}$/i.test(publicId) ? toPath(publicId) : `${toPath(publicId)}.${fallback}`;
+  return /\.[a-z0-9]{2,5}$/i.test(publicId)
+    ? toPath(publicId)
+    : `${toPath(publicId)}.${fallback}`;
 }
 
 export function createLocalProvider(): MediaProvider {
@@ -48,10 +50,6 @@ export function createLocalProvider(): MediaProvider {
 
     placeholderUrl(publicId) {
       return withExtension(publicId, 'jpg');
-    },
-
-    originalUrl(publicId, kind) {
-      return withExtension(publicId, kind === 'video' ? 'mp4' : 'jpg');
     },
   };
 }
