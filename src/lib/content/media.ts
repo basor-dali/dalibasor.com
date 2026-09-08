@@ -6,6 +6,7 @@ import YAML from 'yaml';
 
 import type {
   Album,
+  ManifestItem,
   MediaItem,
   MediaOrientation,
   ResolvedAlbum,
@@ -64,7 +65,12 @@ const loadManifests = once((): Map<number, YearManifest> => {
 });
 
 function normalizeManifest(year: number, raw: unknown, source: string): YearManifest {
-  const input = (raw ?? {}) as Partial<YearManifest>;
+  const input = (raw ?? {}) as {
+    note?: string;
+    cover?: string;
+    albums?: Album[];
+    items?: ManifestItem[];
+  };
 
   const albums: Album[] = Array.isArray(input.albums)
     ? input.albums
@@ -80,7 +86,7 @@ function normalizeManifest(year: number, raw: unknown, source: string): YearMani
 
   const items: MediaItem[] = Array.isArray(input.items)
     ? input.items
-        .filter((item): item is MediaItem => Boolean(item?.publicId))
+        .filter((item): item is ManifestItem => Boolean(item?.publicId))
         .map((item, index) => normalizeItem(item, year, index, albumSlugs, source))
     : [];
 
@@ -110,29 +116,36 @@ function normalizeManifest(year: number, raw: unknown, source: string): YearMani
 }
 
 function normalizeItem(
-  item: MediaItem,
+  item: ManifestItem,
   year: number,
   index: number,
   albumSlugs: Set<string>,
   source: string,
 ): MediaItem {
-  const width = Number(item.width) || 0;
-  const height = Number(item.height) || 0;
-  const album = item.album ? slugify(item.album) : undefined;
+  // Provenance stays in the manifest and out of the browser. `originalFilename`
+  // and `hash` are read by media:backup and the importer, straight from the
+  // YAML; nothing rendered has ever used them. Left in, they ride along in the
+  // payload of every page that shows a photograph — and the filenames are the
+  // one field here that describes a private disk rather than a photograph.
+  const { originalFilename: _f, originalExt: _e, hash: _h, ...rest } = item;
+
+  const width = Number(rest.width) || 0;
+  const height = Number(rest.height) || 0;
+  const album = rest.album ? slugify(rest.album) : undefined;
 
   if (album && !albumSlugs.has(album)) {
     // Not fatal — an orphaned item still belongs to the year. But say so, or
     // photographs quietly vanish from the album they were meant for.
     console.warn(
-      `[media] ${source}: item "${item.id ?? item.publicId}" references unknown album ` +
+      `[media] ${source}: item "${rest.id ?? rest.publicId}" references unknown album ` +
         `"${album}". It will appear in the year's everyday photographs instead.`,
     );
   }
 
   return {
-    ...item,
-    id: item.id || `${year}-${album ?? 'everyday'}-${String(index + 1).padStart(4, '0')}`,
-    type: item.type === 'video' ? 'video' : 'image',
+    ...rest,
+    id: rest.id || `${year}-${album ?? 'everyday'}-${String(index + 1).padStart(4, '0')}`,
+    type: rest.type === 'video' ? 'video' : 'image',
     year,
     album: album && albumSlugs.has(album) ? album : undefined,
     width: width || 1600,
@@ -341,7 +354,25 @@ export function getFeaturedMedia(
     .slice(0, limit);
 }
 
-/** Look up a single item anywhere in the archive — used by deep-linked lightboxes. */
+/**
+ * Every item in the archive, addressable by either handle.
+ *
+ * Built once instead of scanned per lookup. The scan version was quadratic in
+ * a way that only shows up years in: every post, project and Now entry with a
+ * cover walks the whole archive, so the cost is posts × photographs. At seven
+ * posts and six photographs that is free; at 400 posts and 10,000 photographs
+ * it is four million comparisons per render.
+ */
+const byRef = once((): Map<string, MediaItem> => {
+  const index = new Map<string, MediaItem>();
+  for (const item of getAllMediaItems()) {
+    // Id first, so it wins if a public id ever collides with one.
+    if (!index.has(item.publicId)) index.set(item.publicId, item);
+    index.set(item.id, item);
+  }
+  return index;
+});
+
 /**
  * Look up one media item by whichever handle you have.
  *
@@ -358,7 +389,7 @@ export function getFeaturedMedia(
  */
 export function findMediaByRef(ref: string | undefined): MediaItem | undefined {
   if (!ref) return undefined;
-  return getAllMediaItems().find((item) => item.id === ref || item.publicId === ref);
+  return byRef().get(ref);
 }
 
 /** @deprecated Use findMediaByRef, which accepts an id or a public id. */

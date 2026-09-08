@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
+import { invalidateContent } from '@/lib/content/fs';
 import { manifestLib, processLib, targetLib, type ItemNode } from '@/lib/admin/pipeline';
 
 /**
@@ -194,6 +195,12 @@ export async function POST(request: Request): Promise<Response> {
       }
 
       manifest.saveManifestDoc(doc, manifestFile);
+
+      // The loaders cache parsed content; tell them the archive just moved.
+      // The dev watcher would catch this too, but an upload whose album page
+      // still 404s afterwards is the exact bug that cache has to not
+      // reintroduce, so it does not rely on a filesystem event arriving first.
+      invalidateContent();
 
       return json(
         {

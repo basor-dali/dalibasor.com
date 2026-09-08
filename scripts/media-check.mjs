@@ -198,6 +198,10 @@ function checkManifest(file, report) {
   const publicIds = new Map();
   const hashes = new Map();
   const usedAlbums = new Set();
+  // How many photographs each page will end up carrying. See the page-weight
+  // check at the foot of this function.
+  const albumCounts = new Map();
+  let everydayCount = 0;
 
   for (const [index, item] of items.entries()) {
     const name = item?.id || item?.publicId || `items[${index}]`;
@@ -255,11 +259,17 @@ function checkManifest(file, report) {
       hashes.set(item.hash, index);
     }
 
-    /* type */
-    if (item.type !== 'image' && item.type !== 'video') {
+    /* type — optional, and "image" when absent.
+       This used to be an error whenever `type:` was missing, which contradicted
+       both the manifest's own documentation and the loader, where a missing
+       type is read as an image. So a hand-written entry that built and rendered
+       perfectly well still failed the check that exists to tell you the file is
+       fine. Only an actual wrong value is a problem. */
+    if (item.type !== undefined && item.type !== 'image' && item.type !== 'video') {
       report.error(
         where,
-        `\`type\` must be ${IMAGE_EXTENSIONS_HINT}, got "${item.type}".`,
+        `\`type\` must be ${IMAGE_EXTENSIONS_HINT}, got "${item.type}". ` +
+          'Leave it out entirely for a photograph.',
       );
     }
 
@@ -288,6 +298,7 @@ function checkManifest(file, report) {
     if (item.album) {
       const slug = String(item.album);
       usedAlbums.add(slug);
+      albumCounts.set(slug, (albumCounts.get(slug) ?? 0) + 1);
       if (!albumSlugs.has(slug)) {
         report.error(
           where,
@@ -295,6 +306,8 @@ function checkManifest(file, report) {
             "It will fall back into the year's everyday photographs.",
         );
       }
+    } else {
+      everydayCount += 1;
     }
 
     /* year agreement */
@@ -411,6 +424,40 @@ function checkManifest(file, report) {
         'album has no photographs. It will render as an empty album page.',
       );
     }
+  }
+
+  /* --- page weight ------------------------------------------------------
+     One page carries the metadata of every photograph in one album, or of a
+     year's whole everyday set — not of the archive, and not of the year. The
+     grid only puts thirty cells in the DOM at a time, but the list itself is
+     serialised in full so scrolling and the lightbox work without a round
+     trip.
+
+     Measured on a generated year: 100 photographs is 36KB over the wire after
+     brotli, about 20KB of which is the blur placeholders. That is fine. It
+     scales linearly, so 400 is around 145KB — heavier than the rest of the
+     page put together, and the point at which this is worth knowing about.
+
+     The fix is editorial rather than technical: an album of four hundred
+     photographs is usually several albums. Splitting it makes the page lighter
+     and the archive easier to move through. */
+  const HEAVY_ALBUM = 400;
+  for (const [slug, count] of albumCounts) {
+    if (count >= HEAVY_ALBUM) {
+      report.warn(
+        `${label} → ${slug}`,
+        `${count} photographs in one album. The page carries all of their ` +
+          `metadata (roughly ${Math.round((count * 0.36) / 10) * 10}KB compressed), ` +
+          'so consider splitting it into several albums.',
+      );
+    }
+  }
+  if (everydayCount >= HEAVY_ALBUM) {
+    report.warn(
+      label,
+      `${everydayCount} photographs with no album. The year page carries all of ` +
+        'their metadata at once — consider grouping some of them into albums.',
+    );
   }
 
   return { items: items.length, albums: albums.length };

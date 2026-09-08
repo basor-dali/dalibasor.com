@@ -1,4 +1,5 @@
 import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
+import { invalidateContent } from '@/lib/content/fs';
 import { manifestLib } from '@/lib/admin/pipeline';
 
 /**
@@ -123,6 +124,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   manifest.saveManifestDoc(doc, file);
+
+  // The loaders cache parsed content; tell them the archive just moved. The
+  // dev watcher would catch this too, but a CMS that shows a stale page after
+  // a successful save is the exact bug that cache has to not reintroduce, so
+  // it does not rely on a filesystem event arriving in time.
+  invalidateContent();
 
   return json({ ok: true, changed, file: manifest.displayPath(file) });
 }

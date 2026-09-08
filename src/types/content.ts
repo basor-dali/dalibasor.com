@@ -255,7 +255,32 @@ export type MediaItem = {
   /** Video only. */
   duration?: number;
   poster?: string;
-  /** Original filename, kept for provenance. Not displayed. */
+  /**
+   * Widths actually generated for this asset, for providers that serve
+   * pre-generated files. Recorded per item rather than inferred so that
+   * changing the ladder later cannot break anything already imported.
+   */
+  variants?: number[];
+  /** Ladder formats generated, best first — e.g. ['avif', 'webp']. */
+  formats?: ('avif' | 'webp')[];
+};
+
+/**
+ * An item as the YAML manifest stores it.
+ *
+ * The manifest keeps more than a page needs: where each file came from and
+ * what it hashed to. That belongs in the archive — it is how `media:backup`
+ * verifies a copy and how the importer recognises a re-upload — but it has no
+ * business in a browser. It is dead weight in every page payload, and the
+ * original filenames are the one field here that says something about a
+ * private disk rather than about the photograph.
+ *
+ * So the loader reads ManifestItem and hands out MediaItem. The stripping
+ * happens in normalizeItem, which every path goes through, rather than at each
+ * call site where it could be forgotten.
+ */
+export type ManifestItem = MediaItem & {
+  /** Original filename, kept for provenance. Never rendered. */
   originalFilename?: string;
   /**
    * Extension the full-resolution copy was actually stored under.
@@ -267,14 +292,6 @@ export type MediaItem = {
   originalExt?: string;
   /** Content hash — the importer's dedupe key. */
   hash?: string;
-  /**
-   * Widths actually generated for this asset, for providers that serve
-   * pre-generated files. Recorded per item rather than inferred so that
-   * changing the ladder later cannot break anything already imported.
-   */
-  variants?: number[];
-  /** Ladder formats generated, best first — e.g. ['avif', 'webp']. */
-  formats?: ('avif' | 'webp')[];
 };
 
 export type Album = {

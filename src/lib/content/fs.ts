@@ -85,34 +85,95 @@ export function listDirectories(dir: string): string[] {
     .sort();
 }
 
+/* ==========================================================================
+   Development: cache, but notice when a file changes
+   ==========================================================================
+
+   A static build is a short-lived process, so memoising for its lifetime is
+   exactly right. A dev server is long-lived, and the same memoisation means
+   content written while it runs never appears — save a post in Keystatic, drag
+   a photograph into /admin/media, or hand-edit a manifest, and the page keeps
+   serving whatever was on disk at boot. The admin tools write files for a
+   living, so that made them look broken: an upload would succeed and its album
+   page would 404 until a restart.
+
+   The first fix was to stop memoising in dev altogether. That is correct and
+   unusably slow, because the cost is not "a few milliseconds": every reference
+   to a cover image calls findMediaByRef, which parses the entire photo archive
+   from YAML. With one 500-photograph year on disk the homepage took 31s to
+   render, and it grows with both the number of posts and the size of the
+   archive. A twenty-year archive would never finish.
+
+   So: memoise in dev too, and watch /content. Any write bumps a generation
+   counter and every cached loader reloads on its next call. Two independent
+   triggers, because a missed invalidation is the bug that started all this:
+
+     1. fs.watch, which catches hand-edits, Keystatic, and git checkouts.
+     2. invalidateContent(), called directly by the admin routes that write.
+
+   If the watcher cannot start, we fall back to not caching — slow beats
+   serving stale content out of a tool whose whole job is editing it. */
+
+let generation = 0;
+let watcherState: 'unstarted' | 'watching' | 'unavailable' = 'unstarted';
+
+/** Force every cached loader to reload. Call after writing into /content. */
+export function invalidateContent(): void {
+  generation += 1;
+}
+
+function watchingContent(): boolean {
+  if (watcherState !== 'unstarted') return watcherState === 'watching';
+
+  try {
+    if (!fs.existsSync(CONTENT_ROOT)) {
+      // Nothing to watch yet. Stay 'unstarted' so a later call tries again
+      // once the directory exists.
+      return false;
+    }
+    // `persistent: false` so the watcher never holds the process open.
+    const watcher = fs.watch(
+      CONTENT_ROOT,
+      { recursive: true, persistent: false },
+      invalidateContent,
+    );
+    // A watcher error (an unmounted share, a deleted root) must not take the
+    // dev server down; drop to the uncached path instead.
+    watcher.on('error', () => {
+      watcherState = 'unavailable';
+      invalidateContent();
+    });
+    watcherState = 'watching';
+  } catch {
+    watcherState = 'unavailable';
+  }
+
+  return watcherState === 'watching';
+}
+
 /**
  * Memoise a zero-argument loader for the life of the process.
  *
  * Next runs a static build in a handful of workers; each pays the read cost
- * once. Simpler and faster than React's `cache()` here because none of this
- * is request-scoped.
+ * once. Simpler and faster than React's `cache()` here because none of this is
+ * request-scoped. In development the cache is invalidated by writes to
+ * /content — see above.
  */
 export function once<T>(loader: () => T): () => T {
-  // In development, do not memoise at all.
-  //
-  // A static build is a short-lived process where reading each file once is
-  // the whole point. A dev server is long-lived, and caching for its lifetime
-  // means content written while it runs never appears: save a post in
-  // Keystatic, drag a photograph into /admin/media, or edit a manifest by
-  // hand, and the page keeps serving what was on disk at boot. The admin tools
-  // write files for a living, so caching here made them look broken — an
-  // upload would succeed and its album page would 404 until a restart.
-  //
-  // Re-reading costs a few milliseconds per request on a personal archive, and
-  // buys a working edit-and-see loop.
-  if (process.env.NODE_ENV !== 'production') return loader;
+  const production = process.env.NODE_ENV === 'production';
 
   let value: T;
-  let loaded = false;
+  let loadedAt = -1;
+
   return () => {
-    if (!loaded) {
+    if (!production && !watchingContent()) return loader();
+
+    // Read the generation *before* loading, so a write that lands while the
+    // loader is running invalidates the result rather than being swallowed.
+    const current = production ? 0 : generation;
+    if (loadedAt !== current) {
       value = loader();
-      loaded = true;
+      loadedAt = current;
     }
     return value;
   };
