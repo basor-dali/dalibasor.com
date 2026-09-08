@@ -33,13 +33,19 @@ export function readR2Credentials(root) {
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
     bucket: process.env.R2_BUCKET,
     prefix: process.env.R2_PREFIX || DEFAULT_PREFIX,
+    // Override the endpoint to point at MinIO, Backblaze B2, S3 or a local
+    // test server. R2 is the default, not a requirement — the whole reason to
+    // speak S3 is that the bucket can move.
+    endpoint: process.env.R2_ENDPOINT,
     publicBaseUrl: (process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || '').replace(/\/+$/, ''),
   };
 }
 
 export function missingR2Credentials(credentials) {
   const missing = [];
-  if (!credentials.accountId) missing.push('R2_ACCOUNT_ID');
+  // An explicit endpoint replaces the account id, which is only used to build
+  // Cloudflare's URL.
+  if (!credentials.accountId && !credentials.endpoint) missing.push('R2_ACCOUNT_ID');
   if (!credentials.accessKeyId) missing.push('R2_ACCESS_KEY_ID');
   if (!credentials.secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
   if (!credentials.bucket) missing.push('R2_BUCKET');
@@ -52,8 +58,11 @@ export function configureR2(credentials) {
 
   client = new S3Client({
     // R2 has no regions; 'auto' is what Cloudflare's own docs specify.
-    region: 'auto',
-    endpoint: `https://${credentials.accountId}.r2.cloudflarestorage.com`,
+    region: process.env.R2_REGION || 'auto',
+    endpoint:
+      credentials.endpoint || `https://${credentials.accountId}.r2.cloudflarestorage.com`,
+    // Most S3-compatible servers other than AWS want path-style addressing.
+    forcePathStyle: Boolean(credentials.endpoint),
     credentials: {
       accessKeyId: credentials.accessKeyId,
       secretAccessKey: credentials.secretAccessKey,

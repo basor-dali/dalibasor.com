@@ -523,6 +523,11 @@ async function main() {
         publicId: result.publicId,
         width: result.width,
         height: result.height,
+        // Only set by the R2 path: which sizes and formats were actually
+        // written. Recorded per item so the site never asks for a file that
+        // does not exist, even if the ladder changes later.
+        variants: result.variants,
+        formats: result.formats,
         capturedAt: result.capturedAt,
         lqip: result.lqip,
         color: result.color,

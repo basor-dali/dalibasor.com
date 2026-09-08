@@ -168,6 +168,9 @@ export async function POST(request: Request): Promise<Response> {
             publicId: result.publicId,
             width: result.width,
             height: result.height,
+            // R2 only: the sizes and formats actually written for this asset.
+            variants: result.variants,
+            formats: result.formats,
             capturedAt: result.capturedAt,
             duration: result.duration,
             lqip: result.lqip,
