@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { MediaItem } from '@/types/content';
 import { formatDuration, responsiveVideo } from '@/lib/media';
@@ -19,7 +19,22 @@ import { cx } from '@/lib/utils';
  * and falls through to the progressive MP4 on its own. No hls.js, no 40KB
  * shim for a personal archive.
  *
- * Never autoplays with sound. Never autoplays at all.
+ * On autoplay
+ * ------------
+ * From a grid or an article this never autoplays: it is a poster and a play
+ * button until pressed. The lightbox passes `playOnMount`, because you got
+ * there by clicking the clip and a second click to start it is one too many.
+ *
+ * That play is muted, and that is the deliberate part. `autoPlay` with sound
+ * is subject to the browser's autoplay policy, which means it plays on a
+ * browser where the visitor has interacted with the domain before and silently
+ * refuses on one where they have not — the same clip behaves differently for
+ * two people, and the second sees a video that simply sits there. Muted
+ * autoplay is allowed everywhere, so it always does the same thing. The
+ * controls are right there to turn the sound on.
+ *
+ * It also means arrowing through an album onto a clip does not suddenly play
+ * audio at whatever volume the phone was left at.
  */
 
 export type MediaVideoProps = {
@@ -42,7 +57,6 @@ export function MediaVideo({
   posterWidth,
 }: MediaVideoProps) {
   const [active, setActive] = useState(playOnMount);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const video = responsiveVideo(item, { posterWidth });
   const duration = formatDuration(video.duration);
@@ -90,9 +104,9 @@ export function MediaVideo({
   return (
     <div className={cx('u-frame', className)} style={style}>
       <video
-        ref={videoRef}
         controls
         autoPlay
+        muted={playOnMount}
         playsInline
         preload="auto"
         poster={video.poster}
