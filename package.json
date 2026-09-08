@@ -20,6 +20,7 @@
     "media:regenerate": "node scripts/media-regenerate.mjs",
     "media:check": "node scripts/media-check.mjs",
     "media:backup": "node scripts/media-backup.mjs",
+    "html:check": "node scripts/audit-html.mjs",
     "new:post": "node scripts/new-post.mjs",
     "new:now": "node scripts/new-now.mjs",
     "new:project": "node scripts/new-project.mjs",

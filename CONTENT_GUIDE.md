@@ -401,10 +401,18 @@ npm test              # the invariants that would otherwise rot quietly
 npm run typecheck     # catches a malformed frontmatter field
 npm run build         # catches everything else
 npm run media:check   # if you touched a manifest
+npm run html:check    # after the build, if you touched a component
 ```
 
 The build deliberately fails on a duplicate slug or an invalid project status, because both
 would quietly break URLs.
+
+`html:check` reads the pages the build actually wrote and looks for the faults that never
+announce themselves: a heading level skipped from h2 to h4, which looks identical on screen
+and reads as a missing section to anyone using a screen reader; a second `<h1>`; an image
+with no `alt`; a duplicate id, where whichever `aria-labelledby` loses the race silently
+points at the wrong element. None of it is catchable by types, by lint, or by looking at
+the page.
 
 ---
 

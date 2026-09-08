@@ -40,6 +40,7 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 | `npm run media:regenerate` | Rebuild derivatives after a ladder or design change   |
 | `npm run media:backup`     | Download every photograph back out of the bucket      |
 | `npm run media:check`      | Validate every media manifest                         |
+| `npm run html:check`       | Audit the built HTML — headings, labels, ids, JSON-LD |
 | `npm run new:post`         | Scaffold a post                                       |
 | `npm run new:project`      | Scaffold a project                                    |
 | `npm run new:now`          | Scaffold this month's Now entry                       |
