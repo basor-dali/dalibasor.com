@@ -116,6 +116,45 @@ function shouldDropSegment(marker, payload, keepIcc) {
 }
 
 /**
+ * Walk entropy-coded scan data and return where the next real marker starts.
+ *
+ * Inside a scan, a literal 0xFF byte is stuffed as `FF 00`, and the restart
+ * markers `FF D0`..`FF D7` punctuate the data without ending it. Everything
+ * else introduced by 0xFF is a genuine marker and ends the scan. Runs of 0xFF
+ * are legal fill and belong to whatever follows them, so the returned index
+ * points at the first byte of the run.
+ *
+ * Returns null if the data runs out before a marker is found, which means the
+ * file is truncated — the caller then declines the lossless path rather than
+ * hand-rolling a repair.
+ */
+function endOfEntropyCodedData(buffer, from) {
+  let i = from;
+
+  while (i < buffer.length) {
+    if (buffer[i] !== 0xff) {
+      i += 1;
+      continue;
+    }
+
+    let run = i;
+    while (run < buffer.length && buffer[run] === 0xff) run += 1;
+    if (run >= buffer.length) return null; // trailing fill, no marker
+
+    const next = buffer[run];
+    // Stuffed 0xFF, or a restart marker: still inside the scan.
+    if (next === 0x00 || (next >= 0xd0 && next <= 0xd7)) {
+      i = run + 1;
+      continue;
+    }
+
+    return i;
+  }
+
+  return null;
+}
+
+/**
  * Rewrite a JPEG without its metadata segments. Pixels are untouched.
  *
  * Returns `null` — never throws, never guesses — if the buffer is not a JPEG
@@ -129,6 +168,7 @@ export function stripJpegSegments(buffer, { keepIcc = true } = {}) {
   const chunks = [buffer.subarray(0, 2)];
   const removed = [];
   let offset = 2;
+  let sawEndOfImage = false;
 
   while (offset < buffer.length) {
     if (buffer[offset] !== 0xff) return null; // Out of step with the stream.
@@ -152,13 +192,54 @@ export function stripJpegSegments(buffer, { keepIcc = true } = {}) {
       continue;
     }
 
-    // End of image, or the start of the scan: copy the remainder untouched.
-    // Everything after SOS is entropy-coded data with no segment structure,
-    // and some cameras append a trailer after EOI that is not ours to judge.
-    if (marker === MARKER.EOI || marker === MARKER.SOS) {
-      chunks.push(buffer.subarray(offset));
+    /* End of image. Everything past here is dropped.
+       --------------------------------------------------------------------
+       This used to copy the remainder of the buffer through, on the reasoning
+       that a trailer appended by a camera was not ours to judge. That is the
+       right instinct for the original on disk and the wrong one for the copy
+       being published, because the most common trailer in the world is a
+       Motion Photo: Samsung and Pixel phones append a complete MP4 after EOI,
+       and that MP4 has its own metadata container, which can carry the
+       location this module exists to remove. A file can therefore lose its
+       EXIF, report every segment stripped, and still ship coordinates.
+
+       The original keeps its trailer, untouched, forever. The delivery copy
+       is the image and nothing else. */
+    if (marker === MARKER.EOI) {
+      chunks.push(buffer.subarray(offset, markerAt + 1));
+      const trailing = buffer.length - (markerAt + 1);
+      if (trailing > 0) {
+        removed.push({
+          marker: MARKER.EOI,
+          name: 'trailer after end-of-image — appended video, extra frames, device data',
+          bytes: trailing,
+        });
+      }
       offset = buffer.length;
+      sawEndOfImage = true;
       break;
+    }
+
+    /* Start of a scan. The header is a normal segment; what follows it is
+       entropy-coded data with no segment structure, so it is copied verbatim
+       up to the next real marker.
+
+       Walking it rather than stopping here is what lets the loop reach EOI —
+       and it is also what makes progressive JPEGs parse, since those carry
+       several scans with tables between them. */
+    if (marker === MARKER.SOS) {
+      if (markerAt + 3 > buffer.length) return null;
+      const headerLength = buffer.readUInt16BE(markerAt + 1);
+      if (headerLength < 2) return null;
+      const scanStart = markerAt + 1 + headerLength;
+      if (scanStart > buffer.length) return null;
+
+      const scanEnd = endOfEntropyCodedData(buffer, scanStart);
+      if (scanEnd === null) return null;
+
+      chunks.push(buffer.subarray(offset, scanEnd));
+      offset = scanEnd;
+      continue;
     }
 
     if (markerAt + 3 > buffer.length) return null;
@@ -182,6 +263,11 @@ export function stripJpegSegments(buffer, { keepIcc = true } = {}) {
 
     offset = segmentEnd;
   }
+
+  // No EOI means the file is truncated or is not the JPEG it claims to be.
+  // Decline it rather than publishing a hand-rolled rewrite of a broken file;
+  // the re-encode path will either fix it or fail loudly.
+  if (!sawEndOfImage) return null;
 
   return { buffer: Buffer.concat(chunks), removed };
 }

@@ -289,6 +289,86 @@ describe('metadata stripping', () => {
     assert.equal(stripJpegSegments(Buffer.from('not a jpeg at all')), null);
     assert.equal(stripJpegSegments(Buffer.alloc(0)), null);
   });
+
+  /* The most common trailer in the world is a Motion Photo: Samsung and Pixel
+     phones append a complete MP4 after the JPEG's end-of-image marker, and that
+     MP4 carries its own metadata container — location included. The stripper
+     used to copy everything from the first scan onward, so such a file could
+     lose its EXIF, report every segment stripped, and still publish
+     coordinates. */
+  it('drops anything appended after the end-of-image marker', async () => {
+    const base = await sharp({
+      create: {
+        width: 160,
+        height: 120,
+        channels: 3,
+        background: { r: 40, g: 70, b: 110 },
+      },
+    })
+      .jpeg({ quality: 84 })
+      .toBuffer();
+
+    const secret = Buffer.from('MOTIONPHOTO-MP4-52.3702,4.8952');
+    const motionPhoto = Buffer.concat([
+      jpegWithMetadata(base),
+      Buffer.from('   ftypmp42', 'latin1'),
+      secret,
+    ]);
+
+    const result = stripJpegSegments(motionPhoto);
+    assert.ok(result, 'a Motion Photo should still take the lossless path');
+    assert.ok(!result.buffer.includes(secret), 'the appended video survived');
+    assert.ok(
+      result.removed.some((entry) => /trailer/.test(entry.name)),
+      'the trailer was dropped without being reported',
+    );
+
+    // Still lossless: the point of this path is that it never re-encodes.
+    assert.ok(result.buffer.equals(base), 'dropping the trailer disturbed the scan');
+  });
+
+  it('reports no trailer when there is none', async () => {
+    const base = await sharp({
+      create: { width: 64, height: 64, channels: 3, background: { r: 10, g: 10, b: 10 } },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const { removed } = stripJpegSegments(jpegWithMetadata(base));
+    assert.ok(!removed.some((entry) => /trailer/.test(entry.name)));
+  });
+
+  /* Progressive JPEGs carry several scans with tables between them. Walking the
+     entropy-coded data — which is what finding the real end-of-image requires —
+     has to survive that rather than stopping at the first scan. */
+  it('handles a progressive JPEG with several scans', async () => {
+    const base = await sharp({
+      create: {
+        width: 200,
+        height: 140,
+        channels: 3,
+        background: { r: 200, g: 160, b: 90 },
+      },
+    })
+      .jpeg({ quality: 80, progressive: true })
+      .toBuffer();
+
+    const result = stripJpegSegments(jpegWithMetadata(base));
+    assert.ok(result, 'progressive JPEGs should still strip losslessly');
+    assert.ok(!result.buffer.includes(Buffer.from('GPSLatitude')));
+    assert.ok(result.buffer.equals(base), 'a scan was lost or altered');
+  });
+
+  it('declines a truncated file rather than rewriting it', async () => {
+    const base = await sharp({
+      create: { width: 80, height: 80, channels: 3, background: { r: 5, g: 5, b: 5 } },
+    })
+      .jpeg()
+      .toBuffer();
+
+    const cut = jpegWithMetadata(base);
+    assert.equal(stripJpegSegments(cut.subarray(0, cut.length - 40)), null);
+  });
 });
 
 /* ==========================================================================
