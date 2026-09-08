@@ -205,6 +205,7 @@ function Frame({
       {project.coverImage ? (
         <CoverImage
           publicId={project.coverImage}
+          item={project.coverItem}
           alt={project.coverAlt ?? project.title}
           ratio={ratio}
           ladder={ladder}

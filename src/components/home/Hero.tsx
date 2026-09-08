@@ -65,6 +65,7 @@ export function PlaceholderFrame({
  */
 export function CoverFrame({
   publicId,
+  item,
   alt,
   ratio = '3 / 2',
   sizes = 'half',
@@ -75,6 +76,8 @@ export function CoverFrame({
   tone,
 }: {
   publicId?: string;
+  /** Manifest entry, when the loader resolved one. */
+  item?: MediaItem;
   alt: string;
   ratio?: string;
   sizes?: SizesPreset | (string & {});
@@ -88,6 +91,7 @@ export function CoverFrame({
     return (
       <CoverImage
         publicId={publicId}
+        item={item}
         alt={alt}
         ratio={ratio}
         ladder={ladder}

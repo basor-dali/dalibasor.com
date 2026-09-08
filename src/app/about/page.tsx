@@ -58,6 +58,7 @@ export default function AboutPage() {
             {portrait ? (
               <CoverImage
                 publicId={portrait}
+                item={page?.coverItem}
                 alt={portraitAlt}
                 ratio="4 / 5"
                 ladder="feature"

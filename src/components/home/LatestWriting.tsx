@@ -123,6 +123,7 @@ function Lead({ post }: { post: PostSummary }) {
           <div className="col-span-2 md:col-span-6 lg:col-span-7 lg:col-start-6 lg:row-start-1">
             <CoverFrame
               publicId={post.coverImage}
+              item={post.coverItem}
               alt={post.coverAlt ?? post.title}
               ratio="3 / 2"
               ladder="feature"
@@ -186,6 +187,7 @@ function TailEntry({ post }: { post: PostSummary }) {
             <div className="w-[62%] md:w-full">
               <CoverFrame
                 publicId={post.coverImage}
+                item={post.coverItem}
                 alt={post.coverAlt ?? post.title}
                 ratio="3 / 4"
                 ladder="grid"

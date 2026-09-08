@@ -1,8 +1,11 @@
 import 'server-only';
 
+import type { MediaItem } from '@/types/content';
+
 import fs from 'node:fs';
 import { toPlainText } from '@/lib/utils';
 import { contentPath, once, readMdx } from './fs';
+import { findMediaByRef } from './media';
 
 /**
  * Standalone pages whose body Dali writes but whose layout is fixed — About,
@@ -15,6 +18,8 @@ export type StandalonePage = {
   subtitle?: string;
   coverImage?: string;
   coverAlt?: string;
+  /** Manifest entry for coverImage, so the portrait gets a real ladder. */
+  coverItem?: MediaItem;
   placeholder: boolean;
   body: string;
   plain: string;
@@ -45,6 +50,7 @@ const loadPages = once((): Map<string, StandalonePage> => {
       subtitle: data?.subtitle,
       coverImage: data?.coverImage,
       coverAlt: data?.coverAlt,
+      coverItem: findMediaByRef(data?.coverImage),
       placeholder: Boolean(data?.placeholder),
       body,
       plain: toPlainText(body),

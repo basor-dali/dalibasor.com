@@ -231,6 +231,7 @@ function PortraitPreview({
       {post.coverImage ? (
         <CoverImage
           publicId={post.coverImage}
+          item={post.coverItem}
           alt={coverAltFor(post)}
           ratio="4 / 5"
           ladder="grid"

@@ -112,6 +112,7 @@ export default async function ProjectPage({ params }: PageProps) {
         {project.coverImage ? (
           <CoverImage
             publicId={project.coverImage}
+            item={project.coverItem}
             alt={project.coverAlt ?? project.title}
             ratio="16 / 9"
             ladder="bleed"

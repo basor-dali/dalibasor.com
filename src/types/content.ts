@@ -61,6 +61,14 @@ export type Post = {
   tags: string[];
   coverImage?: string;
   coverAlt?: string;
+  /**
+   * The manifest entry for coverImage, resolved at load time.
+   *
+   * Carries the real dimensions, generated widths, formats and placeholder, so
+   * a cover renders as a responsive <picture> rather than a lone fallback
+   * JPEG. Undefined when the reference points outside the photo archive.
+   */
+  coverItem?: MediaItem;
   coverShape: CoverShape;
   location?: string;
   featured: boolean;
@@ -149,6 +157,14 @@ export type Project = {
   collaborators: string[];
   coverImage?: string;
   coverAlt?: string;
+  /**
+   * The manifest entry for coverImage, resolved at load time.
+   *
+   * Carries the real dimensions, generated widths, formats and placeholder, so
+   * a cover renders as a responsive <picture> rather than a lone fallback
+   * JPEG. Undefined when the reference points outside the photo archive.
+   */
+  coverItem?: MediaItem;
   gallery: ProjectMediaInput[];
   links: { label: string; href: string }[];
   relatedWriting: string[];
@@ -190,6 +206,14 @@ export type NowEntry = {
   year: number;
   coverImage?: string;
   coverAlt?: string;
+  /**
+   * The manifest entry for coverImage, resolved at load time.
+   *
+   * Carries the real dimensions, generated widths, formats and placeholder, so
+   * a cover renders as a responsive <picture> rather than a lone fallback
+   * JPEG. Undefined when the reference points outside the photo archive.
+   */
+  coverItem?: MediaItem;
   draft: boolean;
   placeholder: boolean;
   body: string;

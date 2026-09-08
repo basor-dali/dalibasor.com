@@ -98,6 +98,7 @@ export function ArticleHeader({ post }: { post: Post }) {
           <figure className={cx('m-0', plan.column)}>
             <CoverImage
               publicId={cover}
+              item={post.coverItem}
               alt={post.coverAlt ?? post.title}
               ratio={plan.ratio}
               ladder={plan.ladder}

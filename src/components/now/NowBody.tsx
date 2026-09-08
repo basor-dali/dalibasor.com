@@ -110,6 +110,7 @@ export function NowBody({
             {entry.coverImage ? (
               <CoverImage
                 publicId={entry.coverImage}
+                item={entry.coverItem}
                 alt={coverAlt}
                 ratio="4 / 5"
                 ladder="feature"

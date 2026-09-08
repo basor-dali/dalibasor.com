@@ -192,43 +192,44 @@ export function Navigation() {
           style={{ paddingTop: 'var(--nav-height)' }}
         >
           <div className="my-auto flex flex-col gap-1">
-          {primaryNav.map((item, index) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? 'page' : undefined}
-                className="group border-line block border-b py-5"
-                style={
-                  menuOpen
-                    ? {
-                        animation: `fade-up 0.5s var(--ease-out-expo) ${index * 45}ms both`,
-                      }
-                    : undefined
-                }
-              >
-                <span className="flex items-baseline gap-3">
-                  <span className="u-label text-muted w-6 shrink-0">
-                    {String(index + 1).padStart(2, '0')}
+            {primaryNav.map((item, index) => {
+              const active =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className="group border-line block border-b py-5"
+                  style={
+                    menuOpen
+                      ? {
+                          animation: `fade-up 0.5s var(--ease-out-expo) ${index * 45}ms both`,
+                        }
+                      : undefined
+                  }
+                >
+                  <span className="flex items-baseline gap-3">
+                    <span className="u-label text-muted w-6 shrink-0">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span
+                      className={cx(
+                        'u-display text-3xl',
+                        active ? 'text-white' : 'text-ivory',
+                      )}
+                    >
+                      {item.label}
+                    </span>
                   </span>
-                  <span
-                    className={cx(
-                      'u-display text-3xl',
-                      active ? 'text-white' : 'text-ivory',
-                    )}
-                  >
-                    {item.label}
-                  </span>
-                </span>
-                {item.note ? (
-                  <span className="text-muted mt-1.5 block pl-9 text-sm">
-                    {item.note}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
+                  {item.note ? (
+                    <span className="text-muted mt-1.5 block pl-9 text-sm">
+                      {item.note}
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
           </div>
         </nav>
 

@@ -176,10 +176,20 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
           break;
         case 'Tab': {
           // Trap focus inside the dialog.
-          const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), a[href], video',
+          // Filtered on what is actually tabbable, not on tag name. The
+          // backdrop is a <button tabindex="-1"> and the prev/next buttons are
+          // display:none below sm — counting either made "first" wrong, so
+          // shift+Tab from the real first control escaped into the page behind.
+          const focusable = Array.from(
+            dialogRef.current?.querySelectorAll<HTMLElement>('button, a[href], video') ??
+              [],
+          ).filter(
+            (el) =>
+              !el.hasAttribute('disabled') &&
+              el.tabIndex >= 0 &&
+              el.getClientRects().length > 0,
           );
-          if (!focusable || focusable.length === 0) break;
+          if (focusable.length === 0) break;
           const first = focusable[0]!;
           const last = focusable[focusable.length - 1]!;
           if (event.shiftKey && document.activeElement === first) {
@@ -273,7 +283,7 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Photograph viewer. ${index + 1} of ${count}.`}
+      aria-label="Photograph viewer"
       tabIndex={-1}
       onMouseMove={wakeChrome}
       onTouchStart={onTouchStart}
@@ -296,7 +306,10 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
           // element that has already completed resource selection ignores its
           // <source> children being swapped, so without this the caption, the
           // counter and the URL all advanced while the first clip kept playing.
-          <div key={item.id} className="pointer-events-auto w-full max-w-[min(100%,110rem)]">
+          <div
+            key={item.id}
+            className="pointer-events-auto w-full max-w-[min(100%,110rem)]"
+          >
             <MediaVideo
               item={item}
               playOnMount
@@ -330,10 +343,20 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
         ) : null}
       </figure>
 
+      {/* Arrowing between frames replaces the image but changes no focused
+          element, so a screen reader is told nothing. This says what is now on
+          screen. Outside the chrome wrapper, which toggles opacity. */}
+      <p className="sr-only" aria-live="polite">
+        {`${index + 1} of ${count}. ${item.caption ? `${item.caption}. ` : ''}${mediaAlt(item)}`}
+      </p>
+
       {/* --- chrome ------------------------------------------------------ */}
       <div
         className={cx(
-          'pointer-events-none absolute inset-0 transition-opacity duration-500',
+          // focus-within keeps the chrome up for exactly as long as focus is
+          // inside it. Waking it on focus instead would re-arm the 3.2s hide
+          // and fade the Close button out from under the keyboard.
+          'pointer-events-none absolute inset-0 transition-opacity duration-500 focus-within:opacity-100',
           chromeVisible ? 'opacity-100' : 'opacity-0',
         )}
       >

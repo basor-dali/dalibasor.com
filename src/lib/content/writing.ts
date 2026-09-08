@@ -9,6 +9,7 @@ import {
   yearOf,
 } from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
+import { findMediaByRef } from './media';
 
 /* ==========================================================================
    Loading
@@ -41,6 +42,7 @@ const loadAll = once((): Post[] => {
       tags,
       coverImage: data.coverImage,
       coverAlt: data.coverAlt,
+      coverItem: findMediaByRef(data.coverImage),
       coverShape: (data.coverShape ?? 'wide') as CoverShape,
       location: data.location,
       featured: Boolean(data.featured),

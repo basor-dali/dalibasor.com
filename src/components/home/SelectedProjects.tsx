@@ -110,6 +110,7 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
           <div className={cx('col-span-2 md:col-span-6', layout.media)}>
             <CoverFrame
               publicId={project.coverImage}
+              item={project.coverItem}
               alt={project.coverAlt ?? project.title}
               ratio={layout.ratio}
               ladder="feature"

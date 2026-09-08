@@ -87,11 +87,21 @@ export function MediaImage({
 }
 
 /**
- * A raw cover image referenced only by provider public id — used by post and
- * project frontmatter, where there is no manifest entry to look up.
+ * A cover image referenced from frontmatter by id or public id.
+ *
+ * Pass `item` whenever the manifest entry is known — the loaders resolve it
+ * onto `coverItem`. That is the difference between a responsive `<picture>`
+ * and a single 1024px JPEG: a provider serving pre-generated files can only
+ * offer the widths and formats the manifest records, so an unresolved
+ * reference has no ladder at all, on a page where the hero is usually the LCP
+ * element.
+ *
+ * Without it the image still renders, from the frame's ratio and the fallback
+ * file. That is correct for a cover pointing outside the photo archive.
  */
 export function CoverImage({
   publicId,
+  item: known,
   alt,
   ratio = '16 / 9',
   ladder = 'feature',
@@ -101,6 +111,14 @@ export function CoverImage({
   fit = 'fill',
 }: {
   publicId: string;
+  /**
+   * The manifest entry for this reference, when the caller could resolve it.
+   *
+   * Resolved by the content loaders rather than here: this component is
+   * reachable from a client component (WritingArchive → ArticlePreview), so it
+   * cannot read the manifest itself.
+   */
+  item?: MediaItem;
   alt: string;
   ratio?: string;
   ladder?: LadderName;
@@ -110,18 +128,21 @@ export function CoverImage({
   fit?: 'fill' | 'fit';
 }) {
   const [w, h] = ratio.split('/').map((part) => Number(part.trim()));
-  const item: MediaItem = {
-    id: publicId,
-    type: 'image',
-    year: 0,
-    publicId,
-    // Without manifest dimensions, assume a generous source so the full ladder
-    // stays available; `c_limit`/`c_fill` will not upscale beyond the original.
-    width: 3000,
-    height: Math.round((3000 * (h || 9)) / (w || 16)),
-    orientation: 'landscape',
-    alt,
-  };
+
+  const item: MediaItem = known
+    ? { ...known, alt: alt || known.alt }
+    : {
+        id: publicId,
+        type: 'image',
+        year: 0,
+        publicId,
+        // No manifest entry: assume a generous source so the full ladder stays
+        // available. Nothing upscales past the original either way.
+        width: 3000,
+        height: Math.round((3000 * (h || 9)) / (w || 16)),
+        orientation: 'landscape',
+        alt,
+      };
 
   return (
     <MediaImage

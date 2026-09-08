@@ -9,6 +9,7 @@ import {
 } from '@/types/content';
 import { slugify, toDateString, toPlainText, yearOf } from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
+import { findMediaByRef } from './media';
 
 /* ==========================================================================
    Status vocabulary
@@ -79,6 +80,7 @@ const loadAll = once((): Project[] => {
       collaborators: toStringArray(data.collaborators),
       coverImage: data.coverImage,
       coverAlt: data.coverAlt,
+      coverItem: findMediaByRef(data.coverImage),
       gallery: Array.isArray(data.gallery) ? data.gallery : [],
       links: Array.isArray(data.links) ? data.links : [],
       relatedWriting: toStringArray(data.relatedWriting),

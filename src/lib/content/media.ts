@@ -326,8 +326,28 @@ export function getFeaturedMedia(
 }
 
 /** Look up a single item anywhere in the archive — used by deep-linked lightboxes. */
+/**
+ * Look up one media item by whichever handle you have.
+ *
+ * Frontmatter refers to photographs by provider public id (`coverImage:
+ * dalibasor/2026/serbia/img_0042`); the lightbox and covers refer to them by
+ * archive id (`2026-serbia-0007`). Both are stable, and callers should not have
+ * to know which they are holding.
+ *
+ * This matters more than it looks. Without it, a cover referenced only by
+ * public id has no manifest entry behind it, so nothing knows which widths and
+ * formats exist — and under R2 that means every article hero and every in-post
+ * photograph degrades to the single 1024px JPEG fallback, with no srcSet and no
+ * AVIF, on a page where the hero is the LCP element.
+ */
+export function findMediaByRef(ref: string | undefined): MediaItem | undefined {
+  if (!ref) return undefined;
+  return getAllMediaItems().find((item) => item.id === ref || item.publicId === ref);
+}
+
+/** @deprecated Use findMediaByRef, which accepts an id or a public id. */
 export function getMediaItem(id: string): MediaItem | undefined {
-  return getAllMediaItems().find((item) => item.id === id);
+  return findMediaByRef(id);
 }
 
 export function getArchiveTotals(): {

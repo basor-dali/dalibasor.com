@@ -3,6 +3,7 @@ import 'server-only';
 import type { NowEntry, NowFrontmatter, NowSummary } from '@/types/content';
 import { formatPeriod, toDateString, toPlainText, yearOf } from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
+import { findMediaByRef } from './media';
 
 /**
  * The Now archive.
@@ -37,6 +38,7 @@ const loadAll = once((): NowEntry[] => {
       year: yearOf(period),
       coverImage: data?.coverImage,
       coverAlt: data?.coverAlt,
+      coverItem: findMediaByRef(data?.coverImage),
       draft: Boolean(data?.draft),
       placeholder: Boolean(data?.placeholder),
       body,
