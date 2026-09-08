@@ -11,14 +11,37 @@ import { Archivo, IBM_Plex_Mono, Instrument_Serif } from 'next/font/google';
  *                    Used only for subtitles, pull quotes and year notes.
  *   IBM Plex Mono    the connective tissue. Every date, tag, count and caption
  *                    on the site is set in this at 11px with wide tracking.
+ *
+ * ---------------------------------------------------------------------------
+ * On `subsets`, which is a preload list and not a coverage list
+ * ---------------------------------------------------------------------------
+ * This is the confusing part of next/font, so it is written down rather than
+ * rediscovered. `subsets` does not decide which characters render — Google
+ * returns an @font-face for every subset it has, and the browser picks by
+ * unicode-range, so č, ć, ž, š and đ resolve to the right face regardless.
+ * What `subsets` decides is which files get a <link rel="preload">.
+ *
+ * Declaring latin-ext put all four latin-ext faces on the critical path of
+ * every page: 56.8KB fetched at high priority on the homepage, on every
+ * article, on /about — for characters that appear in a handful of place names
+ * and almost nowhere else. Preload is a promise that a file is needed
+ * immediately, and for latin-ext that promise was false nearly every time.
+ *
+ * So latin is preloaded and latin-ext is left to the browser, which fetches it
+ * when a glyph actually calls for it. Preloaded weight went from 125.2KB
+ * across 8 files to 68.4KB across 4. The cost is that the first Đ on a page
+ * may show in the fallback face for a moment before swapping — which is what
+ * `display: swap` already does for every other character, and a far better
+ * trade than 56.8KB on every visit.
+ *
+ * Cyrillic and Vietnamese are built too, by the same mechanism, and have never
+ * been preloaded.
  */
 
 export const archivo = Archivo({
-  subsets: ['latin', 'latin-ext'],
+  subsets: ['latin'],
   display: 'swap',
   variable: '--font-archivo',
-  // Latin-ext covers the Bosnian/Serbian diacritics — č, ć, ž, š, đ.
-  //
   // Deliberately no `axes: ['wdth']`. The width axis was requested and never
   // used — nothing in the stylesheet sets font-stretch or
   // font-variation-settings — and a second variation axis is most of the
@@ -29,7 +52,7 @@ export const archivo = Archivo({
 });
 
 export const instrumentSerif = Instrument_Serif({
-  subsets: ['latin', 'latin-ext'],
+  subsets: ['latin'],
   display: 'swap',
   variable: '--font-instrument-serif',
   weight: '400',
@@ -42,7 +65,7 @@ export const instrumentSerif = Instrument_Serif({
 });
 
 export const plexMono = IBM_Plex_Mono({
-  subsets: ['latin', 'latin-ext'],
+  subsets: ['latin'],
   display: 'swap',
   variable: '--font-plex-mono',
   weight: ['400', '500'],
