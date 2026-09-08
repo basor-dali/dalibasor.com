@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "media:import": "node scripts/media-import.mjs",
+    "media:regenerate": "node scripts/media-regenerate.mjs",
     "media:check": "node scripts/media-check.mjs",
     "media:backup": "node scripts/media-backup.mjs",
     "new:post": "node scripts/new-post.mjs",

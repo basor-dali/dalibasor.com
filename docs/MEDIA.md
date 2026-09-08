@@ -112,6 +112,48 @@ original, and because a deleted bucket deletes it too.
 
 ---
 
+## Rebuilding derivatives
+
+Pre-generating sizes has one cost: they are decided at import. This is the way back.
+
+```bash
+npm run media:regenerate -- --year 2019
+npm run media:regenerate -- --all --from ~/Archive/photos
+npm run media:regenerate -- --all --dry-run
+```
+
+Run it when the ladder in `scripts/lib/derivatives.mjs` changes, when a new format becomes
+worth adding, or when a redesign wants a width nobody built.
+
+Pixels come from your originals when `--from` finds a matching filename, and otherwise from
+the full-resolution copy already in the bucket. Only `--from` can produce a size *larger* than
+what was originally uploaded, and it picks up the new dimensions automatically if a better
+original has turned up since.
+
+It rewrites derivative objects and the `variants`/`formats` fields. It never touches captions,
+alt text, locations, `featured`, ids or album membership.
+
+Derivatives at widths that are no longer generated are left in the bucket. They cost a little
+storage and break nothing.
+
+## Getting everything back out
+
+```bash
+npm run media:backup -- --to ~/Archive/photos
+npm run media:backup -- --verify
+```
+
+Downloads the full-resolution copy of every photograph into `<year>/<album>/<filename>`,
+mirroring the archive. Resumable — a file already on disk at the right size is skipped.
+
+`--verify` answers the question a backup strategy actually turns on: **is every photograph the
+manifest claims to have really in the bucket?** A manifest entry with no object behind it is a
+photograph already lost, and you want to find that out now rather than in 2041. Worth running
+once a year alongside the ritual in [BACKUP.md](../BACKUP.md).
+
+This retrieves the delivery copy — full resolution, metadata stripped. Your true originals are
+the ones on your own disks. This is the offsite leg, not a replacement.
+
 ## What is recorded in the manifest
 
 Two fields describe what was generated:

@@ -35,6 +35,8 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 | `npm run typecheck` | TypeScript only |
 | `npm run lint` | ESLint |
 | `npm run media:import` | Upload and index photos/video — see the content guide |
+| `npm run media:regenerate` | Rebuild derivatives after a ladder or design change |
+| `npm run media:backup` | Download every photograph back out of the bucket |
 | `npm run media:check` | Validate every media manifest |
 | `npm run new:post` | Scaffold a post |
 | `npm run new:project` | Scaffold a project |
