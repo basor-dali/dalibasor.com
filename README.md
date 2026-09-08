@@ -32,6 +32,7 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 |---|---|
 | `npm run dev` | Development server |
 | `npm run build` | Production build (also typechecks) |
+| `npm test` | Tests for the parts that fail silently |
 | `npm run typecheck` | TypeScript only |
 | `npm run lint` | ESLint |
 | `npm run media:import` | Upload and index photos/video — see the content guide |

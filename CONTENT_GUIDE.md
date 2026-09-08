@@ -390,6 +390,7 @@ tags used once each.
 ## Before you push
 
 ```bash
+npm test              # the invariants that would otherwise rot quietly
 npm run typecheck     # catches a malformed frontmatter field
 npm run build         # catches everything else
 npm run media:check   # if you touched a manifest

@@ -444,7 +444,19 @@ export function patchItemNode(node, item) {
     const value = item[key];
     if (value === undefined || value === null || value === '') continue;
     if (String(node.get(key) ?? '') === String(value)) continue;
-    node.set(key, value);
+    // Keep width lists on one line here too. Without this a re-import turns a
+    // readable `variants: [320, 640]` into six bullet points, which is exactly
+    // the kind of slow rot that makes a hand-editable file stop being one.
+    // The seq has to be built explicitly: setting a plain array stores the
+    // array, and there is no node to hang the flow flag on.
+    if (FLOW_KEYS.has(key) && Array.isArray(value)) {
+      const seq = new YAML.YAMLSeq();
+      for (const entry of value) seq.add(entry);
+      seq.flow = true;
+      node.set(key, seq);
+    } else {
+      node.set(key, value);
+    }
     changed.push(key);
   }
   // Fill in a capture date only when the item does not already have one.
