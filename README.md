@@ -30,7 +30,8 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Development server |
+| `npm run dev` | Development server, bound to localhost only |
+| `npm run dev:lan` | Same, reachable on your network for phone testing |
 | `npm run build` | Production build (also typechecks) |
 | `npm test` | Tests for the parts that fail silently |
 | `npm run typecheck` | TypeScript only |

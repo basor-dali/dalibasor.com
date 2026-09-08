@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { IS_DEV } from '@/lib/admin/guard';
+import { adminAvailable } from '@/lib/admin/guard';
 
 /**
  * Keystatic is a local tool, not part of the published site.
@@ -13,7 +13,7 @@ import { IS_DEV } from '@/lib/admin/guard';
  * If you ever want to edit from a phone, switch storage to `github` and put a
  * real login in front of it. See docs/CMS.md.
  */
-export default function KeystaticLayout({ children }: { children: React.ReactNode }) {
-  if (!IS_DEV) notFound();
+export default async function KeystaticLayout({ children }: { children: React.ReactNode }) {
+  if (!(await adminAvailable())) notFound();
   return <>{children}</>;
 }

@@ -1,4 +1,4 @@
-import { assertDev, devOnlyResponse, IS_DEV } from '@/lib/admin/guard';
+import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
 import { manifestLib } from '@/lib/admin/pipeline';
 
 /**
@@ -27,8 +27,7 @@ type ItemEdit = {
 };
 
 export async function GET(request: Request): Promise<Response> {
-  if (!IS_DEV) return devOnlyResponse();
-  assertDev();
+  if (!(await adminAvailable())) return devOnlyResponse();
 
   const year = new URL(request.url).searchParams.get('year');
   const manifest = await manifestLib();
@@ -71,8 +70,7 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!IS_DEV) return devOnlyResponse();
-  assertDev();
+  if (!(await adminAvailable())) return devOnlyResponse();
 
   let payload: { year?: string; items?: ItemEdit[]; note?: string; cover?: string };
   try {

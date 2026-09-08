@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { assertDev, devOnlyResponse, IS_DEV } from '@/lib/admin/guard';
+import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
 import { manifestLib, processLib, uploadLib, type ItemNode } from '@/lib/admin/pipeline';
 
 /**
@@ -50,8 +50,7 @@ function withManifestLock<T>(work: () => Promise<T> | T): Promise<T> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!IS_DEV) return devOnlyResponse();
-  assertDev();
+  if (!(await adminAvailable())) return devOnlyResponse();
 
   let form: FormData;
   try {

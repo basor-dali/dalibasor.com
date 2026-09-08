@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { IS_DEV } from '@/lib/admin/guard';
+import { adminAvailable } from '@/lib/admin/guard';
 
 /** The two admin tools. Development only. */
 
@@ -24,8 +24,8 @@ const TOOLS = [
   },
 ];
 
-export default function AdminPage() {
-  if (!IS_DEV) notFound();
+export default async function AdminPage() {
+  if (!(await adminAvailable())) notFound();
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px' }}>

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { MediaAdmin } from '@/components/admin/MediaAdmin';
-import { IS_DEV } from '@/lib/admin/guard';
+import { adminAvailable } from '@/lib/admin/guard';
 
 /**
  * /admin/media — the drag-and-drop importer.
@@ -17,8 +17,8 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function MediaAdminPage() {
-  if (!IS_DEV) notFound();
+export default async function MediaAdminPage() {
+  if (!(await adminAvailable())) notFound();
 
   // Public cloud name only — the API key and secret never reach the browser.
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || null;

@@ -12,10 +12,52 @@ npm run dev
 | Keystatic | `/keystatic` | Writing, projects, Now entries, About |
 | Media | `/admin/media` | Photographs and video, per year and album |
 
-**Neither exists on the deployed site.** Both the pages and their API routes return 404 in a
-production build — they write to disk and hold the Cloudinary API secret, so on a public URL
-they would be an unauthenticated remote-write endpoint. That is enforced in code
-([src/lib/admin/guard.ts](../src/lib/admin/guard.ts)), not by convention.
+**Neither exists on the deployed site**, and neither answers to anything but this machine.
+See [Why there is no login](#why-there-is-no-login) — it is worth two minutes.
+
+---
+
+## Why there is no login
+
+There is no password on `/admin` or `/keystatic`, and adding one would not make you safer.
+Anyone who can reach localhost on this machine can already open `content/` in a text editor and
+edit the same files. A login there guards nothing, and is one more thing to lose.
+
+The boundary that matters is not *who* you are, it is *where the request came from*. Two locks:
+
+**1. Production does not have them.** The pages and all four API routes return a plain 404 in a
+production build — indistinguishable from a route that was never built. They write to the
+working tree and hold the storage API secret, so on a public URL they would be an
+unauthenticated remote-write endpoint.
+
+**2. `npm run dev` listens on 127.0.0.1 only.** This is the real lock. Nothing on your network
+can open a socket to it — not a laptop on the same Wi-Fi, not a compromised device, not anyone
+in the cafe. Connection refused at the TCP level, before any code runs.
+
+### The exception, and its honest limits
+
+`npm run dev:lan` binds to every interface so you can open the site on your phone. That is
+genuinely useful, and it is a real trade: while it runs, this machine is listening on the
+network.
+
+In that mode the admin routes fall back to a header check — the request has to claim a loopback
+`Host` and `x-forwarded-for`. **That is a speed bump, not a lock.** A browser respects it:
+typing `http://192.168.0.131:3000/admin` on a phone gets a 404. Anyone deliberately trying does
+not, because the Next dev server passes a client-supplied `Host` and `x-forwarded-for` straight
+through, so one curl flag defeats it. This was tested rather than assumed.
+
+So: use `npm run dev` normally. Use `npm run dev:lan` when you want to check the site on a
+phone, on a network you trust, and stop it when you are done.
+
+### If you want to edit from somewhere else
+
+Do not open a hole in the admin routes. Switch Keystatic to GitHub storage, which puts a real
+identity provider in front of the editor and commits through the GitHub API — see
+[Editing from a phone, later](#editing-from-a-phone-later).
+
+That works for words. It deliberately does **not** extend to `/admin/media`, which holds the
+storage API secret and writes to the local filesystem. For photographs from a phone, upload
+through the provider's own app and run the importer later.
 
 ---
 
