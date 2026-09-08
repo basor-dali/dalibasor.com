@@ -553,6 +553,7 @@ async function main() {
         color: result.color,
         duration: result.duration,
         originalFilename: result.originalFilename,
+        originalExt: result.originalExt,
         hash: result.hash,
       };
 

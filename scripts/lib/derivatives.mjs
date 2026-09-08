@@ -96,6 +96,45 @@ export function originalKey(base, extension) {
 }
 
 /**
+ * Extensions to try when looking for a stored original, best first.
+ *
+ * The importer re-encodes anything it cannot strip losslessly — a HEIC goes up
+ * as `original.jpg` — so the source filename is NOT a reliable guide to what
+ * was written. That mismatch is why `media:backup --verify` once reported every
+ * HEIC photograph in the archive as lost.
+ *
+ * `originalExt` records what the importer actually wrote and is the answer for
+ * anything imported since. The rest of the list exists for entries written
+ * before that field, and for anything hand-edited: probing two or three URLs is
+ * cheaper than being wrong about whether a photograph still exists.
+ */
+export function originalExtensionCandidates(item = {}) {
+  const seen = new Set();
+  const out = [];
+  const add = (ext) => {
+    if (!ext) return;
+    const normalised = ext.startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`;
+    if (seen.has(normalised)) return;
+    seen.add(normalised);
+    out.push(normalised);
+  };
+
+  add(item.originalExt);
+  // Everything the strip step can emit.
+  add('.jpg');
+  add('.png');
+  add('.webp');
+  add('.avif');
+  // And the source extension, for a file that went up untouched.
+  const name = item.originalFilename;
+  if (name) {
+    const match = /\.[^.]+$/.exec(name);
+    if (match) add(match[0]);
+  }
+  return out;
+}
+
+/**
  * Generate every derivative for one prepared image buffer.
  *
  * Takes the buffer that has already had its metadata stripped, so nothing

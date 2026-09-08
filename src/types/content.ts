@@ -233,6 +233,14 @@ export type MediaItem = {
   poster?: string;
   /** Original filename, kept for provenance. Not displayed. */
   originalFilename?: string;
+  /**
+   * Extension the full-resolution copy was actually stored under.
+   *
+   * Not derivable from originalFilename: the importer re-encodes anything it
+   * cannot strip losslessly, so a HEIC is stored as .jpg. Guessing from the
+   * source name is what made media:backup report every HEIC as missing.
+   */
+  originalExt?: string;
   /** Content hash — the importer's dedupe key. */
   hash?: string;
   /**

@@ -48,12 +48,9 @@ import {
   listManifestFiles,
   readManifestFile,
 } from './lib/manifest.mjs';
+import { originalExtensionCandidates } from './lib/derivatives.mjs';
 import { readR2Credentials } from './lib/r2.mjs';
 import { runPool } from './lib/upload.mjs';
-
-const IMAGE_EXTENSIONS = new Set([
-  '.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp', '.avif', '.tif', '.tiff',
-]);
 
 function printUsage() {
   usage(`media:backup — download every photograph out of the bucket
@@ -94,17 +91,29 @@ function parseArgs(argv) {
 }
 
 /** Mirror the archive's own shape: <year>/<album>/<original filename>. */
-function destinationFor(root, item) {
-  const name = item.originalFilename || `${item.id}.jpg`;
-  return path.join(root, String(item.year), item.album || 'everyday', name);
+function destinationFor(root, item, storedExt) {
+  const stem = item.originalFilename
+    ? item.originalFilename.replace(/\.[^.]+$/, '')
+    : item.id;
+  return path.join(root, String(item.year), item.album || 'everyday', `${stem}${storedExt}`);
 }
 
-function originalUrl(base, item) {
-  const ext = item.originalFilename
-    ? path.extname(item.originalFilename).toLowerCase()
-    : '.jpg';
-  const usable = IMAGE_EXTENSIONS.has(ext) ? ext : '.jpg';
-  return `${base}/${item.publicId}/original${usable}`;
+/**
+ * Find the stored original, trying each plausible extension.
+ *
+ * The importer re-encodes anything it cannot strip losslessly, so a HEIC is
+ * stored as `original.jpg`. Deriving the extension from the source filename
+ * made this script report every HEIC photograph in the archive as lost — the
+ * one false alarm a backup verifier must never raise, because it teaches you
+ * to stop believing it.
+ */
+async function findOriginal(base, item, method = 'HEAD') {
+  for (const ext of originalExtensionCandidates(item)) {
+    const url = `${base}/${item.publicId}/original${ext}`;
+    const response = await fetch(url, { method });
+    if (response.ok) return { url, response, ext };
+  }
+  return null;
 }
 
 async function main() {
@@ -176,46 +185,44 @@ async function main() {
   const missing = [];
   let done = 0;
 
-  await runPool(items, concurrency, async (item) => {
-    const url = originalUrl(credentials.publicBaseUrl, item);
+  const notFound = (item) =>
+    `${item.id} — no original.* found under ${credentials.publicBaseUrl}/${item.publicId}/`;
 
+  await runPool(items, concurrency, async (item) => {
     try {
       if (verifyOnly) {
-        const head = await fetch(url, { method: 'HEAD' });
+        const found = await findOriginal(credentials.publicBaseUrl, item);
         done += 1;
-        if (head.ok) {
+        if (found) {
           step(done, items.length, `${colors.green('present')} ${item.id}`);
         } else {
-          missing.push(`${item.id} — ${head.status} at ${url}`);
-          step(done, items.length, `${colors.red('MISSING')} ${item.id} (${head.status})`);
+          missing.push(notFound(item));
+          step(done, items.length, `${colors.red('MISSING')} ${item.id}`);
         }
         return;
       }
 
-      const target = destinationFor(root, item);
-
-      // Resume: a file already the right size is not fetched again.
-      if (fs.existsSync(target)) {
-        const head = await fetch(url, { method: 'HEAD' });
-        const remote = Number(head.headers.get('content-length') || 0);
-        const local = fs.statSync(target).size;
-        if (head.ok && remote > 0 && remote === local) {
-          skipped += 1;
-          done += 1;
-          step(done, items.length, `${colors.grey('have   ')} ${item.id}`);
-          return;
-        }
-      }
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        missing.push(`${item.id} — ${response.status} at ${url}`);
+      const found = await findOriginal(credentials.publicBaseUrl, item, 'GET');
+      if (!found) {
+        missing.push(notFound(item));
         done += 1;
-        step(done, items.length, `${colors.red('MISSING')} ${item.id} (${response.status})`);
+        step(done, items.length, `${colors.red('MISSING')} ${item.id}`);
         return;
       }
 
-      const buffer = Buffer.from(await response.arrayBuffer());
+      // Named after what was actually stored rather than after the source, so
+      // a HEIC that went up as a JPEG lands on disk as a JPEG.
+      const target = destinationFor(root, item, found.ext);
+      const buffer = Buffer.from(await found.response.arrayBuffer());
+
+      // Resume: a file already on disk at the same size is not rewritten.
+      if (fs.existsSync(target) && fs.statSync(target).size === buffer.length) {
+        skipped += 1;
+        done += 1;
+        step(done, items.length, `${colors.grey('have   ')} ${item.id}`);
+        return;
+      }
+
       fs.mkdirSync(path.dirname(target), { recursive: true });
       // Write to a temp name first so an interrupted run never leaves a
       // truncated file that a later run would mistake for complete.

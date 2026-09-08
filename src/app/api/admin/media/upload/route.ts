@@ -174,6 +174,7 @@ export async function POST(request: Request): Promise<Response> {
             lqip: result.lqip,
             color: result.color,
             originalFilename: result.originalFilename,
+            originalExt: result.originalExt,
             hash: result.hash,
           },
           { capturedAtInferred: Boolean(result.capturedAtInferred) },

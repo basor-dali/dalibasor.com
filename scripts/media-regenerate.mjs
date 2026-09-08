@@ -52,7 +52,12 @@ import {
   loadManifestDoc,
   saveManifestDoc,
 } from './lib/manifest.mjs';
-import { generateDerivatives, derivativeKey, LADDER_FORMATS } from './lib/derivatives.mjs';
+import {
+  derivativeKey,
+  generateDerivatives,
+  originalExtensionCandidates,
+  LADDER_FORMATS,
+} from './lib/derivatives.mjs';
 import {
   configureR2,
   missingR2Credentials,
@@ -148,11 +153,20 @@ function indexOriginals(dir) {
   return index;
 }
 
-/** The full-resolution object this item was uploaded from. */
-function originalUrlFor(publicBaseUrl, publicId, originalFilename) {
-  const ext = originalFilename ? path.extname(originalFilename).toLowerCase() : '.jpg';
-  const usable = IMAGE_EXTENSIONS.has(ext) ? ext : '.jpg';
-  return `${publicBaseUrl}/${publicId}/original${usable}`;
+/**
+ * Fetch the stored original, trying each plausible extension.
+ *
+ * Same reason as media:backup — the importer re-encodes anything it cannot
+ * strip losslessly, so a HEIC is stored as `original.jpg` and the source
+ * filename does not tell you what was written.
+ */
+async function fetchOriginal(publicBaseUrl, item) {
+  for (const ext of originalExtensionCandidates(item)) {
+    const url = `${publicBaseUrl}/${item.publicId}/original${ext}`;
+    const response = await fetch(url);
+    if (response.ok) return { url, response };
+  }
+  return null;
 }
 
 async function loadSource(item, { originals, publicBaseUrl }) {
@@ -169,15 +183,18 @@ async function loadSource(item, { originals, publicBaseUrl }) {
     }
   }
 
-  const url = originalUrlFor(publicBaseUrl, item.publicId, name);
-  const response = await fetch(url);
-  if (!response.ok) {
+  const found = await fetchOriginal(publicBaseUrl, item);
+  if (!found) {
     throw new Error(
-      `no source available — not found on disk, and ${url} returned ${response.status}. ` +
-        'Pass --from with the folder holding your originals.',
+      `no source available — not on disk, and no original.* in the bucket under ` +
+        `${item.publicId}/. Pass --from with the folder holding your originals.`,
     );
   }
-  return { buffer: Buffer.from(await response.arrayBuffer()), from: 'bucket', path: url };
+  return {
+    buffer: Buffer.from(await found.response.arrayBuffer()),
+    from: 'bucket',
+    path: found.url,
+  };
 }
 
 /* ==========================================================================
@@ -256,6 +273,7 @@ async function main() {
         id: String(node.get('id')),
         publicId: String(node.get('publicId')),
         originalFilename: node.get('originalFilename'),
+        originalExt: node.get('originalExt'),
       };
 
       try {

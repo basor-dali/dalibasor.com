@@ -337,6 +337,7 @@ const ITEM_KEY_ORDER = [
   'duration',
   'poster',
   'originalFilename',
+  'originalExt',
   'hash',
 ];
 
@@ -435,6 +436,7 @@ const TECHNICAL_KEYS = [
   'duration',
   'poster',
   'originalFilename',
+  'originalExt',
   'hash',
 ];
 

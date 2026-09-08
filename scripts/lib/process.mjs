@@ -237,10 +237,12 @@ export async function processFile(file, context) {
         // The metadata-stripped full-resolution copy, kept as the "open
         // original" target and as one leg of the 3-2-1 backup. Skippable for
         // anyone who would rather not pay to store it twice.
+        const originalExtension = (prepared.extension || file.ext || '.jpg').toLowerCase();
+
         if (context.keepOriginal !== false) {
           await putObject(context.s3, {
             bucket: context.bucket,
-            key: originalKey(base, prepared.extension || file.ext),
+            key: originalKey(base, originalExtension),
             body: prepared.buffer,
             contentType: prepared.contentType || 'image/jpeg',
             onRetry,
@@ -253,6 +255,10 @@ export async function processFile(file, context) {
           publicId: base,
           variants: derived.widths,
           formats: derived.formats,
+          // What the original was actually stored as. The strip step re-encodes
+          // anything it cannot handle losslessly, so this is frequently not the
+          // extension the file arrived with.
+          originalExt: context.keepOriginal === false ? undefined : originalExtension,
           bytesSent: derived.totalBytes,
           existingNode: force ? existingNode : null,
         };
