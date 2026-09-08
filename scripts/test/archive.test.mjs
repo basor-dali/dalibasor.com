@@ -21,6 +21,10 @@ import { slugify, titleCase, formatItemId, padNumber } from '../lib/manifest.mjs
 import { widthsFor, derivativeKey, originalKey, LADDER } from '../lib/derivatives.mjs';
 import { baseKeyFor, keyLeaf } from '../lib/r2.mjs';
 import { stripJpegSegments, prepareImageForUpload } from '../lib/strip-metadata.mjs';
+import {
+  stripVideoLocation,
+  stripVideoLocationToFile,
+} from '../lib/strip-video-location.mjs';
 
 /* ==========================================================================
    Slugs are permanent URLs
@@ -368,6 +372,151 @@ describe('metadata stripping', () => {
 
     const cut = jpegWithMetadata(base);
     assert.equal(stripJpegSegments(cut.subarray(0, cut.length - 40)), null);
+  });
+});
+
+/* ==========================================================================
+   Video carries coordinates too
+   ==========================================================================
+   A clip off a phone records where it was taken, in moov/udta/©xyz. It used to
+   be uploaded untouched because the CDN strips metadata from what it delivers —
+   but the stored master keeps it, and a master is fetchable at a URL built from
+   the public id this repository publishes. */
+
+/** size + type + payload — one MP4 atom. */
+function atom(type, payload = Buffer.alloc(0)) {
+  const head = Buffer.alloc(8);
+  head.writeUInt32BE(8 + payload.length, 0);
+  head.write(type, 4, 4, 'latin1');
+  return Buffer.concat([head, payload]);
+}
+
+const COORDINATES = '+52.3702+004.8952/';
+
+/** The ©xyz atom an iPhone or Android phone writes. */
+function locationAtom() {
+  const text = Buffer.from(COORDINATES, 'latin1');
+  const header = Buffer.alloc(4);
+  header.writeUInt16BE(text.length, 0);
+  header.writeUInt16BE(0x15c7, 2);
+  return atom('©xyz', Buffer.concat([header, text]));
+}
+
+function phoneClip(extra = Buffer.alloc(0)) {
+  return Buffer.concat([
+    atom('ftyp', Buffer.from('mp42mp42isom', 'latin1')),
+    extra,
+    atom(
+      'moov',
+      Buffer.concat([atom('mvhd', Buffer.alloc(100)), atom('udta', locationAtom())]),
+    ),
+    atom('mdat', Buffer.alloc(4096, 0x41)),
+  ]);
+}
+
+describe('video location stripping', () => {
+  it('clears the coordinates a phone writes', () => {
+    const clip = phoneClip();
+    assert.ok(
+      clip.includes(Buffer.from(COORDINATES)),
+      'fixture should carry coordinates',
+    );
+
+    const result = stripVideoLocation(clip);
+    assert.ok(result, 'a normal MP4 should parse');
+    assert.ok(!result.buffer.includes(Buffer.from(COORDINATES)), 'coordinates survived');
+    assert.ok(result.removed.some((entry) => /xyz/.test(entry.name)));
+  });
+
+  it('changes nothing else — every byte offset in the file stays valid', () => {
+    const clip = phoneClip();
+    const result = stripVideoLocation(clip);
+
+    assert.equal(result.buffer.length, clip.length, 'the file changed length');
+    // The atom becomes a same-sized `free` box, which every player skips.
+    assert.ok(result.buffer.includes(Buffer.from('free')));
+    // And the video payload itself is untouched.
+    const mdat = result.buffer.subarray(clip.length - 4096);
+    assert.ok(mdat.equals(Buffer.alloc(4096, 0x41)), 'the video stream was altered');
+  });
+
+  it('leaves a clip that has no location exactly as it was', () => {
+    const clip = Buffer.concat([
+      atom('ftyp', Buffer.from('mp42', 'latin1')),
+      atom('moov', atom('udta', atom('©nam', Buffer.from('Holiday')))),
+      atom('mdat', Buffer.alloc(64, 3)),
+    ]);
+
+    const result = stripVideoLocation(clip);
+    assert.equal(result.removed.length, 0);
+    assert.ok(result.buffer.equals(clip));
+    assert.ok(
+      result.buffer.includes(Buffer.from('Holiday')),
+      'the title was removed too',
+    );
+  });
+
+  it('never follows atom-shaped bytes inside the video payload', () => {
+    // 'udta' occurring by chance inside mdat must not be descended into.
+    const decoy = Buffer.concat([
+      Buffer.from([0, 0, 0, 16]),
+      Buffer.from('udta'),
+      Buffer.alloc(8),
+    ]);
+    const clip = Buffer.concat([
+      atom('ftyp', Buffer.from('mp42', 'latin1')),
+      atom('mdat', Buffer.concat([Buffer.alloc(32, 7), decoy, Buffer.alloc(32, 7)])),
+    ]);
+
+    const result = stripVideoLocation(clip);
+    assert.ok(result);
+    assert.ok(result.buffer.equals(clip));
+  });
+
+  it('refuses a container it cannot read rather than claiming it is clean', () => {
+    assert.equal(stripVideoLocation(Buffer.from('not a video at all, really')), null);
+    assert.equal(stripVideoLocation(Buffer.alloc(0)), null);
+  });
+
+  it('streams a large file to the same bytes it would produce in memory', async () => {
+    // Padded so the location atom lands mid-stream rather than in the first
+    // chunk, which is where a boundary bug would hide.
+    const clip = phoneClip(atom('free', Buffer.alloc(70000, 0x5a)));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'video-strip-test-'));
+
+    try {
+      const source = path.join(dir, 'in.mp4');
+      const destination = path.join(dir, 'out.mp4');
+      fs.writeFileSync(source, clip);
+
+      const streamed = await stripVideoLocationToFile(source, destination);
+      const written = fs.readFileSync(destination);
+      const inMemory = stripVideoLocation(clip);
+
+      assert.ok(
+        written.equals(inMemory.buffer),
+        'streamed output differs from in-memory',
+      );
+      assert.ok(!written.includes(Buffer.from(COORDINATES)));
+      assert.equal(written.length, clip.length);
+      assert.deepEqual(streamed.removed, inMemory.removed);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('writes nothing at all when the container will not parse', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'video-strip-test-'));
+    try {
+      const source = path.join(dir, 'junk.mp4');
+      const destination = path.join(dir, 'out.mp4');
+      fs.writeFileSync(source, Buffer.from('this is not a video'));
+
+      assert.equal(await stripVideoLocationToFile(source, destination), null);
+      assert.ok(!fs.existsSync(destination), 'a rejected file should leave no output');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

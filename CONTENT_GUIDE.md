@@ -263,8 +263,17 @@ Same command. `.mp4`, `.mov`, `.m4v` and `.webm` are recognised and uploaded as 
 frames, adaptive streaming and the mobile player are handled automatically; nothing autoplays
 and nothing loads until someone presses play.
 
-One caveat: video metadata is not stripped locally the way image EXIF is. If a clip's location
-matters to you, strip it before importing.
+Location is cleared from a clip before it is uploaded, the same as for a photograph — the
+`©xyz` and `loci` atoms a phone writes are blanked in a copy, and your file on disk is never
+touched. Nothing is deleted from the container, so the video and audio come through
+bit-identical; the atoms are simply overwritten with padding of the same size.
+
+What still goes up is the rest of the container: device model, encoder, timestamps. Those are
+not coordinates, and removing them would mean re-encoding the clip. If a particular video is
+sensitive beyond its location, strip it yourself before importing.
+
+If the importer cannot read a container at all, it refuses the file rather than uploading
+something it cannot vouch for.
 
 ### Fix a caption, a date, or a location
 

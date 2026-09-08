@@ -17,11 +17,14 @@
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import sharp from 'sharp';
 
 import { findItemNodeByHash } from './manifest.mjs';
 import { readCaptureInfo } from './exif.mjs';
 import { prepareImageForUpload } from './strip-metadata.mjs';
+import { stripVideoLocationToFile } from './strip-video-location.mjs';
 import { publicIdLeaf, uploadAsset } from './upload.mjs';
 import { generateDerivatives, derivativeKey, originalKey } from './derivatives.mjs';
 import {
@@ -337,19 +340,63 @@ export async function processFile(file, context) {
 
   /* --- video ------------------------------------------------------------ */
 
-  // Video goes up as it came off the camera. See VIDEO_METADATA_NOTE.
   const capture = await readCaptureInfo(null, stats, { readExif: false });
+
+  /* Clear the location out of the container before anything leaves the
+     machine.
+
+     A clip off a phone records where it was taken, in moov/udta/©xyz or a
+     3GPP loci box. This used to upload untouched on the reasoning that the CDN
+     strips metadata from delivered renditions — true, and beside the point,
+     because the untransformed master stays fetchable at a URL built from its
+     public id, and this repository publishes those ids in content/media.
+
+     Nothing is deleted: each location atom is overwritten in place with a
+     same-sized `free` atom, so every chunk offset in the file stays valid and
+     the streams are bit-identical. The original on disk is untouched, as
+     always. */
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'dalibasor-video-'));
+  const cleanedPath = path.join(scratch, `clean${file.ext || '.mp4'}`);
+  let cleaned;
+  try {
+    cleaned = await stripVideoLocationToFile(file.path, cleanedPath);
+  } catch (err) {
+    fs.rmSync(scratch, { recursive: true, force: true });
+    return {
+      file,
+      status: 'failed',
+      reason: `could not read this video: ${err.message}`,
+    };
+  }
+
+  if (!cleaned) {
+    fs.rmSync(scratch, { recursive: true, force: true });
+    // Cannot read the container, so cannot promise it is clean. Refusing is
+    // the only honest answer for something whose default is meant to be
+    // "coordinates never leave".
+    return {
+      file,
+      status: 'failed',
+      reason:
+        'could not read this video container, so its location metadata cannot be ' +
+        'removed. Re-export the clip, or strip it yourself before importing.',
+    };
+  }
 
   Object.assign(record, {
     capturedAt: capture.capturedAt,
     capturedAtInferred: capture.inferred,
-    bytesSent: stats.size,
-    method: 'as-is',
-    stripReason: 'video uploaded unchanged',
-    removed: [],
+    bytesSent: cleaned.bytes,
+    method: cleaned.removed.length > 0 ? 'location-stripped' : 'as-is',
+    stripReason:
+      cleaned.removed.length > 0
+        ? 'location atoms cleared from the container'
+        : 'no location metadata found',
+    removed: cleaned.removed,
   });
 
   if (dryRun) {
+    fs.rmSync(scratch, { recursive: true, force: true });
     return {
       ...record,
       status: 'would-upload',
@@ -359,12 +406,15 @@ export async function processFile(file, context) {
 
   try {
     const response = await uploadAsset({
-      filePath: file.path,
+      // The cleaned copy, never the file the visitor pointed at. Uploaded from
+      // a path rather than a Buffer so that Cloudinary's chunked upload still
+      // handles anything over 90MB.
+      filePath: cleanedPath,
       folder: targetFolder,
       publicId: publicIdLeaf(file.name),
       resourceType: 'video',
       originalFilename: file.name,
-      sizeBytes: stats.size,
+      sizeBytes: cleaned.bytes,
       force,
       onRetry: ({ attempt, retries, delay }) =>
         warn(
@@ -386,6 +436,9 @@ export async function processFile(file, context) {
     };
   } catch (err) {
     return { file, status: 'failed', reason: uploadErrorMessage(err) };
+  } finally {
+    // The cleaned copy exists only for the length of the upload.
+    fs.rmSync(scratch, { recursive: true, force: true });
   }
 }
 

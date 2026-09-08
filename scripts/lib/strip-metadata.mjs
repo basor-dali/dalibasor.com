@@ -402,18 +402,23 @@ export async function prepareImageForUpload({ buffer, extension, orientation }) 
 }
 
 /**
- * Video is uploaded exactly as it came off the camera.
+ * Video location metadata is cleared before upload — see
+ * ./strip-video-location.mjs, which does for an MP4 atom tree what the JPEG
+ * surgery above does for segments.
  *
- * There is no dependency-free way to rewrite an MP4 or MOV atom tree here, and
- * shelling out to ffmpeg would make the importer depend on a binary that is
- * not installed. Cloudinary strips location metadata from delivered video, so
- * nothing public carries it — but the master stored in the CDN account still
- * has whatever the camera wrote. The importer says so out loud on every run,
- * and CONTENT_GUIDE.md repeats it: if a clip's location matters, strip it
- * before importing.
+ * This note used to say that video went up as it came off the camera, because
+ * there was no dependency-free way to rewrite an atom tree and the CDN strips
+ * metadata from delivered renditions anyway. The second half was true and the
+ * conclusion did not follow: the stored master keeps what the camera wrote, and
+ * it stays fetchable at a URL built from its public id — which this repository
+ * publishes. There is also a dependency-free way, as it turns out.
  *
- * The original file is, as everywhere in this module, only ever read.
+ * What still goes up untouched is everything else in the container: the device
+ * model, the encoder, timestamps. Those are not coordinates, and unlike a
+ * photograph's EXIF they cannot be removed without either re-encoding or
+ * shifting offsets that would need patching. If that ever matters, the answer
+ * is ffmpeg, and it should be an explicit flag rather than a silent dependency.
  */
 export const VIDEO_METADATA_NOTE =
-  'Video is uploaded as-is. Cloudinary strips location metadata on delivery, but the ' +
-  'stored master keeps whatever the camera wrote. Strip it first if a clip is sensitive.';
+  'Video keeps its technical metadata — device model, encoder, timestamps. ' +
+  'Location atoms are cleared before upload; everything else goes up as the camera wrote it.';
