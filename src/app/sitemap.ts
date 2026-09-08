@@ -66,10 +66,20 @@ function lastCapture(items: MediaItem[]): Date | undefined {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const posts = getPosts();
-  const projects = getProjects();
+  /* Scaffolding is left out, matching the noindex those pages carry and the
+     feeds that skip them. A sitemap is a list of pages worth crawling, and a
+     page whose body is a note to myself about what to write there is not one.
+     They stay on the site and stay linked; they are just not advertised.
+
+     Section indexes are unconditional. /writing is worth crawling even while
+     everything under it is unwritten — it is the page that says so. */
+  const written = <T extends { placeholder: boolean }>(items: T[]): T[] =>
+    items.filter((item) => !item.placeholder);
+
+  const posts = written(getPosts());
+  const projects = written(getProjects());
   const albums = getAllAlbums();
-  const nowEntries = getNowEntries();
+  const nowEntries = written(getNowEntries());
   const years = getArchiveYears();
 
   /* Resolved once — the year pages need the items anyway, and the archive

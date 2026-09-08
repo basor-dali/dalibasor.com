@@ -1,7 +1,7 @@
-import { getAllPostsWithBodies } from '@/lib/content';
+import { getFeedPosts } from '@/lib/content';
 import { absoluteUrl } from '@/lib/metadata';
 import { site } from '@/lib/site';
-import { isoDateTime, parseDate, truncate } from '@/lib/utils';
+import { isoDateTime, truncate } from '@/lib/utils';
 
 /**
  * JSON Feed 1.1 — the same writing as /writing/rss.xml, for readers that
@@ -26,14 +26,9 @@ type FeedItem = {
 };
 
 export function GET(): Response {
-  /* Sorted on the parsed date, for the same reason as the RSS feed: an
-     unquoted YAML date arrives as a Date, and its string form sorts by
-     weekday name. */
-  const posts = [...getAllPostsWithBodies()].sort(
-    (a, b) =>
-      parseDate(b.date).getTime() - parseDate(a.date).getTime() ||
-      a.slug.localeCompare(b.slug),
-  );
+  /* Same set and same order as the RSS feed, from one place: scaffolding
+     excluded, sorted on the parsed date rather than the raw YAML value. */
+  const posts = getFeedPosts();
 
   const items: FeedItem[] = posts.map((post) => {
     const url = absoluteUrl(post.href);

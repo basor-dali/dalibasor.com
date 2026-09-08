@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { CoverShape, Post, PostSummary, WritingFrontmatter } from '@/types/content';
 import {
+  parseDate,
   readingMinutes,
   slugify,
   toDateString,
@@ -226,7 +227,31 @@ export function getRelatedPosts(slug: string, limit = 3): PostSummary[] {
     .map((entry) => entry.post);
 }
 
-/** Every post including drafts and bodies — for feeds and the search index. */
+/** Every visible post, with bodies — for the search index. */
 export function getAllPostsWithBodies(): Post[] {
   return visible(loadAll());
+}
+
+/**
+ * The posts that belong in a feed. Scaffolding does not.
+ *
+ * A feed item is a notification, and its guid is the post's URL — which is the
+ * same URL the finished essay will live at. So syndicating a placeholder sends
+ * subscribers a post consisting of notes-to-self, and then, when the real
+ * writing replaces it, sends them nothing at all: every reader already has that
+ * guid marked as read. The scaffold is delivered and the essay is silent.
+ *
+ * Placeholders stay on the site, where they are clearly labelled as unwritten
+ * and where nobody is subscribed to anything. They just do not get pushed.
+ *
+ * Sorted newest first here, so both feeds agree without repeating the rule.
+ */
+export function getFeedPosts(): Post[] {
+  return getAllPostsWithBodies()
+    .filter((post) => !post.placeholder)
+    .sort(
+      (a, b) =>
+        parseDate(b.date).getTime() - parseDate(a.date).getTime() ||
+        a.slug.localeCompare(b.slug),
+    );
 }

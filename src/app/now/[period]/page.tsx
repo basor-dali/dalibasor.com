@@ -47,6 +47,9 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
     image: '/opengraph-image',
     type: 'article',
     publishedTime: isoDateTime(entry.date),
+    // See the note in /writing/[slug]: scaffolding must not go public on the
+    // day indexing is switched on.
+    noIndex: entry.placeholder,
   });
 
   // While this entry is the live one, `/now` is the address that should rank.

@@ -63,7 +63,13 @@ export async function generateMetadata({
     type: 'article',
     publishedTime: isoDateTime(post.date),
     tags: post.tags,
-    noIndex: post.draft,
+    /* Scaffolding is not indexable. Everything is noindex today because
+       NEXT_PUBLIC_ALLOW_INDEXING is unset, which makes this look redundant —
+       it is the opposite. Setting that one variable is how the site goes
+       public, and without this line it would take every unwritten placeholder
+       with it, handing search engines notes-to-self as the first thing they
+       ever saw at these URLs. */
+    noIndex: post.draft || post.placeholder,
   });
 }
 

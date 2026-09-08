@@ -26,6 +26,31 @@ export function absoluteUrl(path: string): string {
   return `${site.url}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+/**
+ * Feed autodiscovery, repeated on every page.
+ *
+ * The root layout declares these too, but `alternates` is replaced wholesale
+ * rather than merged — the same trap already documented below for `robots`.
+ * Every page sets a canonical, so every page was overwriting the layout's
+ * `types` with nothing, and the site shipped two feeds that no reader could
+ * find: paste the domain into NetNewsWire or Feedly and it comes back empty.
+ *
+ * A feed is the most portable thing here — it outlives platforms, algorithms
+ * and this codebase — so it is worth carrying on every page rather than only
+ * on the one someone happens to be standing on.
+ */
+type AlternateTypes = NonNullable<NonNullable<Metadata['alternates']>['types']>;
+
+/** Fresh each call: Next takes ownership of what it is handed. */
+function feedTypes(): AlternateTypes {
+  return {
+    'application/rss+xml': [{ url: '/writing/rss.xml', title: `${site.name} — Writing` }],
+    'application/feed+json': [
+      { url: '/writing/feed.json', title: `${site.name} — Writing` },
+    ],
+  };
+}
+
 export function pageMetadata(input: PageMetaInput): Metadata {
   const url = absoluteUrl(input.path);
   const description = input.description ?? site.description;
@@ -38,7 +63,7 @@ export function pageMetadata(input: PageMetaInput): Metadata {
   return {
     title: input.title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, types: feedTypes() },
     // Always emit a value. Passing `undefined` here does not inherit the
     // layout's setting — it overrides it with nothing, which is how every page
     // ended up with no robots tag at all while robots.txt said Disallow.

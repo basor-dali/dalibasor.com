@@ -1,4 +1,4 @@
-import { getAllPostsWithBodies } from '@/lib/content';
+import { getFeedPosts } from '@/lib/content';
 import { absoluteUrl } from '@/lib/metadata';
 import { site } from '@/lib/site';
 import { parseDate, truncate } from '@/lib/utils';
@@ -17,9 +17,18 @@ export const dynamic = 'force-static';
 /* --- XML ------------------------------------------------------------------ */
 
 /**
- * XML 1.0 permits only three control characters: tab, newline and carriage
- * return. Anything else below U+0020 makes a feed unparseable no matter how
- * it is escaped, so it is dropped rather than encoded.
+ * Keep only what XML 1.0 calls a Char.
+ *
+ * That is tab, newline and carriage return, then U+0020–U+D7FF,
+ * U+E000–U+FFFD, and U+10000 upward. Anything else makes the feed unparseable
+ * no matter how it is escaped, so it is dropped rather than encoded — and a
+ * feed that will not parse fails in the reader, silently, weeks later.
+ *
+ * Iterating with `for...of` walks code points, so a properly paired emoji
+ * arrives as one character above U+FFFF and is kept. An *unpaired* surrogate —
+ * which is what a string truncated through the middle of one leaves behind —
+ * arrives as a single code unit in U+D800–U+DFFF and is dropped, because that
+ * is exactly the case the Char production excludes.
  */
 function stripIllegalXml(value: string): string {
   let out = '';
@@ -27,7 +36,11 @@ function stripIllegalXml(value: string): string {
     const code = character.codePointAt(0) ?? 0;
     if (code === 9 || code === 10 || code === 13) {
       out += character;
-    } else if (code >= 0x20 && code !== 0xfffe && code !== 0xffff) {
+    } else if (
+      (code >= 0x20 && code <= 0xd7ff) ||
+      (code >= 0xe000 && code <= 0xfffd) ||
+      code >= 0x10000
+    ) {
       out += character;
     }
   }
@@ -80,15 +93,12 @@ function tag(name: string, value: string): string {
 /* --- feed ----------------------------------------------------------------- */
 
 export function GET(): Response {
-  /* Sorted here on the parsed date rather than trusted from the loader: an
-     unquoted `date: 2024-03-02` in YAML arrives as a Date, whose string form
-     starts with the weekday — and sorting *those* alphabetically files Friday
-     before Monday. A feed in the wrong order is a feed nobody trusts. */
-  const posts = [...getAllPostsWithBodies()].sort(
-    (a, b) =>
-      parseDate(b.date).getTime() - parseDate(a.date).getTime() ||
-      a.slug.localeCompare(b.slug),
-  );
+  /* getFeedPosts drops scaffolding and sorts on the parsed date rather than
+     trusting the loader's order: an unquoted `date: 2024-03-02` in YAML arrives
+     as a Date, whose string form starts with the weekday — and sorting *those*
+     alphabetically files Friday before Monday. A feed in the wrong order is a
+     feed nobody trusts. */
+  const posts = getFeedPosts();
 
   const feedUrl = absoluteUrl('/writing/rss.xml');
   const channelUrl = absoluteUrl('/writing');
