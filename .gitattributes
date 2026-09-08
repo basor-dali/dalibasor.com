@@ -1,0 +1,28 @@
+# Normalise line endings so the repo is byte-identical regardless of which
+# machine or OS it was edited on. Without this, a checkout on Windows and one
+# on macOS produce different bytes for the same commit, and every file looks
+# modified after a fresh clone.
+* text=auto eol=lf
+
+# Content is the archive. Keep it LF everywhere, forever.
+*.md   text eol=lf
+*.mdx  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Binaries must never be touched.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.gif  binary
+*.ico  binary
+*.mp4  binary
+*.mov  binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.pdf  binary

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { site } from './site';
+import { ALLOW_INDEXING, site } from './site';
 
 /**
  * One helper for every page's metadata. Canonical URLs, OpenGraph and Twitter
@@ -35,7 +35,13 @@ export function pageMetadata(input: PageMetaInput): Metadata {
     title: input.title,
     description,
     alternates: { canonical: url },
-    robots: input.noIndex ? { index: false, follow: false } : undefined,
+    // Always emit a value. Passing `undefined` here does not inherit the
+    // layout's setting — it overrides it with nothing, which is how every page
+    // ended up with no robots tag at all while robots.txt said Disallow.
+    robots:
+      input.noIndex || !ALLOW_INDEXING
+        ? { index: false, follow: false, nocache: true }
+        : { index: true, follow: true },
     openGraph: {
       title: input.title,
       description,

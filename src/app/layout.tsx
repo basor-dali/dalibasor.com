@@ -3,7 +3,7 @@ import { SiteChrome } from '@/components/chrome/SiteChrome';
 import { LightboxProvider } from '@/components/media/MediaLightbox';
 import { getArchiveSpan } from '@/lib/content';
 import { jsonLdScript, personJsonLd } from '@/lib/metadata';
-import { site } from '@/lib/site';
+import { ALLOW_INDEXING, site } from '@/lib/site';
 import { fontVariables } from './fonts';
 import './globals.css';
 
@@ -31,7 +31,10 @@ export const metadata: Metadata = {
     url: site.url,
   },
   twitter: { card: 'summary_large_image' },
-  robots: { index: true, follow: true },
+  // Must agree with robots.txt — see ALLOW_INDEXING in src/lib/site.ts.
+  robots: ALLOW_INDEXING
+    ? { index: true, follow: true }
+    : { index: false, follow: false, nocache: true },
   formatDetection: { telephone: false },
 };
 

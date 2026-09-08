@@ -24,12 +24,38 @@ export const site = {
     name: 'Dali Basor',
     email: 'hello@dalibasor.com',
   },
+  /**
+   * Links shown in the footer and the mobile menu.
+   *
+   * Only verified accounts belong here — an outbound link under your own name
+   * that lands on a stranger's profile is worse than no link at all. Add
+   * Instagram and LinkedIn back once the handles are confirmed:
+   *
+   *   { label: 'Instagram', href: 'https://instagram.com/<handle>', handle: '@<handle>' },
+   *   { label: 'LinkedIn',  href: 'https://linkedin.com/in/<handle>', handle: '<handle>' },
+   *
+   * Nothing else needs changing — the footer and menu render whatever is here.
+   */
   social: [
-    { label: 'Instagram', href: 'https://instagram.com/dalibasor', handle: '@dalibasor' },
-    { label: 'LinkedIn', href: 'https://linkedin.com/in/dalibasor', handle: 'dalibasor' },
-    { label: 'GitHub', href: 'https://github.com/dalibasor', handle: 'dalibasor' },
+    { label: 'GitHub', href: 'https://github.com/basor-dali', handle: 'basor-dali' },
   ],
 } as const;
+
+/**
+ * Indexing is opt-in.
+ *
+ * Every entry currently ships with placeholder prose, and a search engine that
+ * caches "[DALI: WRITE THIS IN YOUR OWN WORDS]" under your own name is slow and
+ * annoying to undo. Set this in the deployment environment once the writing is
+ * yours:
+ *
+ *   NEXT_PUBLIC_ALLOW_INDEXING=true
+ *
+ * It drives both robots.txt and the per-page robots meta tag, which have to
+ * agree — robots.txt alone does not stop a page being indexed when something
+ * else links to it.
+ */
+export const ALLOW_INDEXING = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
 
 export type NavItem = {
   label: string;
