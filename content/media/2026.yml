@@ -1,0 +1,201 @@
+# ============================================================================
+#  MEDIA MANIFEST — 2026
+# ============================================================================
+#
+#  One YAML file per year. This file IS the archive: plain text, diffable,
+#  readable in a text editor twenty years from now with no software at all.
+#  Nothing in the site reads Cloudinary directly — it reads this.
+#
+#  ---------------------------------------------------------------------------
+#  TOP LEVEL
+#  ---------------------------------------------------------------------------
+#  year    Required. Must match the filename (2026.yml -> 2026).
+#  note    Optional. A short hand-written line about the year. Yours to write.
+#  cover   Optional. A media `id` (or a raw `publicId`) used as the year's
+#          opening image. Falls back to the first image when omitted.
+#  albums  Named collections within the year. May be an empty list.
+#  items   Every photograph and video of the year. May be an empty list.
+#
+#  ---------------------------------------------------------------------------
+#  ALBUM FIELDS
+#  ---------------------------------------------------------------------------
+#  slug      Required. Permanent URL segment: /photos/2026/<slug>.
+#            Never change one after it has been published.
+#  title     Required. Display name.
+#  subtitle  Optional. e.g. "Summer 2026".
+#  date      Optional. "2026-07" or a full date. Orders albums within the year.
+#            ALWAYS QUOTE IT. An unquoted date becomes a YAML timestamp object
+#            instead of a string and the ordering breaks.
+#  cover     Optional. A media `id` from `items` below.
+#  note      Optional. A short plain-text note. Yours to write, not generated.
+#  location  Optional. Broad and manual. Never derived from GPS.
+#  featured  Optional. true to surface the album on the archive index.
+#
+#  ---------------------------------------------------------------------------
+#  ITEM FIELDS
+#  ---------------------------------------------------------------------------
+#  id                Stable and human-readable: "2026-serbia-0007". NEVER
+#                    reused and never renumbered — it is the permalink target
+#                    for a single photograph. Generated if omitted, but the
+#                    generated form depends on file order, so let the importer
+#                    write it and then leave it alone forever.
+#  type              "image" or "video". Defaults to "image".
+#  album             An album slug from above. Omit for the year's everyday
+#                    photographs. An unknown slug is not fatal: the item falls
+#                    back to everyday and the build logs a warning.
+#  publicId          Required. The provider-side path — a Cloudinary public id,
+#                    or a path under /public/media when running locally.
+#  width, height     Source pixel dimensions. These reserve the frame before
+#                    anything downloads, so a year of 300 photographs produces
+#                    zero layout shift. Orientation is derived from them; do
+#                    not state it by hand.
+#  capturedAt        Local ISO capture time from EXIF. QUOTE IT. Drives
+#                    chronological ordering; items without one sort by id.
+#  caption           Optional, one line, written by hand. Shown under the photo.
+#  alt               Alt text. Falls back to caption, then to a generic
+#                    description. Write it for anything that carries meaning.
+#  location          Broad and manual: "Wichita, Kansas". Never from GPS.
+#  featured          true to pull it into year previews and the archive index.
+#  lqip              Tiny base64 data URI painted before the image loads.
+#                    Generated at import, roughly 400 bytes. If one is
+#                    kilobytes long, something went wrong.
+#  color             Average colour, painted before the LQIP does.
+#  duration          Video only. Seconds.
+#  poster            Video only. publicId of a still frame. Without one, a
+#                    frame is pulled from the video itself.
+#  originalFilename  Provenance. Never displayed.
+#  hash              Content hash. The importer's dedupe key.
+#
+#  Do not hand-write `year` on an item — it comes from the filename.
+#
+#  ---------------------------------------------------------------------------
+#  ###########    EVERYTHING BELOW IS A DEVELOPMENT PLACEHOLDER    ###########
+#  ###########    DELETE ALL OF IT BEFORE THE FIRST REAL IMPORT    ###########
+#  ---------------------------------------------------------------------------
+#  The album and the six items below exist only to exercise the layouts:
+#  album grid, everyday contact sheet, lightbox, landscape / portrait / square,
+#  and video with and without a poster. The publicIds point at nothing — empty
+#  image frames are expected here, and the components handle it.
+#
+#  Real entries are generated, never typed:
+#
+#      npm run media:import    read the originals, write entries into this file
+#      npm run media:check     validate every manifest
+#      npm run new:album       add an album to a year
+#
+#  To reset: delete `cover`, the one album, and all six items, leaving
+#  `year: 2026` with `albums: []` and `items: []`, then run the importer.
+# ============================================================================
+
+year: 2026
+
+# Points at a placeholder item below. Delete it with the rest.
+cover: "2026-everyday-0004"
+
+albums:
+  - slug: "example-album"
+    title: "Example Album"
+    subtitle: "Placeholder — delete before the first import"
+    date: "2026-06"
+    cover: "2026-example-0001"
+    location: "Wichita, Kansas"
+    featured: false
+    note: >-
+      Example album. Everything in it is scaffolding: this note, the captions,
+      the ids and the image paths. Delete the whole entry once real photographs
+      are imported.
+
+items:
+  # --- inside an album -------------------------------------------------------
+
+  - id: "2026-example-0001"
+    type: "image"
+    album: "example-album"
+    publicId: "dalibasor/2026/example-album/img_0001"
+    width: 4032
+    height: 2688
+    capturedAt: "2026-06-14T18:42:11"
+    caption: "Example caption — one plain line, written by hand after the import."
+    alt: "Placeholder landscape photograph, used to exercise the album layout."
+    location: "Wichita, Kansas"
+    featured: false
+    color: "#2a211c"
+    lqip: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mPQUpSx1lNlkBIV1ldTAAAMTgGtdsO+3QAAAABJRU5ErkJggg=='
+    originalFilename: "IMG_0001.HEIC"
+    hash: "0000000000000000000000000000000000000001"
+
+  - id: "2026-example-0002"
+    type: "image"
+    album: "example-album"
+    publicId: "dalibasor/2026/example-album/img_0002"
+    width: 2688
+    height: 4032
+    capturedAt: "2026-06-14T19:07:56"
+    caption: "A portrait frame, so the grid has something tall to reflow around."
+    alt: "Placeholder portrait photograph, used to exercise the album layout."
+    location: "Wichita, Kansas"
+    color: "#3a2b21"
+    lqip: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mOw0lb0stBmUJEWNVSVAQAPTwH6BCKj+gAAAABJRU5ErkJggg=='
+    originalFilename: "IMG_0002.HEIC"
+    hash: "0000000000000000000000000000000000000002"
+
+  - id: "2026-example-0003"
+    type: "video"
+    album: "example-album"
+    publicId: "dalibasor/2026/example-album/clip_0003"
+    poster: "dalibasor/2026/example-album/clip_0003-still"
+    width: 1920
+    height: 1080
+    duration: 24
+    capturedAt: "2026-06-14T19:31:02"
+    caption: "A landscape video entry with an explicit poster frame."
+    alt: "Placeholder video, used to exercise the inline player."
+    location: "Wichita, Kansas"
+    color: "#1d1f22"
+    lqip: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mOQlVfS1jNkEBEVV1bTBAALYAGbDAknbAAAAABJRU5ErkJggg=='
+    originalFilename: "IMG_0003.MOV"
+    hash: "0000000000000000000000000000000000000003"
+
+  # --- no album: the year's everyday photographs ------------------------------
+
+  - id: "2026-everyday-0004"
+    type: "image"
+    publicId: "dalibasor/2026/everyday/img_0004"
+    width: 4032
+    height: 2688
+    capturedAt: "2026-07-02T08:15:40"
+    caption: "An item with no album. These become the year's everyday photographs."
+    alt: "Placeholder landscape photograph, outside any album."
+    location: "Wichita, Kansas"
+    featured: true
+    color: "#232a26"
+    lqip: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mNQ1lLTtzBmEJeW1DDQBgANTQHcbHnwMgAAAABJRU5ErkJggg=='
+    originalFilename: "IMG_0004.HEIC"
+    hash: "0000000000000000000000000000000000000004"
+
+  - id: "2026-everyday-0005"
+    type: "image"
+    publicId: "dalibasor/2026/everyday/img_0005"
+    width: 3000
+    height: 3000
+    capturedAt: "2026-07-19T21:04:18"
+    caption: "A square frame. Orientation is derived from width and height, never stated."
+    alt: "Placeholder square photograph, outside any album."
+    color: "#2c2320"
+    lqip: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mPQUVZwMNZhkBYTMdVSAQANcAHXI07fxAAAAABJRU5ErkJggg=='
+    originalFilename: "IMG_0005.JPG"
+    hash: "0000000000000000000000000000000000000005"
+
+  - id: "2026-everyday-0006"
+    type: "video"
+    publicId: "dalibasor/2026/everyday/clip_0006"
+    width: 1080
+    height: 1920
+    duration: 9
+    capturedAt: "2026-08-03T13:22:07"
+    caption: "A vertical clip with no poster — a frame is pulled from the video itself."
+    alt: "Placeholder vertical video, used to exercise the portrait player."
+    color: "#1a1a1c"
+    lqip: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mOQkpJRU9NiEBISkZdXAgAJwQFfG2hTIgAAAABJRU5ErkJggg=='
+    originalFilename: "IMG_0006.MOV"
+    hash: "0000000000000000000000000000000000000006"

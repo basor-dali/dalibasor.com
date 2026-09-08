@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+.turbo/
+
+# production
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+.qodo/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env
+.env
+.env*.local
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# generated at build time
+/public/search-index.json
+/public/sitemap.xml
+/public/robots.txt
+
+# media working directories (originals live outside the repo)
+/media-originals/
+/PhotosToUpload/
+.media-cache/

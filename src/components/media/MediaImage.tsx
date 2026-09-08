@@ -1,0 +1,148 @@
+import type { CSSProperties } from 'react';
+import type { MediaItem } from '@/types/content';
+import {
+  mediaAlt,
+  responsiveImage,
+  type LadderName,
+  type SizesPreset,
+} from '@/lib/media';
+import { cx } from '@/lib/utils';
+
+/**
+ * The only <img> on this site.
+ *
+ * A server component with no client JavaScript at all. Everything that makes a
+ * photo archive fast happens here:
+ *
+ *   - the box reserves its exact aspect ratio before anything downloads, so a
+ *     year of 200 photographs produces zero layout shift;
+ *   - a ~400-byte base64 placeholder is painted as a background immediately;
+ *   - the browser picks a width from a srcSet trimmed to the source's own
+ *     resolution, so a 400px thumbnail never pulls a 6000px original;
+ *   - AVIF/WebP are negotiated by the CDN via `f_auto`;
+ *   - everything below the fold is `loading="lazy"` and `decoding="async"`.
+ *
+ * The fade-in is CSS-only, keyed off the `img` finishing decode — no state, no
+ * effect, no hydration cost.
+ */
+
+export type MediaImageProps = {
+  item: MediaItem;
+  ladder?: LadderName;
+  sizes?: SizesPreset | (string & {});
+  /** `fill` crops to the frame; `fit` keeps the photograph's own proportions. */
+  fit?: 'fill' | 'fit';
+  /** Force the frame's aspect ratio instead of using the photograph's. */
+  ratio?: string;
+  /** Above-the-fold images only. Adds fetchpriority and disables lazy loading. */
+  priority?: boolean;
+  className?: string;
+  imgClassName?: string;
+  alt?: string;
+  /** Cap the widths requested. Use for small fixed slots. */
+  maxWidth?: number;
+  style?: CSSProperties;
+};
+
+export function MediaImage({
+  item,
+  ladder = 'grid',
+  sizes = 'full',
+  fit = 'fill',
+  ratio,
+  priority = false,
+  className,
+  imgClassName,
+  alt,
+  maxWidth,
+  style,
+}: MediaImageProps) {
+  const image = responsiveImage(item, {
+    ladder,
+    sizes,
+    fit,
+    alt: alt ?? mediaAlt(item),
+    maxWidth,
+  });
+
+  const frameStyle: CSSProperties = {
+    ...style,
+    // `--ar` drives the aspect-ratio in .u-frame.
+    ['--ar' as string]: ratio ?? image.aspectRatio,
+    backgroundColor: image.color ?? undefined,
+    backgroundImage: image.lqip ? `url(${image.lqip})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+
+  return (
+    <div
+      className={cx('u-frame', fit === 'fit' && 'u-frame-contain', className)}
+      style={frameStyle}
+    >
+      <img
+        src={image.src}
+        srcSet={image.srcSet || undefined}
+        sizes={image.srcSet ? image.sizes : undefined}
+        width={image.width}
+        height={image.height}
+        alt={image.alt}
+        loading={priority ? 'eager' : 'lazy'}
+        decoding={priority ? 'sync' : 'async'}
+        fetchPriority={priority ? 'high' : 'auto'}
+        className={cx('media-img', imgClassName)}
+      />
+    </div>
+  );
+}
+
+/**
+ * A raw cover image referenced only by provider public id — used by post and
+ * project frontmatter, where there is no manifest entry to look up.
+ */
+export function CoverImage({
+  publicId,
+  alt,
+  ratio = '16 / 9',
+  ladder = 'feature',
+  sizes = 'full',
+  priority = false,
+  className,
+  fit = 'fill',
+}: {
+  publicId: string;
+  alt: string;
+  ratio?: string;
+  ladder?: LadderName;
+  sizes?: SizesPreset | (string & {});
+  priority?: boolean;
+  className?: string;
+  fit?: 'fill' | 'fit';
+}) {
+  const [w, h] = ratio.split('/').map((part) => Number(part.trim()));
+  const item: MediaItem = {
+    id: publicId,
+    type: 'image',
+    year: 0,
+    publicId,
+    // Without manifest dimensions, assume a generous source so the full ladder
+    // stays available; `c_limit`/`c_fill` will not upscale beyond the original.
+    width: 3000,
+    height: Math.round((3000 * (h || 9)) / (w || 16)),
+    orientation: 'landscape',
+    alt,
+  };
+
+  return (
+    <MediaImage
+      item={item}
+      ladder={ladder}
+      sizes={sizes}
+      fit={fit}
+      ratio={ratio}
+      priority={priority}
+      className={className}
+      alt={alt}
+    />
+  );
+}

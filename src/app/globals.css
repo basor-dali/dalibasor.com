@@ -1,0 +1,712 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   dalibasor.com — design tokens
+   A warm near-black ground, ivory type, one ember accent. Everything else is
+   typography, negative space and photography.
+   ========================================================================== */
+
+@theme {
+  /* --- surfaces -------------------------------------------------------- */
+  /* Never pure #000. Warm, slightly brown-shifted blacks so photographs sit
+     on them the way prints sit on matte board. */
+  --color-ground: #0c0b0a;
+  --color-ground-deep: #070606;
+  --color-surface: #121110;
+  --color-surface-2: #191716;
+  --color-surface-3: #201d1b;
+
+  /* --- lines ----------------------------------------------------------- */
+  --color-line: #232120;
+  --color-line-strong: #35312e;
+
+  /* --- type ------------------------------------------------------------ */
+  --color-white: #fbf8f3;
+  --color-ivory: #ede7dd;
+  --color-soft: #b3aba2;
+  --color-muted: #8c857e;
+  --color-mute: #6e6862; /* decorative / large text only — 3.4:1 */
+
+  /* --- accent ---------------------------------------------------------- */
+  --color-ember: #d2673f; /* 5.4:1 on ground — safe for small text */
+  --color-ember-deep: #a8432a; /* fills, rules, decorative */
+
+  /* --- fonts ----------------------------------------------------------- */
+  --font-display: var(--font-archivo), Archivo, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-archivo), Archivo, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* --- type scale ------------------------------------------------------
+     Fluid, viewport-aware. The display sizes are deliberately extreme; the
+     reading sizes deliberately are not. */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.2;
+  --text-meta: 0.75rem;
+  --text-meta--line-height: 1.35;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.6;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.72;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.7;
+  --text-xl: clamp(1.375rem, 1.24rem + 0.6vw, 1.75rem);
+  --text-xl--line-height: 1.4;
+  --text-2xl: clamp(1.75rem, 1.45rem + 1.4vw, 2.75rem);
+  --text-2xl--line-height: 1.18;
+  --text-3xl: clamp(2.25rem, 1.6rem + 3vw, 4rem);
+  --text-3xl--line-height: 1.06;
+  --text-4xl: clamp(2.75rem, 1.5rem + 5.6vw, 6rem);
+  --text-4xl--line-height: 0.98;
+  --text-5xl: clamp(3.25rem, 0.9rem + 10vw, 9rem);
+  --text-5xl--line-height: 0.9;
+  --text-colossal: clamp(5rem, -1rem + 24vw, 20rem);
+  --text-colossal--line-height: 0.78;
+
+  /* --- rhythm ---------------------------------------------------------- */
+  --spacing-gutter: clamp(1.25rem, 0.7rem + 2.4vw, 3.5rem);
+  --spacing-section: clamp(4.5rem, 2rem + 9vw, 11rem);
+  --spacing-section-sm: clamp(3rem, 1.5rem + 5vw, 6rem);
+
+  /* --- containers ------------------------------------------------------ */
+  --container-page: 108rem; /* 1728px — cinematic full-bleed ceiling */
+  --container-wide: 90rem;
+  --container-text: 42rem; /* ~66ch at 17px — the reading measure */
+  --container-text-wide: 52rem;
+
+  /* --- motion ---------------------------------------------------------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --- radii ----------------------------------------------------------- */
+  /* Almost nothing is rounded. This is a print aesthetic. */
+  --radius-none: 0px;
+  --radius-hair: 1px;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  :root {
+    color-scheme: dark;
+    /* One dark identity, on purpose. A light mode would be a different site. */
+    --nav-height: 4.5rem;
+    --grain-opacity: 0.03;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    /* Anchor links inside articles must clear the fixed nav. */
+    scroll-padding-top: calc(var(--nav-height) + 2rem);
+    background-color: var(--color-ground);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background-color: var(--color-ground);
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip; /* no horizontal overflow, ever */
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  /* --- focus ----------------------------------------------------------- */
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  /* --- selection ------------------------------------------------------- */
+  ::selection {
+    background-color: var(--color-ember-deep);
+    color: var(--color-white);
+  }
+
+  /* --- scrollbar (desktop only, restrained) ---------------------------- */
+  @media (pointer: fine) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-line-strong) transparent;
+    }
+  }
+
+  /* --- reduced motion --------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Utilities — the small vocabulary the whole site is written in
+   ========================================================================== */
+
+@layer components {
+  /* --- layout ---------------------------------------------------------- */
+
+  /* The standard page gutter. Everything lines up against this. */
+  .u-pad {
+    padding-inline: var(--spacing-gutter);
+  }
+
+  .u-page {
+    width: 100%;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: var(--spacing-gutter);
+  }
+
+  .u-wide {
+    width: 100%;
+    max-width: var(--container-wide);
+    margin-inline: auto;
+    padding-inline: var(--spacing-gutter);
+  }
+
+  /* The reading measure. Used by article bodies and long-form notes. */
+  .u-measure {
+    width: 100%;
+    max-width: var(--container-text);
+    margin-inline: auto;
+  }
+
+  /* A 12-column editorial grid. Collapses to 6 then 2 on small screens so
+     offset compositions degrade sensibly instead of exploding. */
+  .u-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--spacing-gutter);
+    row-gap: var(--spacing-gutter);
+  }
+
+  @media (min-width: 48rem) {
+    .u-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .u-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+  }
+
+  /* --- typography ------------------------------------------------------ */
+
+  /* Oversized display type. Optically tightened; the bigger it gets the
+     tighter it needs to be. */
+  .u-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+    text-wrap: balance;
+  }
+
+  .u-display-tight {
+    letter-spacing: -0.05em;
+  }
+
+  /* Small uppercase mono labels: dates, tags, counts, section eyebrows.
+     This is the site's connective tissue. */
+  .u-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .u-label-lg {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    line-height: 1.3;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Editorial serif, used sparingly: subtitles, pull quotes, year notes. */
+  .u-serif {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+
+  /* Tabular figures for anything that is a date, a count or a year. */
+  .u-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* --- rules ----------------------------------------------------------- */
+  .u-rule {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+    margin: 0;
+  }
+
+  .u-rule-strong {
+    border: 0;
+    border-top: 1px solid var(--color-line-strong);
+    margin: 0;
+  }
+
+  /* --- links ----------------------------------------------------------- */
+
+  /* An underline that grows from the left on hover. Used on body copy and
+     inline navigation. Deliberately not on big display links. */
+  .u-link {
+    display: inline;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    padding-bottom: 0.08em;
+    transition: color 0.25s var(--ease-out-quart);
+  }
+
+  .u-link:hover {
+    color: var(--color-white);
+  }
+
+  .u-link-reveal {
+    background-size: 0% 1px;
+    transition:
+      background-size 0.45s var(--ease-out-expo),
+      color 0.25s var(--ease-out-quart);
+  }
+
+  .u-link-reveal:hover,
+  .u-link-reveal:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* --- media ----------------------------------------------------------- */
+
+  /* Reserve space before the image arrives. Set --ar inline from the
+     manifest's width/height. Prevents every bit of CLS on photo pages. */
+  .u-frame {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-surface-2);
+    aspect-ratio: var(--ar, 3 / 2);
+  }
+
+  .u-frame > img,
+  .u-frame > video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A photograph that keeps its own proportions instead of being cropped. */
+  .u-frame-contain > img {
+    object-fit: contain;
+  }
+}
+
+/* ==========================================================================
+   Article prose
+   Raw personal writing has to look good without being reformatted. Generous
+   measure, strong hierarchy, no card chrome.
+   ========================================================================== */
+
+@layer components {
+  .prose {
+    font-size: var(--text-base);
+    line-height: 1.75;
+    color: var(--color-soft);
+  }
+
+  .prose > * + * {
+    margin-top: 1.5em;
+  }
+
+  .prose p {
+    color: var(--color-soft);
+  }
+
+  .prose strong {
+    color: var(--color-ivory);
+    font-weight: 600;
+  }
+
+  .prose em {
+    font-style: italic;
+  }
+
+  .prose a {
+    color: var(--color-ivory);
+    background-image: linear-gradient(var(--color-ember), var(--color-ember));
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    padding-bottom: 0.06em;
+    transition: background-size 0.3s var(--ease-out-quart);
+  }
+
+  .prose a:hover {
+    background-size: 100% 2px;
+    color: var(--color-white);
+  }
+
+  .prose h2 {
+    margin-top: 2.6em;
+    margin-bottom: -0.4em;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    color: var(--color-white);
+  }
+
+  .prose h3 {
+    margin-top: 2.2em;
+    margin-bottom: -0.5em;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    color: var(--color-white);
+  }
+
+  .prose h4 {
+    margin-top: 2em;
+    margin-bottom: -0.6em;
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-left: 1.25em;
+  }
+
+  .prose ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .prose ul > li {
+    position: relative;
+    padding-left: 1.5em;
+  }
+
+  .prose ul > li::before {
+    content: "";
+    position: absolute;
+    left: 0.15em;
+    top: 0.82em;
+    width: 0.45em;
+    height: 1px;
+    background-color: var(--color-ember-deep);
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose ol > li::marker {
+    color: var(--color-mute);
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .prose li + li {
+    margin-top: 0.5em;
+  }
+
+  .prose blockquote {
+    margin-block: 2.4em;
+    padding-left: 1.4em;
+    border-left: 1px solid var(--color-ember-deep);
+    font-family: var(--font-serif);
+    font-size: var(--text-xl);
+    line-height: 1.45;
+    color: var(--color-ivory);
+  }
+
+  .prose blockquote p {
+    color: inherit;
+  }
+
+  .prose hr {
+    margin-block: 3.5em;
+    border: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    color: var(--color-ivory);
+    background-color: var(--color-surface-2);
+    padding: 0.15em 0.4em;
+    border: 1px solid var(--color-line);
+  }
+
+  .prose pre {
+    background-color: var(--color-ground-deep);
+    border: 1px solid var(--color-line);
+    padding: 1.25rem 1.35rem;
+    overflow-x: auto;
+    font-size: var(--text-xs);
+    line-height: 1.65;
+  }
+
+  .prose pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+  }
+
+  .prose th,
+  .prose td {
+    text-align: left;
+    padding: 0.7em 1em 0.7em 0;
+    border-bottom: 1px solid var(--color-line);
+    vertical-align: top;
+  }
+
+  .prose th {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+
+  .prose figure {
+    margin-block: 2.5em;
+  }
+
+  .prose figcaption {
+    margin-top: 0.85em;
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+  }
+
+  /* Footnotes (remark-gfm) */
+  .prose .footnotes {
+    margin-top: 4em;
+    padding-top: 2em;
+    border-top: 1px solid var(--color-line);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  .prose .footnotes h2 {
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
+
+  /* Heading anchors from rehype-autolink-headings */
+  .prose .heading-anchor {
+    background: none;
+    opacity: 0;
+    margin-left: 0.4em;
+    color: var(--color-mute);
+    font-weight: 400;
+    transition: opacity 0.2s ease;
+  }
+
+  .prose h2:hover .heading-anchor,
+  .prose h3:hover .heading-anchor,
+  .prose .heading-anchor:focus-visible {
+    opacity: 1;
+  }
+
+  /* Elements that deliberately break the measure inside an article. */
+  .prose .bleed-wide {
+    width: min(var(--container-wide), 100%);
+    margin-inline: auto;
+    max-width: none;
+  }
+}
+
+/* ==========================================================================
+   Keyframes — few, quiet, and all opt-out under prefers-reduced-motion
+   ========================================================================== */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes draw-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   Progressive image reveal
+   ==========================================================================
+   One capture-phase listener in <head> tags every <img> as it decodes, and CSS
+   does the rest. No per-image JavaScript, no hydration cost, nothing to run on
+   a page with three hundred photographs. The `.js-media` gate means that if
+   scripting fails entirely, photographs are simply visible. */
+
+.js-media .media-img {
+  opacity: 0;
+  transition: opacity 0.7s var(--ease-out-quart);
+}
+
+.js-media .media-img[data-loaded] {
+  opacity: 1;
+}
+
+/* Off-screen grid cells cost nothing to lay out until they scroll near. */
+.media-cell {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}
+
+/* ==========================================================================
+   Admin tools
+   ==========================================================================
+   Keystatic and the media importer ship their own design systems and are not
+   part of the public site. SiteChrome marks them with `data-admin`, and these
+   rules stop the site's dark editorial defaults from bleeding in — otherwise
+   every form control in the CMS inherits ivory-on-charcoal and a display face.
+   Scoped with :has() so nothing here touches a normal page. */
+
+html:has([data-admin='true']) {
+  color-scheme: light dark;
+  scroll-behavior: auto;
+}
+
+body:has([data-admin='true']) {
+  background-color: canvas;
+  color: canvastext;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+[data-admin='true'] :focus-visible {
+  outline-color: currentColor;
+}

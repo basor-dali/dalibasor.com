@@ -1,0 +1,5 @@
+.next
+node_modules
+out
+public/search-index.json
+package-lock.json
