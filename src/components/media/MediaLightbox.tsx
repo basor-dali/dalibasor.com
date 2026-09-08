@@ -14,7 +14,6 @@ import type { MediaItem } from '@/types/content';
 import {
   formatDuration,
   mediaAlt,
-  mediaProvider,
   responsiveImage,
   SIZES,
 } from '@/lib/media';
@@ -224,15 +223,20 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
   /* --- preload neighbours ----------------------------------------------- */
   useEffect(() => {
     if (count < 2) return;
-    const provider = mediaProvider();
     for (const offset of [1, -1]) {
       const neighbour = items[(index + offset + count) % count];
       if (!neighbour || neighbour.type !== 'image') continue;
-      const preload = new Image();
-      preload.src = provider.imageUrl(neighbour.publicId, {
-        width: Math.min(2000, neighbour.width),
+      // Preload through the same responsive pipeline the viewer renders with,
+      // so the warmed entry is the one the browser goes on to request.
+      const next = responsiveImage(neighbour, {
+        ladder: 'lightbox',
+        sizes: SIZES.lightbox,
         fit: 'fit',
       });
+      const preload = new Image();
+      if (next.sources[0]) preload.srcset = next.sources[0].srcSet;
+      preload.sizes = next.sizes;
+      preload.src = next.src;
     }
   }, [count, index, items]);
 
@@ -303,18 +307,27 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
             />
           </div>
         ) : image ? (
-          <img
-            key={item.id}
-            src={image.src}
-            srcSet={image.srcSet || undefined}
-            sizes={image.srcSet ? image.sizes : undefined}
-            alt={mediaAlt(item)}
-            width={image.width}
-            height={image.height}
-            decoding="async"
-            className="pointer-events-none max-h-full w-auto max-w-full object-contain"
-            style={{ animation: 'fade-in 0.4s var(--ease-out-quart)' }}
-          />
+          <picture key={item.id}>
+            {image.sources.map((source) => (
+              <source
+                key={source.type}
+                type={source.type}
+                srcSet={source.srcSet}
+                sizes={image.sizes}
+              />
+            ))}
+            <img
+              src={image.src}
+              srcSet={image.srcSet || undefined}
+              sizes={image.srcSet ? image.sizes : undefined}
+              alt={mediaAlt(item)}
+              width={image.width}
+              height={image.height}
+              decoding="async"
+              className="pointer-events-none max-h-full w-auto max-w-full object-contain"
+              style={{ animation: 'fade-in 0.4s var(--ease-out-quart)' }}
+            />
+          </picture>
         ) : null}
       </figure>
 

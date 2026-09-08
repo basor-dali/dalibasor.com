@@ -50,14 +50,25 @@ The part that has to survive scale.
 ```
 src/lib/media/
   provider.ts    the interface + width ladders + `sizes` presets
-  cloudinary.ts  production
+  r2.ts          pre-generated static files — photographs
+  cloudinary.ts  transforms on demand — video, and the previous image path
   local.ts       development fallback / lifeboat
   index.ts       provider selection + responsiveImage()/responsiveVideo()
 ```
 
+The archive is immutable — a photograph from 2019 is never re-cropped — so on-demand
+transformation, the thing a media CDN is for, is a feature this site cannot use. Every size is
+generated once at import by sharp and uploaded as a static file, and the browser picks the
+format itself from a `<picture>` element. That is cheaper, has no per-image caps, avoids the
+transform-on-first-request penalty, and leaves the archive as plain objects in a bucket.
+
+Which widths exist is recorded per item in the manifest rather than inferred from a constant,
+so changing the ladder later cannot orphan anything already imported.
+
 Nothing in `src/components` or `src/app` knows what a Cloudinary URL looks like. Components
-call `responsiveImage(item, { ladder, sizes, fit })` and get back `{ src, srcSet, sizes, width,
-height, aspectRatio, lqip, color }`.
+call `responsiveImage(item, { ladder, sizes, fit })` and get back `{ src, srcSet, sources,
+sizes, width, height, aspectRatio, lqip, color }` — where `sources` is one entry per format for
+providers that pre-generate, and empty for those that negotiate server-side.
 
 ### How a photo page stays fast
 
@@ -70,7 +81,9 @@ Six things, all of them necessary:
    background immediately.
 3. **The width ladder is trimmed to the source's own resolution**, so the CDN is never asked to
    upscale and a 400px thumbnail cannot pull a 6000px original.
-4. **`f_auto` negotiates AVIF/WebP** per browser.
+4. **The browser negotiates the format itself** from a `<picture>` — AVIF, then WebP, then a
+   single JPEG. No server-side detection to get wrong. (The Cloudinary path uses `f_auto`
+   instead, which is the same idea decided on the server.)
 5. **Native `loading="lazy"` plus `content-visibility: auto`** on grid cells, so off-screen rows
    cost nothing to lay out or paint.
 6. **The DOM grows with scrolling.** `MediaGrid` renders an initial chunk and reveals more via

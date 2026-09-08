@@ -325,6 +325,8 @@ const ITEM_KEY_ORDER = [
   'publicId',
   'width',
   'height',
+  'variants',
+  'formats',
   'capturedAt',
   'caption',
   'alt',
@@ -337,6 +339,9 @@ const ITEM_KEY_ORDER = [
   'originalFilename',
   'hash',
 ];
+
+/** Keys whose array values stay on one line, because they are data not prose. */
+const FLOW_KEYS = new Set(['variants', 'formats']);
 
 function orderedItem(item) {
   const out = {};
@@ -393,6 +398,14 @@ export function nextItemNumber(doc, year, album) {
 export function addItem(doc, item, { capturedAtInferred = false } = {}) {
   const node = doc.createNode(orderedItem(item));
 
+  // `variants: [320, 640, 1024]` on one line rather than six. These are data,
+  // and a manifest is meant to stay readable by a human in twenty years.
+  for (const pair of node.items ?? []) {
+    if (FLOW_KEYS.has(String(pair.key?.value)) && YAML.isSeq(pair.value)) {
+      pair.value.flow = true;
+    }
+  }
+
   if (capturedAtInferred && item.capturedAt) {
     const pair = node.items.find((entry) => String(entry.key?.value) === 'capturedAt');
     if (pair && pair.value && typeof pair.value === 'object') {
@@ -415,6 +428,8 @@ const TECHNICAL_KEYS = [
   'publicId',
   'width',
   'height',
+  'variants',
+  'formats',
   'lqip',
   'color',
   'duration',

@@ -1,10 +1,13 @@
 import type { MediaItem } from '@/types/content';
 import { createCloudinaryProvider } from './cloudinary';
 import { createLocalProvider } from './local';
+import { createR2Provider } from './r2';
 import {
   SIZES,
   WIDTH_LADDERS,
+  type ImageSource,
   type ImageTransform,
+  type LadderFormat,
   type LadderName,
   type MediaProvider,
   type SizesPreset,
@@ -16,23 +19,60 @@ export * from './provider';
    Provider selection
    ========================================================================== */
 
-let cached: MediaProvider | null = null;
+let cachedImage: MediaProvider | null = null;
+let cachedVideo: MediaProvider | null = null;
 
-export function mediaProvider(): MediaProvider {
-  if (cached) return cached;
-
-  const configured = process.env.NEXT_PUBLIC_MEDIA_PROVIDER?.toLowerCase();
-  const hasCloudName = Boolean(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
-
-  // Fall back to local rather than throwing at build time: a fresh clone with
-  // no .env.local should still run `npm run dev` and render every page.
-  const useCloudinary = configured === 'cloudinary' && hasCloudName;
-
-  cached = useCloudinary ? createCloudinaryProvider() : createLocalProvider();
-  return cached;
+function hasCloudinary(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME);
 }
 
-/** True when the active provider can generate resized derivatives. */
+function hasR2(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL);
+}
+
+/**
+ * The provider for photographs.
+ *
+ * Falls back to local rather than throwing: a fresh clone with no .env.local
+ * should still run `npm run dev` and render every page, just unoptimised.
+ */
+export function mediaProvider(): MediaProvider {
+  if (cachedImage) return cachedImage;
+
+  const configured = process.env.NEXT_PUBLIC_MEDIA_PROVIDER?.toLowerCase();
+
+  if (configured === 'r2' && hasR2()) cachedImage = createR2Provider();
+  else if (configured === 'cloudinary' && hasCloudinary()) cachedImage = createCloudinaryProvider();
+  else cachedImage = createLocalProvider();
+
+  return cachedImage;
+}
+
+/**
+ * The provider for video.
+ *
+ * Split from images on purpose. Photographs are pre-generated and served as
+ * static files from R2; video still wants an encoding service, because doing
+ * it properly means transcoding ladders and adaptive streaming. So video stays
+ * on Cloudinary while images move, and both are addressed through the same
+ * interface. Set NEXT_PUBLIC_VIDEO_PROVIDER to override.
+ */
+export function videoProvider(): MediaProvider {
+  if (cachedVideo) return cachedVideo;
+
+  const configured = (
+    process.env.NEXT_PUBLIC_VIDEO_PROVIDER || process.env.NEXT_PUBLIC_MEDIA_PROVIDER || ''
+  ).toLowerCase();
+
+  if (configured === 'cloudinary' && hasCloudinary()) cachedVideo = createCloudinaryProvider();
+  else if (configured === 'r2' && hasR2()) cachedVideo = createR2Provider();
+  else if (hasCloudinary()) cachedVideo = createCloudinaryProvider();
+  else cachedVideo = mediaProvider();
+
+  return cachedVideo;
+}
+
+/** True when the active provider can serve more than one size. */
 export function providerCanResize(): boolean {
   return mediaProvider().name !== 'local';
 }
@@ -54,6 +94,11 @@ export type ResponsiveImage = {
   lqip?: string;
   /** Flat colour to paint before anything loads. */
   color?: string;
+  /**
+   * Per-format <source> entries, best first. Empty for providers that
+   * negotiate format server-side, in which case a plain <img> is correct.
+   */
+  sources: ImageSource[];
 };
 
 export type ResponsiveImageOptions = {
@@ -85,7 +130,18 @@ function resolveSizes(value: ResponsiveImageOptions['sizes']): string {
  * CDN to upscale, and never generate variants nobody can use.
  */
 export function responsiveImage(
-  item: Pick<MediaItem, 'publicId' | 'width' | 'height' | 'alt' | 'caption' | 'lqip' | 'color'>,
+  item: Pick<
+    MediaItem,
+    | 'publicId'
+    | 'width'
+    | 'height'
+    | 'alt'
+    | 'caption'
+    | 'lqip'
+    | 'color'
+    | 'variants'
+    | 'formats'
+  >,
   options: ResponsiveImageOptions = {},
 ): ResponsiveImage {
   const provider = mediaProvider();
@@ -106,12 +162,27 @@ export function responsiveImage(
     widths = [...widths, Math.round(ceiling)];
   }
 
-  const displayWidth = widths[widths.length - 1]!;
+  // A provider serving pre-generated files can only offer what was actually
+  // written at import, so the manifest's own list wins over the notional
+  // ladder. Asking such a provider for an unbuilt width is a 404, not a resize.
+  const generated = item.variants?.length ? item.variants : null;
+  if (generated) {
+    const usable = generated.filter((width) => width <= ceiling);
+    widths = usable.length > 0 ? usable : [Math.min(...generated)];
+  }
 
+  const displayWidth = widths[widths.length - 1]!;
   const sizesValue = resolveSizes(options.sizes);
+  const transform: ImageTransform = { width: displayWidth, fit, availableWidths: generated ?? undefined };
+
+  const formats = (item.formats?.length ? item.formats : []) as LadderFormat[];
+  const sources =
+    provider.imageSources && formats.length > 0
+      ? provider.imageSources(item.publicId, widths, formats)
+      : [];
 
   return {
-    src: provider.imageUrl(item.publicId, { width: displayWidth, fit }),
+    src: provider.imageUrl(item.publicId, transform),
     srcSet: provider.imageSrcSet(item.publicId, widths, { fit }),
     sizes: sizesValue,
     width: displayWidth,
@@ -120,6 +191,7 @@ export function responsiveImage(
     aspectRatio: `${nativeWidth} / ${nativeHeight}`,
     lqip: item.lqip,
     color: item.color,
+    sources,
   };
 }
 
@@ -145,7 +217,7 @@ export function responsiveVideo(
   >,
   options: { posterWidth?: number } = {},
 ): ResponsiveVideo {
-  const provider = mediaProvider();
+  const provider = videoProvider();
   const nativeWidth = item.width || 1920;
   const nativeHeight = item.height || 1080;
   const posterWidth = Math.min(options.posterWidth ?? 1200, nativeWidth);

@@ -7,6 +7,7 @@ import {
   type SizesPreset,
 } from '@/lib/media';
 import { cx } from '@/lib/utils';
+import { Picture } from './Picture';
 
 /**
  * The only <img> on this site.
@@ -80,18 +81,7 @@ export function MediaImage({
       className={cx('u-frame', fit === 'fit' && 'u-frame-contain', className)}
       style={frameStyle}
     >
-      <img
-        src={image.src}
-        srcSet={image.srcSet || undefined}
-        sizes={image.srcSet ? image.sizes : undefined}
-        width={image.width}
-        height={image.height}
-        alt={image.alt}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding={priority ? 'sync' : 'async'}
-        fetchPriority={priority ? 'high' : 'auto'}
-        className={cx('media-img', imgClassName)}
-      />
+      <Picture image={image} priority={priority} className={imgClassName} />
     </div>
   );
 }

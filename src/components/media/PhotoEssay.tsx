@@ -7,6 +7,7 @@ import type { MediaItem } from '@/types/content';
 import { formatDuration, mediaAlt, responsiveImage, responsiveVideo } from '@/lib/media';
 import { cx, formatDayMonth } from '@/lib/utils';
 import { useLightbox } from './MediaLightbox';
+import { Picture } from './Picture';
 
 /**
  * An album, read as a sequence rather than browsed as a grid.
@@ -358,18 +359,20 @@ function EssayFrame({
         aria-label={`Open ${isVideo ? 'video' : 'photograph'}: ${alt}`}
       >
         <div className="u-frame" style={frameStyle}>
-          <img
-            src={video ? video.poster : image?.src}
-            srcSet={image?.srcSet || undefined}
-            sizes={image?.srcSet ? image.sizes : undefined}
-            alt={alt}
-            width={item.width}
-            height={item.height}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding={priority ? 'sync' : 'async'}
-            fetchPriority={priority ? 'high' : 'auto'}
-            className="media-img"
-          />
+          {image ? (
+            <Picture image={image} priority={priority} alt={alt} />
+          ) : (
+            <img
+              src={video?.poster}
+              alt={alt}
+              width={item.width}
+              height={item.height}
+              loading={priority ? 'eager' : 'lazy'}
+              decoding={priority ? 'sync' : 'async'}
+              fetchPriority={priority ? 'high' : 'auto'}
+              className="media-img"
+            />
+          )}
 
           {isVideo ? (
             <span className="pointer-events-none absolute inset-0 flex items-center justify-center">

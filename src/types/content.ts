@@ -235,6 +235,14 @@ export type MediaItem = {
   originalFilename?: string;
   /** Content hash — the importer's dedupe key. */
   hash?: string;
+  /**
+   * Widths actually generated for this asset, for providers that serve
+   * pre-generated files. Recorded per item rather than inferred so that
+   * changing the ladder later cannot break anything already imported.
+   */
+  variants?: number[];
+  /** Ladder formats generated, best first — e.g. ['avif', 'webp']. */
+  formats?: ('avif' | 'webp')[];
 };
 
 export type Album = {

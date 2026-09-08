@@ -101,9 +101,7 @@ albums:
     location: "Wichita, Kansas"
     featured: false
     note: >-
-      Example album. Everything in it is scaffolding: this note, the captions,
-      the ids and the image paths. Delete the whole entry once real photographs
-      are imported.
+      Example album. Everything in it is scaffolding: this note, the captions, the ids and the image paths. Delete the whole entry once real photographs are imported.
 
 items:
   # --- inside an album -------------------------------------------------------
@@ -114,6 +112,8 @@ items:
     publicId: "dalibasor/2026/example-album/img_0001"
     width: 4032
     height: 2688
+    variants: [ 320, 640, 1024, 1600, 2048, 2560 ]
+    formats: [ avif, webp ]
     capturedAt: "2026-06-14T18:42:11"
     caption: "Example caption — one plain line, written by hand after the import."
     alt: "Placeholder landscape photograph, used to exercise the album layout."
@@ -130,6 +130,8 @@ items:
     publicId: "dalibasor/2026/example-album/img_0002"
     width: 2688
     height: 4032
+    variants: [ 320, 640, 1024, 1600, 2048, 2560 ]
+    formats: [ avif, webp ]
     capturedAt: "2026-06-14T19:07:56"
     caption: "A portrait frame, so the grid has something tall to reflow around."
     alt: "Placeholder portrait photograph, used to exercise the album layout."
@@ -163,6 +165,8 @@ items:
     publicId: "dalibasor/2026/everyday/img_0004"
     width: 4032
     height: 2688
+    variants: [ 320, 640, 1024, 1600, 2048, 2560 ]
+    formats: [ avif, webp ]
     capturedAt: "2026-07-02T08:15:40"
     caption: "An item with no album. These become the year's everyday photographs."
     alt: "Placeholder landscape photograph, outside any album."
@@ -178,6 +182,8 @@ items:
     publicId: "dalibasor/2026/everyday/img_0005"
     width: 3000
     height: 3000
+    variants: [ 320, 640, 1024, 1600, 2048, 2560 ]
+    formats: [ avif, webp ]
     capturedAt: "2026-07-19T21:04:18"
     caption: "A square frame. Orientation is derived from width and height, never stated."
     alt: "Placeholder square photograph, outside any album."

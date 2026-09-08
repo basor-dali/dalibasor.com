@@ -166,7 +166,10 @@ This is the part with tooling, because doing it by hand does not scale to a hund
 
 ### One-time setup
 
-Copy `.env.example` to `.env.local` and fill in your Cloudinary credentials:
+Photographs are stored on Cloudflare R2 and video on Cloudinary. Full setup — creating the
+bucket, the API token, and a custom domain — is in [docs/MEDIA.md](docs/MEDIA.md).
+
+Copy `.env.example` to `.env.local` and fill it in:
 
 ```
 NEXT_PUBLIC_MEDIA_PROVIDER=cloudinary

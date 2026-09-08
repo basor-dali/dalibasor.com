@@ -368,7 +368,8 @@
   }
 
   .u-frame > img,
-  .u-frame > video {
+  .u-frame > video,
+  .u-frame > picture > img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -377,7 +378,8 @@
   }
 
   /* A photograph that keeps its own proportions instead of being cropped. */
-  .u-frame-contain > img {
+  .u-frame-contain > img,
+  .u-frame-contain > picture > img {
     object-fit: contain;
   }
 }

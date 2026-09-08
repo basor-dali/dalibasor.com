@@ -5,6 +5,7 @@ import type { MediaItem } from '@/types/content';
 import { formatDuration, mediaAlt, responsiveImage, responsiveVideo } from '@/lib/media';
 import { cx, formatShortMonthYear } from '@/lib/utils';
 import { useLightbox } from './MediaLightbox';
+import { Picture } from './Picture';
 
 /**
  * The photograph grid.
@@ -137,6 +138,9 @@ export function MediaGrid({
   );
 }
 
+const HOVER_IMG =
+  'transition-[transform,filter] duration-[900ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.03] motion-reduce:transform-none';
+
 /* ==========================================================================
    Cell
    ========================================================================== */
@@ -158,8 +162,6 @@ function GridCell({
     : responsiveImage(item, { ladder: 'grid', sizes: 'quarter', fit: 'fill' });
 
   const src = isVideo ? (media as ReturnType<typeof responsiveVideo>).poster : (media as ReturnType<typeof responsiveImage>).src;
-  const srcSet = isVideo ? undefined : (media as ReturnType<typeof responsiveImage>).srcSet || undefined;
-  const sizes = isVideo ? undefined : (media as ReturnType<typeof responsiveImage>).sizes;
 
   const stamp = item.capturedAt ? formatShortMonthYear(item.capturedAt) : undefined;
 
@@ -180,18 +182,26 @@ function GridCell({
           backgroundPosition: 'center',
         }}
       >
-        <img
-          src={src}
-          srcSet={srcSet}
-          sizes={srcSet ? sizes : undefined}
-          alt={mediaAlt(item)}
-          width={item.width}
-          height={item.height}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding={priority ? 'sync' : 'async'}
-          fetchPriority={priority ? 'high' : 'auto'}
-          className="media-img transition-[transform,filter] duration-[900ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.03] motion-reduce:transform-none"
-        />
+        {isVideo ? (
+          // A poster frame is a single still, not a responsive ladder.
+          <img
+            src={src}
+            alt={mediaAlt(item)}
+            width={item.width}
+            height={item.height}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding={priority ? 'sync' : 'async'}
+            fetchPriority={priority ? 'high' : 'auto'}
+            className={cx('media-img', HOVER_IMG)}
+          />
+        ) : (
+          <Picture
+            image={media as ReturnType<typeof responsiveImage>}
+            priority={priority}
+            alt={mediaAlt(item)}
+            className={HOVER_IMG}
+          />
+        )}
 
         {/* A whisper of a scrim on hover so the label stays legible on a
             bright photograph, and nothing at all otherwise. */}

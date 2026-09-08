@@ -23,6 +23,13 @@ import { findItemNodeByHash } from './manifest.mjs';
 import { readCaptureInfo } from './exif.mjs';
 import { prepareImageForUpload } from './strip-metadata.mjs';
 import { publicIdLeaf, uploadAsset } from './upload.mjs';
+import { generateDerivatives, derivativeKey, originalKey } from './derivatives.mjs';
+import {
+  baseKeyFor,
+  keyLeaf,
+  putObject,
+  uploadErrorMessage as r2ErrorMessage,
+} from './r2.mjs';
 import { warn } from './log.mjs';
 
 /* ==========================================================================
@@ -189,6 +196,72 @@ export async function processFile(file, context) {
       bytesSent: prepared.buffer.length,
       uploadExtension: prepared.extension,
     });
+
+    /* --- R2: generate every size here, upload static files ------------ */
+
+    if (context.target === 'r2') {
+      const base = baseKeyFor(context.prefix, year, album, keyLeaf(file.name));
+
+      if (dryRun) {
+        return { ...record, status: 'would-upload', publicId: base };
+      }
+
+      try {
+        const nativeWidth = record.width;
+        const derived = await generateDerivatives(prepared.buffer, {
+          nativeWidth,
+          formats: context.formats,
+        });
+
+        const onRetry = ({ attempt, retries, delay, key }) =>
+          warn(
+            `${file.relative}: ${key} failed, retrying (${attempt}/${retries}) in ${Math.round(delay / 1000)}s`,
+          );
+
+        // Derivatives first. If any of them fails the manifest is never
+        // written, so a half-uploaded photograph is not recorded as present.
+        for (const output of derived.outputs) {
+          const key = output.isFallback
+            ? derivativeKey(base, output.width, 'jpeg')
+            : derivativeKey(base, output.width, output.format);
+
+          await putObject(context.s3, {
+            bucket: context.bucket,
+            key,
+            body: output.buffer,
+            contentType: output.contentType,
+            onRetry,
+          });
+        }
+
+        // The metadata-stripped full-resolution copy, kept as the "open
+        // original" target and as one leg of the 3-2-1 backup. Skippable for
+        // anyone who would rather not pay to store it twice.
+        if (context.keepOriginal !== false) {
+          await putObject(context.s3, {
+            bucket: context.bucket,
+            key: originalKey(base, prepared.extension || file.ext),
+            body: prepared.buffer,
+            contentType: prepared.contentType || 'image/jpeg',
+            onRetry,
+          });
+        }
+
+        return {
+          ...record,
+          status: 'uploaded',
+          publicId: base,
+          variants: derived.widths,
+          formats: derived.formats,
+          bytesSent: derived.totalBytes,
+          existingNode: force ? existingNode : null,
+        };
+      } catch (err) {
+        return { file, status: 'failed', reason: r2ErrorMessage(err) };
+      }
+    }
+
+    /* --- Cloudinary ---------------------------------------------------- */
 
     if (dryRun) {
       return { ...record, status: 'would-upload', publicId: `${targetFolder}/${publicIdLeaf(file.name)}` };

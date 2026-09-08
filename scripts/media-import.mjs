@@ -45,6 +45,12 @@ import {
   titleCase,
 } from './lib/manifest.mjs';
 import { processFile, uploadErrorMessage } from './lib/process.mjs';
+import { LADDER_FORMATS } from './lib/derivatives.mjs';
+import {
+  configureR2,
+  missingR2Credentials,
+  readR2Credentials,
+} from './lib/r2.mjs';
 import { VIDEO_METADATA_NOTE } from './lib/strip-metadata.mjs';
 import {
   configureCloudinary,
@@ -98,6 +104,10 @@ OPTIONAL
   --dry-run              Do everything except upload and write the manifest.
   --limit <n>            Only the first n files, in filename order.
   --concurrency <n>      Parallel uploads. Default 4.
+  --target <name>        r2 | cloudinary. Defaults to NEXT_PUBLIC_MEDIA_PROVIDER,
+                         so the importer and the site never disagree.
+  --no-original          Skip uploading the full-resolution copy (R2 only).
+                         Saves storage; loses the offsite backup copy.
   --force                Re-upload files whose hash is already in the manifest.
   --help                 Show this.
 
@@ -115,7 +125,7 @@ CREDENTIALS
    Arguments
    ========================================================================== */
 
-const FLAGS = new Set(['dry-run', 'force', 'help', 'h']);
+const FLAGS = new Set(['dry-run', 'force', 'help', 'h', 'no-original']);
 
 const VALUE_FLAGS = new Set([
   'year',
@@ -124,6 +134,7 @@ const VALUE_FLAGS = new Set([
   'album-title',
   'limit',
   'concurrency',
+  'target',
 ]);
 
 function parseArgs(argv) {
@@ -168,6 +179,9 @@ function parseArgs(argv) {
 /* ==========================================================================
    Scanning
    ========================================================================== */
+
+/** Where photographs are stored. Video always goes to Cloudinary for now. */
+const TARGETS = ['r2', 'cloudinary'];
 
 const IMAGE_EXTENSIONS = new Set([
   '.jpg',
@@ -321,30 +335,76 @@ async function main() {
   /* --- credentials, before any work -------------------------------------- */
 
   const envFiles = loadEnv();
-  const credentials = readCredentials();
 
-  if (!dryRun) {
-    try {
-      configureCloudinary();
-    } catch (err) {
-      blank();
-      error(err.message);
-      process.exit(1);
-    }
-  } else if (credentials.missing.length > 0) {
-    warn(
-      `Cloudinary credentials are missing (${credentials.missing.join(', ')}). ` +
-        'Fine for --dry-run; a real import will stop here.',
-    );
+  // Where photographs go. R2 stores pre-generated static files; Cloudinary
+  // transforms on demand. Images default to whatever the site is configured to
+  // read from, so the importer and the website cannot disagree.
+  const target = String(
+    args.flags.target || process.env.NEXT_PUBLIC_MEDIA_PROVIDER || 'cloudinary',
+  ).toLowerCase();
+
+  if (!TARGETS.includes(target)) {
+    blank();
+    error(`--target must be one of: ${TARGETS.join(', ')}. Got "${target}".`);
+    process.exit(1);
   }
 
-  const targetFolder = folderFor(credentials.folder, year, album);
+  let credentials = { folder: '', missing: [] };
+  let r2 = null;
+  let s3 = null;
+  let targetFolder = '';
+
+  if (target === 'r2') {
+    r2 = readR2Credentials();
+    const missing = missingR2Credentials(r2);
+
+    if (missing.length > 0) {
+      if (dryRun) {
+        warn(
+          `R2 credentials are missing (${missing.join(', ')}). ` +
+            'Fine for --dry-run; a real import will stop here.',
+        );
+      } else {
+        blank();
+        error(
+          `R2 credentials are missing: ${missing.join(', ')}.
+` +
+            'Add them to .env.local. See docs/MEDIA.md for how to create the bucket.',
+        );
+        process.exit(1);
+      }
+    } else if (!dryRun) {
+      s3 = configureR2(r2);
+    }
+
+    targetFolder = [r2.prefix, year, album || 'everyday'].filter(Boolean).join('/');
+  } else {
+    credentials = readCredentials();
+
+    if (!dryRun) {
+      try {
+        configureCloudinary();
+      } catch (err) {
+        blank();
+        error(err.message);
+        process.exit(1);
+      }
+    } else if (credentials.missing.length > 0) {
+      warn(
+        `Cloudinary credentials are missing (${credentials.missing.join(', ')}). ` +
+          'Fine for --dry-run; a real import will stop here.',
+      );
+    }
+
+    targetFolder = folderFor(credentials.folder, year, album);
+  }
 
   /* --- scan --------------------------------------------------------------- */
 
   heading(`Import — ${year}${album ? ` / ${album}` : ' / everyday'}`);
   info(`from     ${dir}`);
   info(`to       ${dryRun ? colors.yellow('(dry run — nothing is uploaded)') : targetFolder}`);
+  info(`via      ${target === 'r2' ? 'R2 — sizes generated here, uploaded as static files' : 'Cloudinary'}`);
   if (envFiles.length > 0) detail(`credentials from ${envFiles.join(', ')}`);
 
   const { found, skipped } = scanDirectory(dir);
@@ -404,7 +464,21 @@ async function main() {
 
   blank();
   const started = Date.now();
-  const context = { year, album, dryRun, force, targetFolder, seenHashes: new Set(), doc };
+  const context = {
+    year,
+    album,
+    dryRun,
+    force,
+    targetFolder,
+    seenHashes: new Set(),
+    doc,
+    target,
+    s3,
+    bucket: r2?.bucket,
+    prefix: r2?.prefix,
+    formats: LADDER_FORMATS,
+    keepOriginal: !args.flags['no-original'],
+  };
   let done = 0;
 
   const results = await runPool(files, concurrency, async (file) => {

@@ -7,6 +7,7 @@ the years. Built to be maintained for decades, not quarters.
   `/admin/media` for photographs
 - **[CONTENT_GUIDE.md](CONTENT_GUIDE.md)** — how to write a post, add a project, upload 100
   photos, update the Now page
+- **[docs/MEDIA.md](docs/MEDIA.md)** — where photographs live, and how to set up the bucket
 - **[BACKUP.md](BACKUP.md)** — what to back up and how to get everything out
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — how it is put together and why
 
@@ -44,8 +45,9 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 ## Stack
 
 Next.js 16 (App Router, static generation) · React 19 · TypeScript · Tailwind CSS v4 ·
-MDX via `next-mdx-remote` · YAML media manifests · Cloudinary for media delivery, behind a
-swappable provider interface.
+MDX via `next-mdx-remote` · YAML media manifests · photographs pre-generated with sharp and
+served as static files from Cloudflare R2, behind a swappable provider interface; video on
+Cloudinary.
 
 Deployed on Vercel. Nothing runs at request time — every page is static.
 

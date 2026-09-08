@@ -22,7 +22,24 @@ export type ImageTransform = {
   blur?: number;
   /** Force a format instead of negotiating AVIF/WebP. Rarely needed. */
   format?: 'auto' | 'jpg' | 'png' | 'webp' | 'avif';
+  /**
+   * Widths that actually exist for this asset.
+   *
+   * Providers that transform on demand ignore this. Providers that serve
+   * pre-generated files need it, because asking for a width nobody built is a
+   * 404 rather than a resize.
+   */
+  availableWidths?: number[];
 };
+
+/** One <source> in a <picture>: a format and the srcSet for it. */
+export type ImageSource = {
+  type: string;
+  srcSet: string;
+};
+
+/** Formats a pre-generated provider can offer, best first. */
+export type LadderFormat = 'avif' | 'webp';
 
 export type VideoTransform = {
   width?: number;
@@ -45,6 +62,15 @@ export interface MediaProvider {
    * ship a 6000px original into a 400px slot.
    */
   imageSrcSet(publicId: string, widths: number[], transform?: Partial<ImageTransform>): string;
+
+  /**
+   * Per-format <source> entries for a <picture>, best first.
+   *
+   * Optional: a provider that negotiates format server-side (Cloudinary's
+   * `f_auto`) has nothing to offer here and omits it, and the component falls
+   * back to a plain <img> with one srcSet.
+   */
+  imageSources?(publicId: string, widths: number[], formats: LadderFormat[]): ImageSource[];
 
   /** Playable video sources, best first. Adaptive streaming when available. */
   videoSources(publicId: string, transform?: VideoTransform): VideoSource[];
