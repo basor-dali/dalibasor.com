@@ -119,9 +119,36 @@ export async function POST(request: Request): Promise<Response> {
   // (video is streamed to Cloudinary rather than buffered). This temp copy is
   // ours; the visitor's original never moves.
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'dalibasor-upload-'));
-  const tempPath = path.join(scratch, name);
+  // basename already removed any directory part; this also refuses the two
+  // names that are directories rather than files, which would otherwise turn
+  // the write into an EISDIR at the end of a long upload.
+  const tempPath = path.join(scratch, name === '.' || name === '..' ? 'upload' : name);
 
   try {
+    /* Do not "improve" this into a stream. I tried; it is worse.
+       --------------------------------------------------------------------
+       Streaming the upload to disk looks obviously better than materialising
+       it — but `await request.formData()` above has already parsed the whole
+       body into memory before this line is reached. The peak is set there and
+       nothing here can lower it; anything that re-reads the bytes only adds a
+       second copy.
+
+       Measured on a 200MB file parsed from a real multipart body, peak RSS
+       above the point where formData() had already finished:
+
+         arrayBuffer + writeFileSync    +0 MB    1715 ms
+         arrayBuffer + await writeFile  +401 MB   938 ms
+         stream + pipeline              +201 MB  1660 ms
+
+       arrayBuffer() hands back the bytes undici already holds, so it costs
+       nothing. blob.stream() copies them.
+
+       Genuinely bounding the memory means not using request.formData() at
+       all — parsing the multipart stream by hand, or taking the file as a raw
+       body with its metadata in headers. That is a real change and this is a
+       localhost-only tool used by one person, so it has not been made; the
+       ceiling is roughly three files at once, which is what the client
+       sends. */
     const bytes = Buffer.from(await blob.arrayBuffer());
     fs.writeFileSync(tempPath, bytes);
 
