@@ -14,7 +14,7 @@ import type {
   YearManifest,
   YearSummary,
 } from '@/types/content';
-import { slugify } from '@/lib/utils';
+import { slugify, toDateString } from '@/lib/utils';
 import { CONTENT_ROOT, once } from './fs';
 
 /**
@@ -85,6 +85,14 @@ function normalizeManifest(year: number, raw: unknown, source: string): YearMani
           ...album,
           slug: slugify(album.slug),
           title: album.title || album.slug,
+          /* A date has to come out of here as a string, whatever went in.
+             YAML types a bare `date: 2019` as a number and a bare
+             `date: 2019-07-15` as a Date depending on the schema, and album
+             ordering calls .localeCompare on it — so one unquoted year in one
+             hand-edited manifest took out the whole photographs section with
+             "a.date.localeCompare is not a function". The file tells you to
+             quote it; this makes that advice rather than a requirement. */
+          date: album.date === undefined ? undefined : toDateString(album.date) || undefined,
         }))
     : [];
 

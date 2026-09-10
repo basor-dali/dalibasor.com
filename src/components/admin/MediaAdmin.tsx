@@ -23,6 +23,36 @@ type YearSummary = {
   itemCount: number;
 };
 
+/** An album as the manifest stores it — everything the form can edit. */
+type AlbumRecord = {
+  slug: string;
+  title?: string;
+  subtitle?: string;
+  date?: string;
+  location?: string;
+  note?: string;
+  featured?: boolean;
+};
+
+/** The album form's fields, all present so a save is a whole record. */
+type AlbumForm = {
+  title: string;
+  subtitle: string;
+  date: string;
+  location: string;
+  note: string;
+  featured: boolean;
+};
+
+const EMPTY_ALBUM_FORM: AlbumForm = {
+  title: '',
+  subtitle: '',
+  date: '',
+  location: '',
+  note: '',
+  featured: false,
+};
+
 type ManifestItem = {
   id: string;
   type: 'image' | 'video';
@@ -66,7 +96,10 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   const [years, setYears] = useState<YearSummary[]>([]);
   const [year, setYear] = useState('');
   const [album, setAlbum] = useState('');
-  const [albumTitle, setAlbumTitle] = useState('');
+  const [yearAlbums, setYearAlbums] = useState<AlbumRecord[]>([]);
+  const [albumForm, setAlbumForm] = useState<AlbumForm>(EMPTY_ALBUM_FORM);
+  const [albumBusy, setAlbumBusy] = useState(false);
+  const [albumNotice, setAlbumNotice] = useState<string | null>(null);
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState<ManifestItem[]>([]);
@@ -76,6 +109,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [yearExists, setYearExists] = useState(true);
   const fileInput = useRef<HTMLInputElement>(null);
 
   /* --- load the list of years ------------------------------------------ */
@@ -98,8 +132,14 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
     if (!/^\d{4}$/.test(target)) return;
     const res = await fetch(`/api/admin/media/manifest?year=${target}`);
     if (!res.ok) return;
-    const data = (await res.json()) as { items?: ManifestItem[] };
+    const data = (await res.json()) as {
+      items?: ManifestItem[];
+      albums?: AlbumRecord[];
+      exists?: boolean;
+    };
     setItems(data.items ?? []);
+    setYearAlbums(data.albums ?? []);
+    setYearExists(data.exists !== false);
     setDirty({});
     setSaveState('idle');
   }, []);
@@ -154,7 +194,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
         form.set('file', entry.file);
         form.set('year', year);
         if (album) form.set('album', album);
-        if (albumTitle) form.set('albumTitle', albumTitle);
+        if (albumForm.title) form.set('albumTitle', albumForm.title);
 
         try {
           const res = await fetch('/api/admin/media/upload', {
@@ -207,7 +247,90 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
     setBusy(false);
     await loadYears();
     await loadItems(year);
-  }, [album, albumTitle, loadItems, loadYears, queue, year]);
+  }, [album, albumForm.title, loadItems, loadYears, queue, year]);
+
+  /* --- albums and years -------------------------------------------------
+
+     Typing a slug that already exists loads that album into the form, so the
+     same panel creates and edits. Typing a new one leaves whatever has been
+     entered alone — clearing a half-filled form because a letter was typed
+     would be maddening. */
+  const knownAlbum = yearAlbums.find((entry) => entry.slug === album.trim());
+
+  useEffect(() => {
+    setAlbumNotice(null);
+    if (!knownAlbum) return;
+    setAlbumForm({
+      title: knownAlbum.title ?? '',
+      subtitle: knownAlbum.subtitle ?? '',
+      date: knownAlbum.date ?? '',
+      location: knownAlbum.location ?? '',
+      note: knownAlbum.note ?? '',
+      featured: Boolean(knownAlbum.featured),
+    });
+    // Only when the identity changes — not on every keystroke in the form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knownAlbum?.slug, year]);
+
+  const createYear = useCallback(async () => {
+    if (!/^d{4}$/.test(year)) {
+      setNotice('Pick a four digit year first.');
+      return;
+    }
+    setAlbumBusy(true);
+    const res = await fetch('/api/admin/media/manifest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create-year', year }),
+    });
+    const data = (await res.json()) as { error?: string; file?: string };
+    setAlbumBusy(false);
+    setNotice(res.ok ? `Created ${data.file}` : (data.error ?? 'Could not create it.'));
+    await loadYears();
+    await loadItems(year);
+  }, [year, loadYears, loadItems]);
+
+  const saveAlbum = useCallback(async () => {
+    const slug = album.trim();
+    if (!slug) {
+      setAlbumNotice('An album needs a name.');
+      return;
+    }
+    if (!/^d{4}$/.test(year)) {
+      setAlbumNotice('Pick a four digit year first.');
+      return;
+    }
+
+    setAlbumBusy(true);
+    setAlbumNotice(null);
+
+    const res = await fetch('/api/admin/media/manifest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'save-album', year, album: { slug, ...albumForm } }),
+    });
+    const data = (await res.json()) as {
+      error?: string;
+      created?: boolean;
+      slug?: string;
+      href?: string;
+    };
+
+    setAlbumBusy(false);
+
+    if (!res.ok) {
+      setAlbumNotice(data.error ?? 'Could not save the album.');
+      return;
+    }
+
+    // The server slugifies, so "Novi Sad 2019" comes back as novi-sad-2019.
+    // Adopt it, or the next save would create a second album.
+    if (data.slug && data.slug !== slug) setAlbum(data.slug);
+    setAlbumNotice(`${data.created ? 'Created' : 'Saved'} — ${data.href}`);
+
+    await loadYears();
+    await loadItems(year);
+  }, [album, albumForm, year, loadYears, loadItems]);
 
   /* --- editing ---------------------------------------------------------- */
 
@@ -315,22 +438,132 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
               ))}
             </datalist>
           </label>
-
-          <label style={styles.field}>
-            <span style={styles.label}>Album title</span>
-            <input
-              value={albumTitle}
-              onChange={(e) => setAlbumTitle(e.target.value)}
-              placeholder="Only needed for a new album"
-              style={styles.input}
-            />
-          </label>
         </div>
+
         <p style={styles.hint}>
           {album
             ? `Files will appear at /photos/${year || 'YYYY'}/${album}`
             : `Files will appear in the everyday photographs for ${year || 'YYYY'}`}
+          {!yearExists && /^\d{4}$/.test(year) ? (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => void createYear()}
+                disabled={albumBusy}
+                style={styles.linkBtn}
+              >
+                Create {year} now
+              </button>
+            </>
+          ) : null}
         </p>
+
+        {/* --- the album itself -----------------------------------------
+            One panel that both creates and edits: type a name that exists and
+            its details load, type a new one and they stay blank. Uploading into
+            a new album still creates it on the way past, so this is for setting
+            an album up before the photographs are ready — or for fixing a title
+            afterwards without opening the YAML. */}
+        {album ? (
+          <div style={styles.albumPanel}>
+            <div style={styles.cardHead}>
+              <h3 style={styles.h3}>
+                {knownAlbum ? `Album · ${knownAlbum.title ?? album}` : 'New album'}
+              </h3>
+              <span style={styles.hintInline}>
+                /photos/{year || 'YYYY'}/{album}
+              </span>
+            </div>
+
+            <div style={styles.row}>
+              <label style={styles.field}>
+                <span style={styles.label}>Title</span>
+                <input
+                  value={albumForm.title}
+                  onChange={(e) => setAlbumForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="Novi Sad"
+                  style={styles.input}
+                />
+              </label>
+
+              <label style={styles.field}>
+                <span style={styles.label}>Subtitle</span>
+                <input
+                  value={albumForm.subtitle}
+                  onChange={(e) =>
+                    setAlbumForm((f) => ({ ...f, subtitle: e.target.value }))
+                  }
+                  placeholder="Summer 2019"
+                  style={styles.input}
+                />
+              </label>
+
+              <label style={styles.field}>
+                <span style={styles.label}>Date</span>
+                <input
+                  value={albumForm.date}
+                  onChange={(e) => setAlbumForm((f) => ({ ...f, date: e.target.value }))}
+                  placeholder="2019-07"
+                  style={styles.input}
+                />
+              </label>
+
+              <label style={styles.field}>
+                <span style={styles.label}>Location</span>
+                <input
+                  value={albumForm.location}
+                  onChange={(e) =>
+                    setAlbumForm((f) => ({ ...f, location: e.target.value }))
+                  }
+                  placeholder="Novi Sad, Serbia"
+                  style={styles.input}
+                />
+              </label>
+            </div>
+
+            <label style={{ ...styles.field, flex: '1 1 100%', marginTop: 16 }}>
+              <span style={styles.label}>Note</span>
+              <textarea
+                value={albumForm.note}
+                onChange={(e) => setAlbumForm((f) => ({ ...f, note: e.target.value }))}
+                placeholder="A line about this album. Yours to write — nothing writes it for you."
+                rows={2}
+                style={{ ...styles.input, resize: 'vertical', fontFamily: 'inherit' }}
+              />
+            </label>
+
+            <div style={styles.albumActions}>
+              <label style={styles.checkbox}>
+                <input
+                  type="checkbox"
+                  checked={albumForm.featured}
+                  onChange={(e) =>
+                    setAlbumForm((f) => ({ ...f, featured: e.target.checked }))
+                  }
+                />
+                <span>Featured on the archive index</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => void saveAlbum()}
+                disabled={albumBusy}
+                style={styles.secondaryBtn}
+              >
+                {albumBusy ? 'Saving…' : knownAlbum ? 'Save album' : 'Create album'}
+              </button>
+
+              {albumNotice ? <span style={styles.hintInline}>{albumNotice}</span> : null}
+            </div>
+
+            <p style={styles.hint}>
+              Date orders albums within the year — <code>2019</code>, <code>2019-07</code>{' '}
+              or a full date. Saving writes the whole record, so clearing a field removes
+              it.
+            </p>
+          </div>
+        ) : null}
       </section>
 
       {/* --- dropzone --------------------------------------------------- */}
@@ -620,6 +853,27 @@ const styles: Record<string, React.CSSProperties> = {
     minWidth: 0,
   },
   hint: { fontSize: 12.5, opacity: 0.6, margin: '12px 0 0', lineHeight: 1.6 },
+  hintInline: { fontSize: 12.5, opacity: 0.6, lineHeight: 1.6 },
+  h3: { fontSize: 14, fontWeight: 650, margin: 0 },
+  albumPanel: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTop: '1px solid #e2ddd6',
+  },
+  albumActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    flexWrap: 'wrap',
+    marginTop: 16,
+  },
+  checkbox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontSize: 13,
+    cursor: 'pointer',
+  },
   dropzone: {
     border: '2px dashed #c9c4bd',
     borderRadius: 6,

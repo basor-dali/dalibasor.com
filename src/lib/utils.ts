@@ -142,6 +142,12 @@ export function formatDayMonth(value: string): string {
 
 /** `September 2026` */
 export function formatMonthYear(value: string): string {
+  // A date that only names a year says only a year. parseDate fills the gap
+  // with January so that sorting works, which is right — but printing that
+  // January back invents a month nobody wrote, and an album dated "2019"
+  // would claim to be from January 2019.
+  if (/^\d{4}$/.test(String(value).trim())) return String(value).trim();
+
   const d = parseDate(value);
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
@@ -177,23 +183,25 @@ export function formatPeriod(period: string): string {
 
 /** Strips MDX/markdown syntax down to something searchable and countable. */
 export function toPlainText(mdx: string): string {
-  return mdx
-    // MDX expression comments first. Without this the component reference that
-    // every scaffolded post carries leaked into the search index and into every
-    // feed description as "{/ Components you can use here: , /}".
-    .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`[^`]*`/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-    .replace(/^\s{0,3}>\s?/gm, '')
-    .replace(/[*_~]{1,3}/g, '')
-    .replace(/^\s*[-+*]\s+/gm, '')
-    .replace(/\|/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    mdx
+      // MDX expression comments first. Without this the component reference that
+      // every scaffolded post carries leaked into the search index and into every
+      // feed description as "{/ Components you can use here: , /}".
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/`[^`]*`/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      .replace(/^\s{0,3}>\s?/gm, '')
+      .replace(/[*_~]{1,3}/g, '')
+      .replace(/^\s*[-+*]\s+/gm, '')
+      .replace(/\|/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /** 220 wpm — a little faster than the usual 200, personal writing reads quick. */

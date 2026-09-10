@@ -71,10 +71,35 @@ export async function GET(request: Request): Promise<Response> {
   });
 }
 
+/** Album fields this endpoint will write. `slug` is the URL and is set once. */
+type AlbumEdit = {
+  slug: string;
+  title?: string;
+  subtitle?: string;
+  date?: string;
+  location?: string;
+  note?: string;
+  featured?: boolean;
+};
+
+type Payload = {
+  /**
+   * Omitted means "save item edits", which is what this route did before it
+   * could do anything else. The named actions exist so that creating a year or
+   * an album is a deliberate request rather than a side effect of saving.
+   */
+  action?: 'create-year' | 'save-album';
+  year?: string;
+  items?: ItemEdit[];
+  note?: string;
+  cover?: string;
+  album?: AlbumEdit;
+};
+
 export async function POST(request: Request): Promise<Response> {
   if (!(await adminAvailable())) return devOnlyResponse();
 
-  let payload: { year?: string; items?: ItemEdit[]; note?: string; cover?: string };
+  let payload: Payload;
   try {
     payload = await request.json();
   } catch {
@@ -86,7 +111,60 @@ export async function POST(request: Request): Promise<Response> {
     return json({ error: 'A four digit year is required.' }, 400);
 
   const manifest = await manifestLib();
-  const { doc, file } = manifest.loadManifestDoc(year);
+  const { doc, file, existed } = manifest.loadManifestDoc(year);
+
+  /* --- create a year ---------------------------------------------------
+     loadManifestDoc already returns a usable empty document when the file is
+     absent, so this is only a save. Worth having as its own action all the
+     same: setting up 2019 before the photographs are scanned is a real thing
+     to want, and until now the only way to get a year was to upload into it. */
+  if (payload.action === 'create-year') {
+    if (existed) {
+      return json({ ok: true, created: false, file: manifest.displayPath(file) });
+    }
+    manifest.saveManifestDoc(doc, file);
+    invalidateContent();
+    return json({ ok: true, created: true, file: manifest.displayPath(file) });
+  }
+
+  /* --- create or update an album --------------------------------------- */
+  if (payload.action === 'save-album') {
+    const raw = String(payload.album?.slug ?? '').trim();
+    if (!raw) return json({ error: 'An album needs a slug.' }, 400);
+
+    // Slugified here rather than trusted: the slug is a permanent URL, and the
+    // site slugifies it again on read, so anything else would silently produce
+    // an album whose links do not match its own address.
+    const slug = manifest.slugify(raw);
+    if (!slug) return json({ error: `"${raw}" does not reduce to a usable slug.` }, 400);
+
+    const fields = {
+      title: payload.album?.title?.trim() || manifest.titleCase(slug),
+      subtitle: payload.album?.subtitle?.trim() ?? '',
+      date: payload.album?.date?.trim() ?? '',
+      location: payload.album?.location?.trim() ?? '',
+      note: payload.album?.note?.trim() ?? '',
+      featured: Boolean(payload.album?.featured),
+    };
+
+    if (fields.date && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(fields.date)) {
+      return json({ error: `"${fields.date}" is not YYYY, YYYY-MM or YYYY-MM-DD.` }, 400);
+    }
+
+    const created = manifest.addAlbum(doc, { slug, ...fields });
+    if (!created) manifest.updateAlbum(doc, slug, fields);
+
+    manifest.saveManifestDoc(doc, file);
+    invalidateContent();
+
+    return json({
+      ok: true,
+      created,
+      slug,
+      href: `/photos/${year}/${slug}`,
+      file: manifest.displayPath(file),
+    });
+  }
 
   let changed = 0;
 

@@ -17,6 +17,12 @@ import { pathToFileURL } from 'node:url';
  * hint so the bundler leaves them alone. That matters: those files compute
  * their own repo root from `import.meta.url`, which would point into a bundle
  * chunk rather than the real directory if Turbopack inlined them.
+ *
+ * The consequence, worth knowing before it wastes an hour: because Turbopack is
+ * not watching these files, editing anything under scripts/lib does NOT hot
+ * reload. The cache below holds the first import for the life of the process,
+ * and Node's own ESM cache holds it after that. A new export shows up as
+ * "manifest.updateAlbum is not a function" until the dev server is restarted.
  */
 
 type ScriptModule = Record<string, unknown>;
@@ -69,6 +75,8 @@ export type ManifestModule = {
   saveManifestDoc: (doc: YamlDoc, file: string) => void;
   readManifestFile: (file: string) => unknown;
   addAlbum: (doc: YamlDoc, album: Record<string, unknown>) => boolean;
+  updateAlbum: (doc: YamlDoc, slug: string, fields: Record<string, unknown>) => boolean;
+  findAlbumNode: (doc: YamlDoc, slug: string) => unknown;
   addItem: (
     doc: YamlDoc,
     item: Record<string, unknown>,

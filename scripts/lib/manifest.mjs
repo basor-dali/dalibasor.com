@@ -290,23 +290,78 @@ export function findAlbumNode(doc, slug) {
  */
 export function addAlbum(
   doc,
-  { slug, title, subtitle, date, location, cover, note } = {},
+  { slug, title, subtitle, date, location, cover, note, featured } = {},
 ) {
   if (!slug) throw new Error('addAlbum needs a slug.');
   if (findAlbumNode(doc, slug)) return false;
 
   const value = { slug, title: title || titleCase(slug) };
   if (subtitle) value.subtitle = subtitle;
-  if (date) value.date = date;
+  // Always a string. A bare `2019` is a YAML number, and album ordering calls
+  // .localeCompare on this — the loader now coerces it on the way back in, but
+  // there is no reason to write the ambiguous form in the first place.
+  if (date) value.date = String(date);
   if (location) value.location = location;
   if (cover) value.cover = cover;
   if (note) value.note = note;
+  // Only when true. `featured: false` is the default and writing it is noise —
+  // the same rule the item writer follows.
+  if (featured === true) value.featured = true;
 
   const node = doc.createNode(value);
   if (!date) {
     node.comment = ' date: YYYY-MM  <- add this so albums sort by when they happened';
   }
   albumsSeq(doc).add(node);
+  return true;
+}
+
+/** Album fields a person writes. `slug` is not among them — it is the URL. */
+export const EDITABLE_ALBUM_FIELDS = [
+  'title',
+  'subtitle',
+  'date',
+  'location',
+  'note',
+  'cover',
+  'featured',
+];
+
+/**
+ * Update an album that already exists, in place.
+ *
+ * `addAlbum` refuses to touch an album it did not create, which is right for an
+ * importer — a run that quietly rewrote the title of an album you had already
+ * captioned would be a bad surprise. But the admin UI has to be able to correct
+ * a title or add the date the importer left as a comment, so that path lives
+ * here rather than as a second implementation inside the route.
+ *
+ * Only the keys actually passed are touched, so a form that submits three
+ * fields cannot erase the other four. An empty string removes a key rather than
+ * writing a blank one, matching the item editor: the site distinguishes a
+ * missing field from an empty one, and a manifest full of `subtitle: ''` is
+ * unreadable.
+ *
+ * Returns false if there is no such album.
+ */
+export function updateAlbum(doc, slug, fields = {}) {
+  const node = findAlbumNode(doc, slug);
+  if (!node) return false;
+
+  for (const key of EDITABLE_ALBUM_FIELDS) {
+    if (!(key in fields)) continue;
+    const value = fields[key];
+
+    if (value === '' || value === undefined || value === null || value === false) {
+      node.delete(key);
+    } else {
+      node.set(key, value);
+    }
+  }
+
+  // The placeholder comment addAlbum leaves has done its job once a date exists.
+  if (node.get('date')) node.comment = undefined;
+
   return true;
 }
 

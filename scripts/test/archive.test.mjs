@@ -16,8 +16,17 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
+import YAML from 'yaml';
 
-import { slugify, titleCase, formatItemId, padNumber } from '../lib/manifest.mjs';
+import {
+  slugify,
+  titleCase,
+  formatItemId,
+  padNumber,
+  createManifestDoc,
+  addAlbum,
+  updateAlbum,
+} from '../lib/manifest.mjs';
 import { widthsFor, derivativeKey, originalKey, LADDER } from '../lib/derivatives.mjs';
 import { baseKeyFor, keyLeaf } from '../lib/r2.mjs';
 import {
@@ -319,7 +328,9 @@ describe('metadata stripping', () => {
     const secret = Buffer.from('MOTIONPHOTO-MP4-52.3702,4.8952');
     const motionPhoto = Buffer.concat([
       jpegWithMetadata(base),
-      Buffer.from('   ftypmp42', 'latin1'),
+      // An MP4 box header, spelled out rather than typed as invisible bytes.
+      Buffer.from([0x00, 0x00, 0x00, 0x18]),
+      Buffer.from('ftypmp42', 'latin1'),
       secret,
     ]);
 
@@ -380,6 +391,91 @@ describe('metadata stripping', () => {
 });
 
 /* ==========================================================================
+   Albums, created and edited from the admin UI
+   ==========================================================================
+   The importer used to be the only thing that could make an album, as a side
+   effect of uploading into it. Now a form can, and a form can also come back
+   and change one — so these pin the two rules that keeps safe: a save writes
+   the whole record, and it never invents a value nobody typed. */
+
+describe('albums', () => {
+  it('writes only what was given, and titles from the slug when nothing was', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'novi-sad' });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.deepEqual(parsed.albums[0], { slug: 'novi-sad', title: 'Novi Sad' });
+  });
+
+  it('never writes featured: false, which is the default', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'a', featured: false });
+    addAlbum(doc, { slug: 'b', featured: true });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal('featured' in parsed.albums[0], false);
+    assert.equal(parsed.albums[1].featured, true);
+  });
+
+  /* A bare `date: 2019` is a YAML number, and album ordering calls
+     .localeCompare on it — which took out the whole photographs section with
+     "a.date.localeCompare is not a function". The loader coerces on the way in
+     now; this stops the ambiguous form being written in the first place. */
+  it('writes a date as a string, so a bare year cannot become a number', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'the-shop', date: 2019 });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal(typeof parsed.albums[0].date, 'string');
+    assert.equal(parsed.albums[0].date, '2019');
+  });
+
+  it('refuses to add an album twice', () => {
+    const doc = createManifestDoc(2019);
+    assert.equal(addAlbum(doc, { slug: 'serbia' }), true);
+    assert.equal(addAlbum(doc, { slug: 'serbia', title: 'Different' }), false);
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal(parsed.albums.length, 1);
+    assert.equal(parsed.albums[0].title, 'Serbia', 'the second call overwrote the first');
+  });
+
+  it('updates in place without touching fields it was not given', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, {
+      slug: 'serbia',
+      title: 'Serbia',
+      location: 'Belgrade',
+      date: '2019-07',
+    });
+
+    assert.equal(updateAlbum(doc, 'serbia', { title: 'Serbia, again' }), true);
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal(parsed.albums[0].title, 'Serbia, again');
+    assert.equal(parsed.albums[0].location, 'Belgrade', 'an untouched field was lost');
+    assert.equal(parsed.albums[0].date, '2019-07');
+  });
+
+  it('removes a key when the field is cleared rather than writing it empty', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'serbia', subtitle: 'Summer', featured: true });
+
+    updateAlbum(doc, 'serbia', { subtitle: '', featured: false });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal('subtitle' in parsed.albums[0], false, "subtitle: '' was written");
+    assert.equal('featured' in parsed.albums[0], false);
+  });
+
+  it('reports an album it cannot find rather than creating one', () => {
+    const doc = createManifestDoc(2019);
+    assert.equal(updateAlbum(doc, 'nope', { title: 'x' }), false);
+    assert.equal(YAML.parse(doc.toString()).albums.length, 0);
+  });
+});
+
+/* ==========================================================================
    The check that makes the rest of it trustworthy
    ==========================================================================
    Everything above argues that metadata is removed. Nothing guarantees it
@@ -436,7 +532,12 @@ describe('verifying that stripping actually happened', () => {
     const secret = 'C:\Users\Private\Pictures';
     const text = pngChunk(
       'tEXt',
-      Buffer.concat([Buffer.from('Source ', 'latin1'), Buffer.from(secret, 'latin1')]),
+      Buffer.concat([
+        Buffer.from('Source', 'latin1'),
+        // PNG separates a tEXt keyword from its value with a NUL.
+        Buffer.from([0x00]),
+        Buffer.from(secret, 'latin1'),
+      ]),
     );
     // After the 8-byte signature and the 25-byte IHDR chunk.
     const dirty = Buffer.concat([base.subarray(0, 33), text, base.subarray(33)]);
