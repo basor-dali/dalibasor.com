@@ -363,6 +363,113 @@ export async function reencodeWithoutMetadata(buffer, ext) {
  *   reason: string,
  * }>}
  */
+/**
+ * Read a prepared buffer back and report anything identifying that survived.
+ *
+ * This is the check that makes the rest of the file trustworthy. Everything
+ * above is an argument that metadata is removed — a hand-written JPEG marker
+ * walk, and a belief that sharp attaches nothing it was not asked to. Both are
+ * true today. Neither is guaranteed by anything: a sharp upgrade could start
+ * preserving EXIF by default, a new input format could route somewhere
+ * unexpected, and an edit to the marker logic could quietly stop dropping a
+ * segment. Every one of those fails silently, and the failure is a photograph
+ * published with the coordinates of somebody's house on it.
+ *
+ * So the output is inspected rather than assumed, by a decoder that had no part
+ * in producing it. Cheap — sharp reads the header, not the pixels — and it runs
+ * on every file, on both paths.
+ *
+ * ICC is deliberately not treated as a finding: a colour profile is not
+ * personal data, and it is kept on purpose. It is reported so the caller can
+ * say what it kept.
+ */
+/**
+ * Signatures long enough that finding one by chance is not a real risk.
+ *
+ * Every one is at least six bytes, which puts a coincidental match in
+ * compressed image data somewhere around one in 10^14. Four-byte markers are
+ * deliberately absent from this list — `tEXt` would turn up by accident in
+ * roughly one large photograph in five thousand, and a privacy check that cries
+ * wolf gets switched off.
+ */
+const METADATA_SIGNATURES = [
+  // 'Exif' followed by two NUL bytes  the APP1 identifier, and the same six
+  // bytes a PNG eXIf chunk and a WebP EXIF chunk both carry.
+  ['EXIF', Buffer.from([0x45, 0x78, 0x69, 0x66, 0x00, 0x00])],
+  ['XMP', Buffer.from('<x:xmpmeta', 'latin1')],
+  ['XMP', Buffer.from('http://ns.adobe.com/xap', 'latin1')],
+  ['IPTC/Photoshop', Buffer.from('Photoshop 3.0', 'latin1')],
+];
+
+const PNG_SIGNATURE = Buffer.from('\x89PNG\r\n\x1a\n', 'latin1');
+
+/** PNG chunks that carry text or EXIF, and can therefore carry a person. */
+const PNG_METADATA_CHUNKS = new Set(['tEXt', 'iTXt', 'zTXt', 'eXIf']);
+
+/**
+ * Walk a PNG's chunk list and name any that hold metadata.
+ *
+ * Exact rather than a byte scan: PNG is a flat list of length-prefixed chunks,
+ * so this reads structure instead of guessing, and cannot produce a false
+ * positive from compressed pixel data. Returns null if the file is not a PNG.
+ */
+function pngMetadataChunks(buffer) {
+  if (buffer.length < 8 || !buffer.subarray(0, 8).equals(PNG_SIGNATURE)) return null;
+
+  const found = [];
+  let offset = 8;
+
+  while (offset + 12 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.toString('latin1', offset + 4, offset + 8);
+    if (PNG_METADATA_CHUNKS.has(type)) found.push(`PNG ${type} chunk (${length} bytes)`);
+    if (type === 'IEND') break;
+
+    // length + type + data + crc, and a length that overruns means the file is
+    // not worth walking further.
+    const next = offset + 12 + length;
+    if (next <= offset || next > buffer.length) break;
+    offset = next;
+  }
+
+  return found;
+}
+
+export async function findRemainingMetadata(buffer) {
+  let meta;
+  try {
+    meta = await sharp(buffer, { failOn: 'none', limitInputPixels: false }).metadata();
+  } catch (err) {
+    // Producing something the decoder cannot read is itself a failure worth
+    // stopping for, rather than uploading and finding out later.
+    throw new Error(`the stripped image could not be read back (${err.message})`);
+  }
+
+  const found = [];
+  if (meta.exif?.length) found.push(`EXIF (${meta.exif.length} bytes)`);
+  if (meta.xmp?.length) found.push(`XMP (${meta.xmp.length} bytes)`);
+  if (meta.iptc?.length) found.push(`IPTC (${meta.iptc.length} bytes)`);
+
+  /* Then the same question asked a way that does not depend on sharp.
+     ----------------------------------------------------------------------
+     sharp reports EXIF, XMP and IPTC, and nothing else — it is blind to a PNG
+     tEXt chunk, which is where Photoshop writes a source path and some tools
+     write a username. Measured, not assumed: a PNG carrying a tEXt chunk with
+     a full Windows path reads back from sharp as having no metadata at all.
+
+     The re-encode path does drop those chunks, so this is not a live leak. It
+     is the difference between a check that happens to pass and a check that
+     would notice if it stopped. */
+  for (const [label, signature] of METADATA_SIGNATURES) {
+    if (buffer.includes(signature)) found.push(`${label} signature in the file body`);
+  }
+
+  const pngChunks = pngMetadataChunks(buffer);
+  if (pngChunks) found.push(...pngChunks);
+
+  return { found, iccBytes: meta.icc?.length ?? 0 };
+}
+
 export async function prepareImageForUpload({ buffer, extension, orientation }) {
   const ext = String(extension || '').toLowerCase();
   const upright = orientation === undefined || orientation === null || orientation === 1;
@@ -370,13 +477,13 @@ export async function prepareImageForUpload({ buffer, extension, orientation }) 
   if (JPEG_EXTS.has(ext) && upright) {
     const stripped = stripJpegSegments(buffer);
     if (stripped) {
-      return {
+      return verified({
         buffer: stripped.buffer,
         method: 'lossless',
         extension: ext,
         removed: stripped.removed,
         reason: 'upright JPEG — metadata segments removed, pixels untouched',
-      };
+      });
     }
     // Fall through: the marker structure did not parse, so re-encode instead
     // of shipping a file we could not fully account for.
@@ -390,7 +497,7 @@ export async function prepareImageForUpload({ buffer, extension, orientation }) 
     reason = `rotation ${orientation} baked into the pixels, metadata dropped`;
   else reason = `${ext.replace('.', '') || 'image'} re-encoded, metadata dropped`;
 
-  return {
+  return verified({
     buffer: out,
     method: 're-encode',
     extension: outExt,
@@ -398,7 +505,26 @@ export async function prepareImageForUpload({ buffer, extension, orientation }) 
     // "all of it" rather than an enumeration of segments.
     removed: [{ name: 'all embedded metadata (EXIF, XMP, IPTC)', bytes: 0 }],
     reason,
-  };
+  });
+}
+
+/**
+ * The gate every prepared image passes through.
+ *
+ * Refusing here means one photograph fails its import with a legible reason.
+ * Not refusing means it is published. Given those two, this throws.
+ */
+async function verified(result) {
+  const { found, iccBytes } = await findRemainingMetadata(result.buffer);
+
+  if (found.length > 0) {
+    throw new Error(
+      `metadata survived stripping: ${found.join(', ')}. This is a bug in the ` +
+        'stripper, not in your file — please report it rather than working around it.',
+    );
+  }
+
+  return { ...result, iccBytes };
 }
 
 /**

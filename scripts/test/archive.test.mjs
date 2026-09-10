@@ -20,7 +20,11 @@ import sharp from 'sharp';
 import { slugify, titleCase, formatItemId, padNumber } from '../lib/manifest.mjs';
 import { widthsFor, derivativeKey, originalKey, LADDER } from '../lib/derivatives.mjs';
 import { baseKeyFor, keyLeaf } from '../lib/r2.mjs';
-import { stripJpegSegments, prepareImageForUpload } from '../lib/strip-metadata.mjs';
+import {
+  stripJpegSegments,
+  prepareImageForUpload,
+  findRemainingMetadata,
+} from '../lib/strip-metadata.mjs';
 import {
   stripVideoLocation,
   stripVideoLocationToFile,
@@ -372,6 +376,153 @@ describe('metadata stripping', () => {
 
     const cut = jpegWithMetadata(base);
     assert.equal(stripJpegSegments(cut.subarray(0, cut.length - 40)), null);
+  });
+});
+
+/* ==========================================================================
+   The check that makes the rest of it trustworthy
+   ==========================================================================
+   Everything above argues that metadata is removed. Nothing guarantees it
+   stays removed: a sharp upgrade could start preserving EXIF, a new input
+   format could route somewhere unexpected, an edit to the marker walk could
+   quietly stop dropping a segment. All of those fail silently, and the failure
+   is a photograph published with somebody's home coordinates on it. So the
+   output is inspected by a decoder that had no hand in producing it, and these
+   tests are about the inspector rather than the stripper. */
+
+/** A PNG chunk: length, type, data, CRC. */
+function pngChunk(type, data) {
+  const table = [];
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
+  let crc = 0xffffffff;
+  for (const byte of body) crc = table[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  const checksum = Buffer.alloc(4);
+  checksum.writeUInt32BE((crc ^ 0xffffffff) >>> 0);
+  return Buffer.concat([length, body, checksum]);
+}
+
+describe('verifying that stripping actually happened', () => {
+  it('sees the metadata in a file that still has it', async () => {
+    const dirty = await sharp({
+      create: { width: 80, height: 60, channels: 3, background: { r: 1, g: 2, b: 3 } },
+    })
+      .withMetadata({ exif: { IFD0: { Copyright: 'Private Owner Name' } } })
+      .jpeg()
+      .toBuffer();
+
+    const { found } = await findRemainingMetadata(dirty);
+    assert.ok(found.length > 0, 'the check is blind — it would pass anything');
+    assert.ok(found.some((entry) => entry.startsWith('EXIF')));
+  });
+
+  it('sees a PNG text chunk, which sharp does not report', async () => {
+    // Photoshop writes a source path into tEXt; some tools write a username.
+    // sharp reports EXIF, XMP and IPTC and nothing else, so this is the case
+    // the byte- and chunk-level checks exist for.
+    const base = await sharp({
+      create: { width: 60, height: 40, channels: 3, background: { r: 7, g: 8, b: 9 } },
+    })
+      .png()
+      .toBuffer();
+
+    const secret = 'C:\Users\Private\Pictures';
+    const text = pngChunk(
+      'tEXt',
+      Buffer.concat([Buffer.from('Source ', 'latin1'), Buffer.from(secret, 'latin1')]),
+    );
+    // After the 8-byte signature and the 25-byte IHDR chunk.
+    const dirty = Buffer.concat([base.subarray(0, 33), text, base.subarray(33)]);
+
+    const { found } = await findRemainingMetadata(dirty);
+    assert.ok(
+      found.some((entry) => entry.includes('tEXt')),
+      `a tEXt chunk went unreported: ${found.join(', ') || 'nothing found'}`,
+    );
+
+    const prepared = await prepareImageForUpload({
+      buffer: dirty,
+      extension: '.png',
+      orientation: 1,
+    });
+    assert.ok(!prepared.buffer.includes(Buffer.from(secret)), 'the path was published');
+    const after = await findRemainingMetadata(prepared.buffer);
+    assert.deepEqual(after.found, []);
+  });
+
+  it('passes a prepared file in every format the importer accepts', async () => {
+    for (const [format, extension] of [
+      ['jpeg', '.jpg'],
+      ['png', '.png'],
+      ['webp', '.webp'],
+    ]) {
+      const image = sharp({
+        create: {
+          width: 100,
+          height: 80,
+          channels: 3,
+          background: { r: 20, g: 40, b: 60 },
+        },
+      }).withMetadata({
+        exif: { IFD0: { Copyright: 'Owner Name', Make: 'SERIAL-1' } },
+      });
+
+      const encoded =
+        format === 'png'
+          ? await image.png().toBuffer()
+          : format === 'webp'
+            ? await image.webp().toBuffer()
+            : await image.jpeg().toBuffer();
+
+      const prepared = await prepareImageForUpload({
+        buffer: encoded,
+        extension,
+        orientation: 1,
+      });
+      const { found } = await findRemainingMetadata(prepared.buffer);
+      assert.deepEqual(found, [], `${extension} kept ${found.join(', ')}`);
+    }
+  });
+
+  /* The signatures are all six bytes or longer for this reason. A four-byte
+     marker turns up by chance in compressed scan data often enough to fail
+     real photographs, and a privacy check that cries wolf gets switched off. */
+  it('does not cry wolf on a large photograph of pure noise', async () => {
+    const width = 900;
+    const height = 700;
+    const noise = Buffer.alloc(width * height * 3);
+    // Deterministic, so a failure here is reproducible rather than a coin toss.
+    let seed = 12345;
+    for (let i = 0; i < noise.length; i += 1) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      noise[i] = seed & 0xff;
+    }
+
+    const photo = await sharp(noise, { raw: { width, height, channels: 3 } })
+      .jpeg({ quality: 92 })
+      .toBuffer();
+
+    const prepared = await prepareImageForUpload({
+      buffer: photo,
+      extension: '.jpg',
+      orientation: 1,
+    });
+    const { found } = await findRemainingMetadata(prepared.buffer);
+    assert.deepEqual(found, [], 'a clean photograph was flagged');
+  });
+
+  it('refuses to hand back an image it cannot read', async () => {
+    await assert.rejects(
+      () => findRemainingMetadata(Buffer.from('not an image')),
+      /could not be read back/,
+    );
   });
 });
 
