@@ -213,6 +213,20 @@ function compareAlbums(a: ResolvedAlbum, b: ResolvedAlbum): number {
    Resolution
    ========================================================================== */
 
+/* Hiding happens once, here, and everything downstream sees an archive that
+   simply does not contain the hidden thing.
+   --------------------------------------------------------------------------
+   Deliberately not filtered per-page. Counts, the timeline, "from the
+   archive", the search index, the sitemap and the lightbox all read from this
+   one resolution, and a filter applied at four of those six is the version
+   where a photograph you hid still shows up in a count, or is still reachable
+   by arrowing to it. Removing it at the source is the only way to be sure.
+
+   Hidden also applies in development. Drafts are visible while writing because
+   the point of a draft is to look at it; the point of hiding a photograph is
+   that it is not on the site, and a tool that shows it anyway invites exactly
+   the mistake it exists to prevent. The admin reads the raw manifest, so that
+   is where hidden things stay visible. */
 const resolveAll = once((): Map<number, ResolvedYear> => {
   const resolved = new Map<number, ResolvedYear>();
 
@@ -220,7 +234,16 @@ const resolveAll = once((): Map<number, ResolvedYear> => {
     const byAlbum = new Map<string, MediaItem[]>();
     const everyday: MediaItem[] = [];
 
-    for (const item of manifest.items) {
+    // An item inside a hidden album is hidden too, whatever it says itself.
+    const hiddenAlbums = new Set(
+      manifest.albums.filter((album) => album.hidden).map((album) => album.slug),
+    );
+
+    const visibleItems = manifest.items.filter(
+      (item) => !item.hidden && !(item.album && hiddenAlbums.has(item.album)),
+    );
+
+    for (const item of visibleItems) {
       if (item.album) {
         const bucket = byAlbum.get(item.album);
         if (bucket) bucket.push(item);
@@ -233,6 +256,7 @@ const resolveAll = once((): Map<number, ResolvedYear> => {
     everyday.sort(compareItems);
 
     const albums: ResolvedAlbum[] = manifest.albums
+      .filter((album) => !album.hidden)
       .map((album) => {
         const items = (byAlbum.get(album.slug) ?? []).sort(compareItems);
         return {
@@ -247,7 +271,7 @@ const resolveAll = once((): Map<number, ResolvedYear> => {
       })
       .sort(compareAlbums);
 
-    const allItems = manifest.items;
+    const allItems = visibleItems;
 
     resolved.set(year, {
       year,

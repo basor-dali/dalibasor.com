@@ -26,6 +26,9 @@ import {
   createManifestDoc,
   addAlbum,
   updateAlbum,
+  removeAlbum,
+  addItem,
+  itemNodes,
 } from '../lib/manifest.mjs';
 import { widthsFor, derivativeKey, originalKey, LADDER } from '../lib/derivatives.mjs';
 import { baseKeyFor, keyLeaf } from '../lib/r2.mjs';
@@ -472,6 +475,130 @@ describe('albums', () => {
     const doc = createManifestDoc(2019);
     assert.equal(updateAlbum(doc, 'nope', { title: 'x' }), false);
     assert.equal(YAML.parse(doc.toString()).albums.length, 0);
+  });
+});
+
+describe('removing an album', () => {
+  /** A document with one album holding two photographs, plus one loose. */
+  function withPhotographs() {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'novi-sad', title: 'Novi Sad' });
+    addItem(doc, {
+      id: '2019-novi-sad-0001',
+      type: 'image',
+      album: 'novi-sad',
+      publicId: 'd/2019/novi-sad/a',
+      width: 100,
+      height: 80,
+      caption: 'Worth not losing',
+    });
+    addItem(doc, {
+      id: '2019-novi-sad-0002',
+      type: 'image',
+      album: 'novi-sad',
+      publicId: 'd/2019/novi-sad/b',
+      width: 100,
+      height: 80,
+    });
+    addItem(doc, {
+      id: '2019-everyday-0003',
+      type: 'image',
+      publicId: 'd/2019/everyday/c',
+      width: 100,
+      height: 80,
+    });
+    return doc;
+  }
+
+  /* The point of the whole feature: an album is a grouping, not a container
+     that owns what is inside it. Deleting one must never be a way to lose a
+     photograph, because the file in the bucket would outlive the only record
+     of what it is. */
+  it('keeps every photograph and hands them back to the year', () => {
+    const doc = withPhotographs();
+    const result = removeAlbum(doc, 'novi-sad');
+
+    assert.deepEqual(result, { removed: true, moved: 2 });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal(parsed.albums.length, 0);
+    assert.equal(parsed.items.length, 3, 'a photograph was lost');
+    assert.equal(
+      parsed.items.every((item) => item.album === undefined),
+      true,
+      'an item still points at an album that no longer exists',
+    );
+    assert.equal(parsed.items[0].caption, 'Worth not losing', 'a caption was lost');
+  });
+
+  it('leaves photographs in other albums alone', () => {
+    const doc = withPhotographs();
+    addAlbum(doc, { slug: 'the-shop' });
+    addItem(doc, {
+      id: '2019-the-shop-0004',
+      type: 'image',
+      album: 'the-shop',
+      publicId: 'd/2019/the-shop/d',
+      width: 10,
+      height: 10,
+    });
+
+    removeAlbum(doc, 'novi-sad');
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal(parsed.albums.length, 1);
+    assert.equal(
+      parsed.items.find((i) => i.id === '2019-the-shop-0004').album,
+      'the-shop',
+    );
+  });
+
+  it('reports an album it cannot find rather than half-doing the job', () => {
+    const doc = withPhotographs();
+    assert.equal(removeAlbum(doc, 'nope'), null);
+    assert.equal(YAML.parse(doc.toString()).albums.length, 1);
+    assert.equal(itemNodes(doc).length, 3);
+  });
+});
+
+describe('hiding', () => {
+  it('writes hidden only when it is true', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'a', hidden: false });
+    addAlbum(doc, { slug: 'b', hidden: true });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal('hidden' in parsed.albums[0], false);
+    assert.equal(parsed.albums[1].hidden, true);
+  });
+
+  it('can be turned off again without disturbing anything else', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'a', title: 'A', date: '2019-07', hidden: true });
+
+    updateAlbum(doc, 'a', { hidden: false });
+
+    const parsed = YAML.parse(doc.toString());
+    assert.equal('hidden' in parsed.albums[0], false);
+    assert.equal(parsed.albums[0].title, 'A');
+    assert.equal(parsed.albums[0].date, '2019-07');
+  });
+
+  /* hidden has to survive the item writer's key ordering, which drops any key
+     it does not know about — the same way an unlisted field would vanish on
+     the next re-import. */
+  it('survives being written into an item', () => {
+    const doc = createManifestDoc(2019);
+    addItem(doc, {
+      id: '2019-everyday-0001',
+      type: 'image',
+      publicId: 'd/a',
+      width: 10,
+      height: 10,
+      hidden: true,
+    });
+
+    assert.equal(YAML.parse(doc.toString()).items[0].hidden, true);
   });
 });
 

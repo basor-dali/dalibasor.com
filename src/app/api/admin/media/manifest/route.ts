@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { adminAvailable, devOnlyResponse } from '@/lib/admin/guard';
 import { invalidateContent } from '@/lib/content/fs';
 import { manifestLib } from '@/lib/admin/pipeline';
@@ -17,7 +18,13 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /** The only item fields this endpoint will write. */
-const EDITABLE_ITEM_FIELDS = ['caption', 'alt', 'location', 'featured'] as const;
+const EDITABLE_ITEM_FIELDS = [
+  'caption',
+  'alt',
+  'location',
+  'featured',
+  'hidden',
+] as const;
 
 type ItemEdit = {
   id: string;
@@ -25,6 +32,7 @@ type ItemEdit = {
   alt?: string;
   location?: string;
   featured?: boolean;
+  hidden?: boolean;
 };
 
 export async function GET(request: Request): Promise<Response> {
@@ -80,6 +88,7 @@ type AlbumEdit = {
   location?: string;
   note?: string;
   featured?: boolean;
+  hidden?: boolean;
 };
 
 type Payload = {
@@ -88,7 +97,7 @@ type Payload = {
    * could do anything else. The named actions exist so that creating a year or
    * an album is a deliberate request rather than a side effect of saving.
    */
-  action?: 'create-year' | 'save-album';
+  action?: 'create-year' | 'save-album' | 'delete-album' | 'delete-year';
   year?: string;
   items?: ItemEdit[];
   note?: string;
@@ -145,6 +154,7 @@ export async function POST(request: Request): Promise<Response> {
       location: payload.album?.location?.trim() ?? '',
       note: payload.album?.note?.trim() ?? '',
       featured: Boolean(payload.album?.featured),
+      hidden: Boolean(payload.album?.hidden),
     };
 
     if (fields.date && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(fields.date)) {
@@ -164,6 +174,61 @@ export async function POST(request: Request): Promise<Response> {
       href: `/photos/${year}/${slug}`,
       file: manifest.displayPath(file),
     });
+  }
+
+  /* --- delete an album --------------------------------------------------
+     The photographs are not deleted. They move from "in this album" to "in
+     this year", their files stay in the bucket, and their manifest entries
+     stay exactly as they were apart from losing the album key. Removing a
+     photograph is a separate decision taken one at a time, and this is not
+     it — which is also why there is no "delete everything in here" button. */
+  if (payload.action === 'delete-album') {
+    const slug = String(payload.album?.slug ?? '').trim();
+    if (!slug) return json({ error: 'Which album?' }, 400);
+
+    const result = manifest.removeAlbum(doc, slug);
+    if (!result) return json({ error: `No album called "${slug}" in ${year}.` }, 404);
+
+    manifest.saveManifestDoc(doc, file);
+    invalidateContent();
+
+    return json({
+      ok: true,
+      moved: result.moved,
+      file: manifest.displayPath(file),
+    });
+  }
+
+  /* --- delete a year ----------------------------------------------------
+     Only when it is empty. A year manifest is the only record of what every
+     photograph in it is called, where it sits in the bucket, and what was
+     written about it — the files would survive and become unreachable, which
+     is the worst of both outcomes. Emptying it first is a deliberate act;
+     deleting it should not be able to become an accidental one. */
+  if (payload.action === 'delete-year') {
+    const data = (manifest.readManifestFile(file) ?? {}) as {
+      albums?: unknown[];
+      items?: unknown[];
+    };
+    const items = data.items?.length ?? 0;
+    const albums = data.albums?.length ?? 0;
+
+    if (items > 0 || albums > 0) {
+      return json(
+        {
+          error:
+            `${year} still holds ${items} photograph(s) and ${albums} album(s). ` +
+            'Remove those first — deleting the manifest would leave their files in ' +
+            'the bucket with nothing left to say what they are.',
+        },
+        409,
+      );
+    }
+
+    fs.rmSync(file, { force: true });
+    invalidateContent();
+
+    return json({ ok: true, deleted: manifest.displayPath(file) });
   }
 
   let changed = 0;

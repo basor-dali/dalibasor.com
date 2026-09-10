@@ -290,7 +290,7 @@ export function findAlbumNode(doc, slug) {
  */
 export function addAlbum(
   doc,
-  { slug, title, subtitle, date, location, cover, note, featured } = {},
+  { slug, title, subtitle, date, location, cover, note, featured, hidden } = {},
 ) {
   if (!slug) throw new Error('addAlbum needs a slug.');
   if (findAlbumNode(doc, slug)) return false;
@@ -307,6 +307,7 @@ export function addAlbum(
   // Only when true. `featured: false` is the default and writing it is noise —
   // the same rule the item writer follows.
   if (featured === true) value.featured = true;
+  if (hidden === true) value.hidden = true;
 
   const node = doc.createNode(value);
   if (!date) {
@@ -325,6 +326,7 @@ export const EDITABLE_ALBUM_FIELDS = [
   'note',
   'cover',
   'featured',
+  'hidden',
 ];
 
 /**
@@ -365,6 +367,41 @@ export function updateAlbum(doc, slug, fields = {}) {
   return true;
 }
 
+/**
+ * Remove an album, and hand its photographs back to the year.
+ *
+ * Deleting the entry alone would leave every item pointing at an album that no
+ * longer exists. The loader survives that — it warns and files them under
+ * everyday — but a manifest that needs forgiving is a manifest that is wrong,
+ * so the items are updated to match rather than left to be tolerated.
+ *
+ * Nothing is deleted from the bucket and no photograph is lost: they move from
+ * "in this album" to "in this year". Removing the *photographs* is a separate
+ * decision, taken one at a time, and this is not it.
+ *
+ * Returns { removed, moved } — or null when there is no such album.
+ */
+export function removeAlbum(doc, slug) {
+  const seq = doc.get('albums', true);
+  if (!YAML.isSeq(seq)) return null;
+
+  const index = seq.items.findIndex(
+    (node) => YAML.isMap(node) && String(node.get('slug')) === slug,
+  );
+  if (index === -1) return null;
+
+  seq.delete(index);
+
+  let moved = 0;
+  for (const node of itemNodes(doc)) {
+    if (String(node.get('album') ?? '') !== slug) continue;
+    node.delete('album');
+    moved += 1;
+  }
+
+  return { removed: true, moved };
+}
+
 /* ==========================================================================
    Items
    ========================================================================== */
@@ -391,6 +428,7 @@ const ITEM_KEY_ORDER = [
   'alt',
   'location',
   'featured',
+  'hidden',
   'lqip',
   'color',
   'duration',

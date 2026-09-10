@@ -263,6 +263,14 @@ export type MediaItem = {
   variants?: number[];
   /** Ladder formats generated, best first — e.g. ['avif', 'webp']. */
   formats?: ('avif' | 'webp')[];
+  /**
+   * Keep this photograph out of the published site.
+   *
+   * The manifest entry and the uploaded file both stay exactly where they are.
+   * One frame out of a hundred that you would rather nobody saw does not need
+   * to be deleted to stop being on the internet.
+   */
+  hidden?: boolean;
 };
 
 /**
@@ -307,6 +315,15 @@ export type Album = {
   note?: string;
   location?: string;
   featured?: boolean;
+  /**
+   * Keep this album out of the published site.
+   *
+   * Nothing is deleted and nothing is unlinked from the bucket — the entry
+   * stays in the manifest, the photographs stay where they are, and the album
+   * simply stops being rendered, listed, counted or routed to. It is the same
+   * idea as `draft` on a post: a way to put something aside without losing it.
+   */
+  hidden?: boolean;
 };
 
 export type YearManifest = {

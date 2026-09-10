@@ -77,6 +77,7 @@ export type ManifestModule = {
   addAlbum: (doc: YamlDoc, album: Record<string, unknown>) => boolean;
   updateAlbum: (doc: YamlDoc, slug: string, fields: Record<string, unknown>) => boolean;
   findAlbumNode: (doc: YamlDoc, slug: string) => unknown;
+  removeAlbum: (doc: YamlDoc, slug: string) => { removed: boolean; moved: number } | null;
   addItem: (
     doc: YamlDoc,
     item: Record<string, unknown>,

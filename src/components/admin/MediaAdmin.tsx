@@ -32,6 +32,7 @@ type AlbumRecord = {
   location?: string;
   note?: string;
   featured?: boolean;
+  hidden?: boolean;
 };
 
 /** The album form's fields, all present so a save is a whole record. */
@@ -42,6 +43,7 @@ type AlbumForm = {
   location: string;
   note: string;
   featured: boolean;
+  hidden: boolean;
 };
 
 const EMPTY_ALBUM_FORM: AlbumForm = {
@@ -51,6 +53,7 @@ const EMPTY_ALBUM_FORM: AlbumForm = {
   location: '',
   note: '',
   featured: false,
+  hidden: false,
 };
 
 type ManifestItem = {
@@ -65,6 +68,7 @@ type ManifestItem = {
   location?: string;
   featured?: boolean;
   capturedAt?: string;
+  hidden?: boolean;
   lqip?: string;
   color?: string;
 };
@@ -98,8 +102,14 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   const [album, setAlbum] = useState('');
   const [yearAlbums, setYearAlbums] = useState<AlbumRecord[]>([]);
   const [albumForm, setAlbumForm] = useState<AlbumForm>(EMPTY_ALBUM_FORM);
-  const [albumBusy, setAlbumBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState(false);
   const [albumNotice, setAlbumNotice] = useState<string | null>(null);
+  const [albumOpen, setAlbumOpen] = useState(false);
+  /** The slug being edited, or null while creating. */
+  const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [newAlbumName, setNewAlbumName] = useState('');
+  const [newYearOpen, setNewYearOpen] = useState(false);
+  const [newYear, setNewYear] = useState('');
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [items, setItems] = useState<ManifestItem[]>([]);
@@ -109,7 +119,6 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [yearExists, setYearExists] = useState(true);
   const fileInput = useRef<HTMLInputElement>(null);
 
   /* --- load the list of years ------------------------------------------ */
@@ -135,11 +144,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
     const data = (await res.json()) as {
       items?: ManifestItem[];
       albums?: AlbumRecord[];
-      exists?: boolean;
     };
     setItems(data.items ?? []);
     setYearAlbums(data.albums ?? []);
-    setYearExists(data.exists !== false);
     setDirty({});
     setSaveState('idle');
   }, []);
@@ -194,7 +201,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
         form.set('file', entry.file);
         form.set('year', year);
         if (album) form.set('album', album);
-        if (albumForm.title) form.set('albumTitle', albumForm.title);
+        if (album && albumForm.title) form.set('albumTitle', albumForm.title);
 
         try {
           const res = await fetch('/api/admin/media/upload', {
@@ -249,88 +256,187 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
     await loadItems(year);
   }, [album, albumForm.title, loadItems, loadYears, queue, year]);
 
-  /* --- albums and years -------------------------------------------------
+  /* --- years and albums -------------------------------------------------
 
-     Typing a slug that already exists loads that album into the form, so the
-     same panel creates and edits. Typing a new one leaves whatever has been
-     entered alone — clearing a half-filled form because a letter was typed
-     would be maddening. */
-  const knownAlbum = yearAlbums.find((entry) => entry.slug === album.trim());
+     Everything here writes through /api/admin/media/manifest, which is the one
+     place that edits a manifest, and then reloads rather than patching local
+     state — the file on disk is the truth and guessing at it is how a CMS ends
+     up disagreeing with the site it edits. */
 
-  useEffect(() => {
+  /** How many photographs are filed under an album, or under no album. */
+  const countIn = useCallback(
+    (slug: string | undefined) =>
+      items.filter((item) => (item.album ?? undefined) === slug).length,
+    [items],
+  );
+
+  /** Live preview of the address a typed album name will get. */
+  const slugPreview = newAlbumName
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/['\u2019]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  const openAlbum = useCallback((entry: AlbumRecord | null) => {
     setAlbumNotice(null);
-    if (!knownAlbum) return;
-    setAlbumForm({
-      title: knownAlbum.title ?? '',
-      subtitle: knownAlbum.subtitle ?? '',
-      date: knownAlbum.date ?? '',
-      location: knownAlbum.location ?? '',
-      note: knownAlbum.note ?? '',
-      featured: Boolean(knownAlbum.featured),
-    });
-    // Only when the identity changes — not on every keystroke in the form.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [knownAlbum?.slug, year]);
+    setAlbumOpen(true);
+    setEditingSlug(entry?.slug ?? null);
+    setNewAlbumName('');
+    setAlbumForm(
+      entry
+        ? {
+            title: entry.title ?? '',
+            subtitle: entry.subtitle ?? '',
+            date: entry.date ?? '',
+            location: entry.location ?? '',
+            note: entry.note ?? '',
+            featured: Boolean(entry.featured),
+            hidden: Boolean(entry.hidden),
+          }
+        : EMPTY_ALBUM_FORM,
+    );
+  }, []);
+
+  /** Every manifest write goes through here, so refreshing cannot be forgotten. */
+  const writeManifest = useCallback(async (body: Record<string, unknown>) => {
+    setBusyAction(true);
+    setAlbumNotice(null);
+    try {
+      const res = await fetch('/api/admin/media/manifest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = (await res.json()) as Record<string, unknown>;
+      if (!res.ok) {
+        setAlbumNotice(String(data.error ?? 'That did not work.'));
+        return null;
+      }
+      return data;
+    } catch (error) {
+      setAlbumNotice((error as Error).message);
+      return null;
+    } finally {
+      setBusyAction(false);
+    }
+  }, []);
 
   const createYear = useCallback(async () => {
-    if (!/^d{4}$/.test(year)) {
-      setNotice('Pick a four digit year first.');
+    if (!/^\d{4}$/.test(newYear)) {
+      setAlbumNotice('A year is four digits.');
       return;
     }
-    setAlbumBusy(true);
-    const res = await fetch('/api/admin/media/manifest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create-year', year }),
-    });
-    const data = (await res.json()) as { error?: string; file?: string };
-    setAlbumBusy(false);
-    setNotice(res.ok ? `Created ${data.file}` : (data.error ?? 'Could not create it.'));
+    const data = await writeManifest({ action: 'create-year', year: newYear });
+    if (!data) return;
+
+    setNewYearOpen(false);
+    setYear(newYear);
+    setAlbum('');
     await loadYears();
-    await loadItems(year);
-  }, [year, loadYears, loadItems]);
+    await loadItems(newYear);
+    setAlbumNotice(
+      data.created ? `Created ${String(data.file)}` : `${newYear} already existed.`,
+    );
+  }, [newYear, writeManifest, loadYears, loadItems]);
+
+  const deleteYear = useCallback(async () => {
+    if (!window.confirm(`Delete the manifest for ${year}? It has nothing in it.`)) return;
+
+    const data = await writeManifest({ action: 'delete-year', year });
+    if (!data) return;
+
+    setAlbum('');
+    setYear('');
+    await loadYears();
+    setAlbumNotice(`Deleted ${String(data.deleted)}`);
+  }, [year, writeManifest, loadYears]);
 
   const saveAlbum = useCallback(async () => {
-    const slug = album.trim();
+    const slug = editingSlug ?? newAlbumName.trim();
     if (!slug) {
-      setAlbumNotice('An album needs a name.');
-      return;
-    }
-    if (!/^d{4}$/.test(year)) {
-      setAlbumNotice('Pick a four digit year first.');
+      setAlbumNotice('Give the album a name.');
       return;
     }
 
-    setAlbumBusy(true);
-    setAlbumNotice(null);
-
-    const res = await fetch('/api/admin/media/manifest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'save-album', year, album: { slug, ...albumForm } }),
+    const data = await writeManifest({
+      action: 'save-album',
+      year,
+      album: { slug, ...albumForm },
     });
-    const data = (await res.json()) as {
-      error?: string;
-      created?: boolean;
-      slug?: string;
-      href?: string;
-    };
-
-    setAlbumBusy(false);
-
-    if (!res.ok) {
-      setAlbumNotice(data.error ?? 'Could not save the album.');
-      return;
-    }
+    if (!data) return;
 
     // The server slugifies, so "Novi Sad 2019" comes back as novi-sad-2019.
     // Adopt it, or the next save would create a second album.
-    if (data.slug && data.slug !== slug) setAlbum(data.slug);
-    setAlbumNotice(`${data.created ? 'Created' : 'Saved'} — ${data.href}`);
-
+    const saved = String(data.slug ?? slug);
+    setAlbum(saved);
+    setEditingSlug(saved);
+    setNewAlbumName('');
     await loadYears();
     await loadItems(year);
-  }, [album, albumForm, year, loadYears, loadItems]);
+    setAlbumNotice(`${data.created ? 'Created' : 'Saved'} — ${String(data.href)}`);
+  }, [editingSlug, newAlbumName, albumForm, year, writeManifest, loadYears, loadItems]);
+
+  const toggleAlbumHidden = useCallback(
+    async (entry: AlbumRecord) => {
+      // The whole record is sent, so everything not being changed is preserved.
+      const data = await writeManifest({
+        action: 'save-album',
+        year,
+        album: {
+          slug: entry.slug,
+          title: entry.title ?? '',
+          subtitle: entry.subtitle ?? '',
+          date: entry.date ?? '',
+          location: entry.location ?? '',
+          note: entry.note ?? '',
+          featured: Boolean(entry.featured),
+          hidden: !entry.hidden,
+        },
+      });
+      if (!data) return;
+
+      await loadYears();
+      await loadItems(year);
+      setAlbumNotice(
+        entry.hidden
+          ? `${entry.title ?? entry.slug} is back on the site.`
+          : `${entry.title ?? entry.slug} is hidden. Nothing was deleted.`,
+      );
+    },
+    [year, writeManifest, loadYears, loadItems],
+  );
+
+  const deleteAlbum = useCallback(
+    async (entry: AlbumRecord) => {
+      const count = countIn(entry.slug);
+      const warning =
+        count > 0
+          ? `Delete the album "${entry.title ?? entry.slug}"?\n\nIts ${count} photograph(s) are NOT deleted — they move to the everyday photographs for ${year}, and their files stay in the bucket.`
+          : `Delete the empty album "${entry.title ?? entry.slug}"?`;
+
+      if (!window.confirm(warning)) return;
+
+      const data = await writeManifest({
+        action: 'delete-album',
+        year,
+        album: { slug: entry.slug },
+      });
+      if (!data) return;
+
+      if (album === entry.slug) setAlbum('');
+      setAlbumOpen(false);
+      await loadYears();
+      await loadItems(year);
+      setAlbumNotice(
+        Number(data.moved) > 0
+          ? `Album removed. ${String(data.moved)} photograph(s) moved to everyday.`
+          : 'Album removed.',
+      );
+    },
+    [album, countIn, year, writeManifest, loadYears, loadItems],
+  );
 
   /* --- editing ---------------------------------------------------------- */
 
@@ -366,8 +472,6 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   const duplicates = queue.filter((q) => q.status === 'duplicate').length;
   const waiting = queue.filter((q) => q.status === 'waiting').length;
 
-  const currentYear = years.find((y) => String(y.year) === year);
-
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -400,83 +504,210 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
 
       {notice ? <div style={styles.notice}>{notice}</div> : null}
 
-      {/* --- destination ------------------------------------------------ */}
+      {/* --- where does it go --------------------------------------------
+          A list you click rather than a slug you type. Everything about a year
+          or an album is reachable from here: make one, rename it, put it away,
+          take it out again. */}
       <section style={styles.card}>
-        <h2 style={styles.h2}>1 · Where does it go</h2>
-        <div style={styles.row}>
-          <label style={styles.field}>
-            <span style={styles.label}>Year</span>
-            <input
-              value={year}
-              onChange={(e) => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="2019"
-              inputMode="numeric"
-              style={styles.input}
-              list="known-years"
-            />
-            <datalist id="known-years">
-              {years.map((y) => (
-                <option key={y.year} value={y.year} />
-              ))}
-            </datalist>
-          </label>
-
-          <label style={styles.field}>
-            <span style={styles.label}>Album</span>
-            <input
-              value={album}
-              onChange={(e) => setAlbum(e.target.value)}
-              placeholder="serbia — leave blank for everyday photos"
-              style={styles.input}
-              list="known-albums"
-            />
-            <datalist id="known-albums">
-              {(currentYear?.albums ?? []).map((a) => (
-                <option key={a.slug} value={a.slug}>
-                  {a.title}
-                </option>
-              ))}
-            </datalist>
-          </label>
+        <div style={styles.cardHead}>
+          <h2 style={{ ...styles.h2, margin: 0 }}>1 · Where does it go</h2>
+          <span style={styles.hintInline}>
+            /photos/{year || 'YYYY'}
+            {album ? `/${album}` : ''}
+          </span>
         </div>
 
-        <p style={styles.hint}>
-          {album
-            ? `Files will appear at /photos/${year || 'YYYY'}/${album}`
-            : `Files will appear in the everyday photographs for ${year || 'YYYY'}`}
-          {!yearExists && /^\d{4}$/.test(year) ? (
-            <>
-              {' · '}
+        {/* --- years --- */}
+        <div style={styles.label}>Year</div>
+        <div style={styles.chips}>
+          {years.map((entry) => (
+            <button
+              key={entry.year}
+              type="button"
+              onClick={() => setYear(String(entry.year))}
+              style={String(entry.year) === year ? styles.chipOn : styles.chip}
+            >
+              {entry.year}
+              <span style={styles.chipCount}>{entry.itemCount}</span>
+            </button>
+          ))}
+
+          {newYearOpen ? (
+            <span style={styles.inlineForm}>
+              <input
+                value={newYear}
+                onChange={(e) =>
+                  setNewYear(e.target.value.replace(/\D/g, '').slice(0, 4))
+                }
+                placeholder="2019"
+                inputMode="numeric"
+                autoFocus
+                style={{ ...styles.input, width: 96 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void createYear();
+                  if (e.key === 'Escape') setNewYearOpen(false);
+                }}
+              />
               <button
                 type="button"
                 onClick={() => void createYear()}
-                disabled={albumBusy}
+                disabled={busyAction}
+                style={styles.secondaryBtn}
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewYearOpen(false)}
                 style={styles.linkBtn}
               >
-                Create {year} now
+                Cancel
               </button>
-            </>
-          ) : null}
-        </p>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setNewYear('');
+                setNewYearOpen(true);
+              }}
+              style={styles.chipAdd}
+            >
+              + Year
+            </button>
+          )}
+        </div>
 
-        {/* --- the album itself -----------------------------------------
-            One panel that both creates and edits: type a name that exists and
-            its details load, type a new one and they stay blank. Uploading into
-            a new album still creates it on the way past, so this is for setting
-            an album up before the photographs are ready — or for fixing a title
-            afterwards without opening the YAML. */}
-        {album ? (
+        {/* --- albums within the selected year --- */}
+        {year ? (
+          <>
+            <div style={{ ...styles.label, marginTop: 24 }}>Albums in {year}</div>
+
+            <ul style={styles.albumList}>
+              <li style={album === '' ? styles.albumRowOn : styles.albumRow}>
+                <button
+                  type="button"
+                  onClick={() => setAlbum('')}
+                  style={styles.albumPick}
+                >
+                  <span style={styles.albumName}>Everyday</span>
+                  <span style={styles.hintInline}>
+                    {countIn(undefined)} · photographs not in an album
+                  </span>
+                </button>
+              </li>
+
+              {yearAlbums.map((entry) => (
+                <li
+                  key={entry.slug}
+                  style={entry.slug === album ? styles.albumRowOn : styles.albumRow}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setAlbum(entry.slug)}
+                    style={styles.albumPick}
+                  >
+                    <span style={styles.albumName}>
+                      {entry.title ?? entry.slug}
+                      {entry.hidden ? <span style={styles.tag}>hidden</span> : null}
+                      {entry.featured ? <span style={styles.tag}>featured</span> : null}
+                    </span>
+                    <span style={styles.hintInline}>
+                      {countIn(entry.slug)} · {entry.slug}
+                      {entry.date ? ` · ${entry.date}` : ''}
+                    </span>
+                  </button>
+
+                  <span style={styles.albumRowActions}>
+                    <button
+                      type="button"
+                      onClick={() => openAlbum(entry)}
+                      style={styles.linkBtn}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void toggleAlbumHidden(entry)}
+                      disabled={busyAction}
+                      style={styles.linkBtn}
+                    >
+                      {entry.hidden ? 'Show' : 'Hide'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteAlbum(entry)}
+                      disabled={busyAction}
+                      style={styles.dangerBtn}
+                    >
+                      Delete
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div style={styles.albumActions}>
+              <button
+                type="button"
+                onClick={() => openAlbum(null)}
+                style={styles.secondaryBtn}
+              >
+                + New album
+              </button>
+
+              {/* Only offered for a year with nothing in it. Deleting a manifest
+                  that still describes photographs would leave their files in the
+                  bucket with nothing left to say what they are. */}
+              {yearAlbums.length === 0 && items.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => void deleteYear()}
+                  disabled={busyAction}
+                  style={styles.dangerBtn}
+                >
+                  Delete {year}
+                </button>
+              ) : null}
+
+              {albumNotice ? <span style={styles.hintInline}>{albumNotice}</span> : null}
+            </div>
+          </>
+        ) : null}
+
+        {/* --- the album form, when creating or editing --- */}
+        {albumOpen ? (
           <div style={styles.albumPanel}>
             <div style={styles.cardHead}>
               <h3 style={styles.h3}>
-                {knownAlbum ? `Album · ${knownAlbum.title ?? album}` : 'New album'}
+                {editingSlug ? `Editing · ${editingSlug}` : 'New album'}
               </h3>
-              <span style={styles.hintInline}>
-                /photos/{year || 'YYYY'}/{album}
-              </span>
+              <button
+                type="button"
+                onClick={() => setAlbumOpen(false)}
+                style={styles.linkBtn}
+              >
+                Close
+              </button>
             </div>
 
             <div style={styles.row}>
+              {editingSlug ? null : (
+                <label style={styles.field}>
+                  <span style={styles.label}>Name</span>
+                  <input
+                    value={newAlbumName}
+                    onChange={(e) => setNewAlbumName(e.target.value)}
+                    placeholder="Novi Sad"
+                    autoFocus
+                    style={styles.input}
+                  />
+                  <span style={styles.hintInline}>
+                    Address: /photos/{year}/{slugPreview || '…'}
+                  </span>
+                </label>
+              )}
+
               <label style={styles.field}>
                 <span style={styles.label}>Title</span>
                 <input
@@ -545,16 +776,25 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                 <span>Featured on the archive index</span>
               </label>
 
+              <label style={styles.checkbox}>
+                <input
+                  type="checkbox"
+                  checked={albumForm.hidden}
+                  onChange={(e) =>
+                    setAlbumForm((f) => ({ ...f, hidden: e.target.checked }))
+                  }
+                />
+                <span>Hidden from the site</span>
+              </label>
+
               <button
                 type="button"
                 onClick={() => void saveAlbum()}
-                disabled={albumBusy}
+                disabled={busyAction}
                 style={styles.secondaryBtn}
               >
-                {albumBusy ? 'Saving…' : knownAlbum ? 'Save album' : 'Create album'}
+                {busyAction ? 'Saving…' : editingSlug ? 'Save album' : 'Create album'}
               </button>
-
-              {albumNotice ? <span style={styles.hintInline}>{albumNotice}</span> : null}
             </div>
 
             <p style={styles.hint}>
@@ -564,6 +804,12 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
             </p>
           </div>
         ) : null}
+
+        <p style={styles.hint}>
+          {album
+            ? `Uploads land at /photos/${year || 'YYYY'}/${album}`
+            : `Uploads land in the everyday photographs for ${year || 'YYYY'}`}
+        </p>
       </section>
 
       {/* --- dropzone --------------------------------------------------- */}
@@ -705,11 +951,12 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                 <th style={styles.th}>Alt text</th>
                 <th style={styles.th}>Location</th>
                 <th style={{ ...styles.th, width: 70, textAlign: 'center' }}>Featured</th>
+                <th style={{ ...styles.th, width: 60, textAlign: 'center' }}>Hidden</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} style={item.hidden ? styles.rowHidden : undefined}>
                   <td style={styles.td}>
                     <div
                       style={{
@@ -755,6 +1002,19 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                       checked={Boolean(item.featured)}
                       onChange={(e) => edit(item.id, 'featured', e.target.checked)}
                       aria-label={`Feature ${item.id}`}
+                    />
+                  </td>
+                  {/* Hidden keeps the entry and the file exactly where they are
+                      and takes the photograph off the site — out of the grid,
+                      the lightbox, the counts, the search index and the feeds.
+                      One frame you would rather nobody saw does not need to be
+                      deleted to stop being on the internet. */}
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(item.hidden)}
+                      onChange={(e) => edit(item.id, 'hidden', e.target.checked)}
+                      aria-label={`Hide ${item.id}`}
                     />
                   </td>
                 </tr>
@@ -854,6 +1114,103 @@ const styles: Record<string, React.CSSProperties> = {
   },
   hint: { fontSize: 12.5, opacity: 0.6, margin: '12px 0 0', lineHeight: 1.6 },
   hintInline: { fontSize: 12.5, opacity: 0.6, lineHeight: 1.6 },
+  chips: { display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  chip: {
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    gap: 8,
+    padding: '8px 14px',
+    borderRadius: 999,
+    border: '1px solid #e2ddd6',
+    background: '#fff',
+    font: 'inherit',
+    fontSize: 14,
+    cursor: 'pointer',
+  },
+  chipOn: {
+    display: 'inline-flex',
+    alignItems: 'baseline',
+    gap: 8,
+    padding: '8px 14px',
+    borderRadius: 999,
+    border: '1px solid #1c1a19',
+    background: '#1c1a19',
+    color: '#fff',
+    font: 'inherit',
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  chipCount: { fontSize: 11.5, opacity: 0.65 },
+  chipAdd: {
+    padding: '8px 14px',
+    borderRadius: 999,
+    border: '1px dashed #c9c1b6',
+    background: 'transparent',
+    font: 'inherit',
+    fontSize: 14,
+    cursor: 'pointer',
+    opacity: 0.75,
+  },
+  inlineForm: { display: 'inline-flex', alignItems: 'center', gap: 8 },
+  albumList: { listStyle: 'none', margin: '8px 0 0', padding: 0 },
+  albumRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    borderTop: '1px solid #efeae3',
+    padding: '4px 0',
+  },
+  albumRowOn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    borderTop: '1px solid #efeae3',
+    padding: '4px 0',
+    background: '#faf7f2',
+  },
+  albumPick: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 3,
+    alignItems: 'flex-start',
+    padding: '10px 8px',
+    border: 0,
+    background: 'transparent',
+    font: 'inherit',
+    textAlign: 'left',
+    cursor: 'pointer',
+  },
+  albumName: {
+    fontSize: 14.5,
+    fontWeight: 600,
+    display: 'flex',
+    gap: 8,
+    alignItems: 'center',
+  },
+  albumRowActions: { display: 'flex', gap: 4, flexShrink: 0, paddingRight: 4 },
+  tag: {
+    fontSize: 10.5,
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    padding: '2px 6px',
+    borderRadius: 3,
+    background: '#efeae3',
+    opacity: 0.8,
+  },
+  rowHidden: { opacity: 0.45 },
+  dangerBtn: {
+    border: 0,
+    background: 'transparent',
+    font: 'inherit',
+    fontSize: 12.5,
+    color: '#b3261e',
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    padding: '6px 4px',
+  },
   h3: { fontSize: 14, fontWeight: 650, margin: 0 },
   albumPanel: {
     marginTop: 20,

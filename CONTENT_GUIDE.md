@@ -275,6 +275,30 @@ sensitive beyond its location, strip it yourself before importing.
 If the importer cannot read a container at all, it refuses the file rather than uploading
 something it cannot vouch for.
 
+### Put a photograph or an album aside
+
+Set `hidden: true` on an item or an album, or use the Hidden checkbox in
+<http://localhost:3000/admin/media>.
+
+Nothing is deleted. The manifest entry stays, the file stays in the bucket, and the
+photograph simply stops being on the site — out of the grid, the lightbox, the counts, the
+search index and the feeds. Hiding an album hides everything in it. It applies while you are
+developing too, unlike `draft:` on a post: the point of a draft is to look at it, and the
+point of hiding a photograph is that it is not there. The admin reads the raw manifest, so
+that is where hidden things stay visible to you.
+
+### Delete an album or a year
+
+Both are in the admin tool, and both are deliberately awkward in one direction.
+
+**Deleting an album never deletes photographs.** They move to the year's everyday
+photographs, keeping their captions, and their files stay in the bucket. Removing a
+photograph is a separate decision, taken one at a time.
+
+**A year can only be deleted when it is empty.** Its manifest is the only record of what
+every file in the bucket is called and what was written about it — deleting it would leave
+the files there with nothing left to say what they are.
+
 ### Fix a caption, a date, or a location
 
 Edit `content/media/<year>.yml` directly. It is designed to be hand-edited:
