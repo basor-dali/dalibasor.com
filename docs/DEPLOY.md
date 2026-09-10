@@ -126,6 +126,11 @@ npm run html:check    # after the build, if a component changed
 Vercel runs `npm run build` itself and a failure there stops the deploy, so a broken build
 cannot reach the site. The other three are the ones worth running yourself.
 
+Note that a local build is not the same build. Some route configuration is validated by the
+host rather than by Next, so it compiles here and rejects the deployment there — `maxDuration`
+on a route is the one that has actually happened. `npm test` checks the settings that behave
+that way, which is why it is first in the list.
+
 ---
 
 ## Somewhere other than Vercel

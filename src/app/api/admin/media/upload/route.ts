@@ -21,8 +21,22 @@ import { manifestLib, processLib, targetLib, type ItemNode } from '@/lib/admin/p
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-// Uploading a few hundred megabytes of video should not be cut off at 30s.
-export const maxDuration = 600;
+
+/* No `maxDuration` here, and it is worth saying why it was removed rather than
+   lowered.
+
+   It was set to 600, reasoning that uploading a few hundred megabytes of video
+   should not be cut off after thirty seconds. That reasoning was sound and the
+   setting was in the wrong place twice over. `maxDuration` is a deployment
+   directive read when Vercel builds a serverless function; the dev server does
+   not consult it, and the dev server is the only place this route does
+   anything, because `adminAvailable()` returns false in production and every
+   request 404s.
+
+   So it did nothing where uploads actually happen, and the one thing it did do
+   was fail the build: Vercel's hobby plan permits at most 300, and a route that
+   asks for more than the plan allows stops the whole deployment. A long upload
+   in development is bounded by nothing but the machine. */
 
 const IMAGE_EXTENSIONS = new Set([
   '.jpg',
