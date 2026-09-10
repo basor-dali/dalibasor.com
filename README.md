@@ -8,6 +8,8 @@ the years. Built to be maintained for decades, not quarters.
 - **[CONTENT_GUIDE.md](CONTENT_GUIDE.md)** — how to write a post, add a project, upload 100
   photos, update the Now page
 - **[docs/MEDIA.md](docs/MEDIA.md)** — where photographs live, and how to set up the bucket
+- **[docs/DEPLOY.md](docs/DEPLOY.md)** — getting it online, which variables go where, and
+  going public
 - **[BACKUP.md](BACKUP.md)** — what to back up and how to get everything out
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — how it is put together and why
 
