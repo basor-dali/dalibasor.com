@@ -84,6 +84,17 @@ type QueueEntry = {
 /** Three at a time: enough to saturate a home connection, few enough to read. */
 const CONCURRENCY = 3;
 
+/**
+ * A four digit year, defined once.
+ *
+ * It was written out at four separate call sites, and one of them lost its
+ * backslash — `/^d{4}$/` tests for the literal letters "dddd", so the upload
+ * button reported "Pick a year first" with a year plainly selected and no way
+ * to make it stop. Four copies of a pattern is four chances for one to drift
+ * into something that looks right and matches nothing.
+ */
+const IS_YEAR = /^\d{4}$/;
+
 const IMAGE_EXT = /\.(jpe?g|png|heic|heif|webp|avif|tiff?)$/i;
 const VIDEO_EXT = /\.(mp4|mov|m4v|webm)$/i;
 
@@ -148,7 +159,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
 
   /* --- load one year's items ------------------------------------------- */
   const loadItems = useCallback(async (target: string) => {
-    if (!/^\d{4}$/.test(target)) return;
+    if (!IS_YEAR.test(target)) return;
     const res = await fetch(`/api/admin/media/manifest?year=${target}`);
     if (!res.ok) return;
     const data = (await res.json()) as {
@@ -200,7 +211,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   }, []);
 
   const runQueue = useCallback(async () => {
-    if (!/^\d{4}$/.test(year)) {
+    if (!IS_YEAR.test(year)) {
       setNotice('Pick a four digit year first.');
       return;
     }
@@ -349,7 +360,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   }, []);
 
   const createYear = useCallback(async () => {
-    if (!/^\d{4}$/.test(newYear)) {
+    if (!IS_YEAR.test(newYear)) {
       setAlbumNotice('A year is four digits.');
       return;
     }
@@ -500,7 +511,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   /** Why uploading cannot start, or null when it can. */
   const uploadBlockedReason = !destination.ready
     ? destination.missingHint
-    : !/^d{4}$/.test(year)
+    : !IS_YEAR.test(year)
       ? 'Pick a year first.'
       : null;
 
