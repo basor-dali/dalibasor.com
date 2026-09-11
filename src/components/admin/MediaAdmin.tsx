@@ -151,8 +151,23 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
     setSaveState('idle');
   }, []);
 
+  /* Changing year clears everything that belonged to the previous one.
+     ------------------------------------------------------------------------
+     Without this, opening an album in 2019 and then clicking 2026 leaves the
+     selection and the open edit form pointing at a slug that does not exist in
+     2026 — and both of them write. Saving the form would create a copy of the
+     2019 album inside 2026, and dropping files in would file them under an
+     album nobody chose. Neither announces itself; you find out later, in the
+     manifest. */
   useEffect(() => {
-    if (year) void loadItems(year);
+    if (!year) return;
+    setAlbum('');
+    setAlbumOpen(false);
+    setEditingSlug(null);
+    setNewAlbumName('');
+    setAlbumForm(EMPTY_ALBUM_FORM);
+    setAlbumNotice(null);
+    void loadItems(year);
   }, [year, loadItems]);
 
   /* --- uploading -------------------------------------------------------- */
