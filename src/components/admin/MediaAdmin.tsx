@@ -96,6 +96,16 @@ export type Destination = {
   missingHint: string;
 };
 
+/** A disabled control should look disabled. Composed rather than duplicated. */
+function off(
+  base: React.CSSProperties | undefined,
+  disabled: boolean,
+): React.CSSProperties | undefined {
+  // styles is indexed, and this project has noUncheckedIndexedAccess on, so a
+  // lookup is possibly undefined. Spreading undefined is harmless.
+  return disabled ? { ...base, ...styles.btnOff } : base;
+}
+
 export function MediaAdmin({ destination }: { destination: Destination }) {
   const [years, setYears] = useState<YearSummary[]>([]);
   const [year, setYear] = useState('');
@@ -487,6 +497,13 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
   const duplicates = queue.filter((q) => q.status === 'duplicate').length;
   const waiting = queue.filter((q) => q.status === 'waiting').length;
 
+  /** Why uploading cannot start, or null when it can. */
+  const uploadBlockedReason = !destination.ready
+    ? destination.missingHint
+    : !/^d{4}$/.test(year)
+      ? 'Pick a year first.'
+      : null;
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
@@ -567,7 +584,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                 type="button"
                 onClick={() => void createYear()}
                 disabled={busyAction}
-                style={styles.secondaryBtn}
+                style={off(styles.secondaryBtn, busyAction)}
               >
                 Add
               </button>
@@ -645,7 +662,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                       type="button"
                       onClick={() => void toggleAlbumHidden(entry)}
                       disabled={busyAction}
-                      style={styles.linkBtn}
+                      style={off(styles.linkBtn, busyAction)}
                     >
                       {entry.hidden ? 'Show' : 'Hide'}
                     </button>
@@ -653,7 +670,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                       type="button"
                       onClick={() => void deleteAlbum(entry)}
                       disabled={busyAction}
-                      style={styles.dangerBtn}
+                      style={off(styles.dangerBtn, busyAction)}
                     >
                       Delete
                     </button>
@@ -679,7 +696,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                   type="button"
                   onClick={() => void deleteYear()}
                   disabled={busyAction}
-                  style={styles.dangerBtn}
+                  style={off(styles.dangerBtn, busyAction)}
                 >
                   Delete {year}
                 </button>
@@ -806,7 +823,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                 type="button"
                 onClick={() => void saveAlbum()}
                 disabled={busyAction}
-                style={styles.secondaryBtn}
+                style={off(styles.secondaryBtn, busyAction)}
               >
                 {busyAction ? 'Saving…' : editingSlug ? 'Save album' : 'Create album'}
               </button>
@@ -886,15 +903,27 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                   type="button"
                   onClick={() => setQueue([])}
                   disabled={busy}
-                  style={styles.secondaryBtn}
+                  style={off(styles.secondaryBtn, busy)}
                 >
                   Clear
                 </button>
+                {/* A button that looks pressable and does nothing is worse
+                    than one that is visibly out of action, and worse again
+                    when the only explanation is a red line at the top of the
+                    page that has scrolled out of sight. */}
+                {uploadBlockedReason ? (
+                  <span style={styles.blockedReason}>{uploadBlockedReason}</span>
+                ) : null}
                 <button
                   type="button"
                   onClick={runQueue}
-                  disabled={busy || waiting === 0 || !destination.ready}
-                  style={styles.primaryBtn}
+                  disabled={Boolean(uploadBlockedReason) || busy || waiting === 0}
+                  title={uploadBlockedReason ?? undefined}
+                  style={
+                    uploadBlockedReason || busy || waiting === 0
+                      ? { ...styles.primaryBtn, ...styles.btnOff }
+                      : styles.primaryBtn
+                  }
                 >
                   {busy
                     ? 'Uploading…'
@@ -936,7 +965,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
               type="button"
               onClick={save}
               disabled={dirtyCount === 0 || saveState === 'saving'}
-              style={styles.primaryBtn}
+              style={off(styles.primaryBtn, dirtyCount === 0 || saveState === 'saving')}
             >
               {saveState === 'saving'
                 ? 'Saving…'
@@ -1329,6 +1358,16 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.5,
     marginTop: 4,
     letterSpacing: '0.04em',
+  },
+  /** Applied alongside a button style whenever that button is disabled. */
+  btnOff: { opacity: 0.4, cursor: 'not-allowed' },
+  blockedReason: {
+    fontSize: 12.5,
+    color: '#b3261e',
+    alignSelf: 'center',
+    maxWidth: 420,
+    lineHeight: 1.5,
+    textAlign: 'right',
   },
   primaryBtn: {
     padding: '8px 14px',
