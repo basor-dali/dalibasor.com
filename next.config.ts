@@ -1,7 +1,29 @@
 import type { NextConfig } from 'next';
 
+/**
+ * The parts of a Content-Security-Policy that cannot break anything here.
+ *
+ * A full policy would have to allow Next's inline bootstrap scripts, the
+ * inline image-reveal script and the JSON-LD blocks — which means nonces,
+ * which means rendering every page per request, which this site does not do.
+ * These directives need none of that and still close real holes: no plugins,
+ * no <base> hijacking, no framing by other sites, no form posting elsewhere.
+ * Production only, so the local Keystatic and media tools are never in their
+ * way.
+ */
+const CSP = [
+  "object-src 'none'",
+  "base-uri 'self'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+].join('; ');
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
+  // No "X-Powered-By: Next.js" on every response — it tells nobody anything
+  // useful except which framework's advisories to try.
+  poweredByHeader: false,
 
   // Next generates AGENTS.md / CLAUDE.md on dev boot; this repo documents itself
   // in README, CONTENT_GUIDE and docs/ instead.
@@ -35,6 +57,9 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
+          ...(process.env.NODE_ENV === 'production'
+            ? [{ key: 'Content-Security-Policy', value: CSP }]
+            : []),
         ],
       },
       {
