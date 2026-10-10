@@ -12,10 +12,12 @@ import {
   getCurrentNow,
   getFeaturedMedia,
   getFeaturedProjects,
+  getProjects,
   getRecentPosts,
   getTimeline,
   getYearSummaries,
   pickArchiveEntry,
+  summarizeNow,
 } from '@/lib/content';
 import { pageMetadata } from '@/lib/metadata';
 import { site } from '@/lib/site';
@@ -56,9 +58,23 @@ export default function HomePage() {
   const found = pickArchiveEntry(buildSeed());
   const timeline = getTimeline();
 
+  // The typographic opener's three doors. Only drawn while there is no
+  // featured photograph to lead with.
+  const building = getProjects().find(
+    (project) => project.status === 'building' || project.status === 'experiment',
+  );
+
   return (
     <>
-      <Hero item={heroItem} span={span} />
+      <Hero
+        item={heroItem}
+        span={span}
+        pointers={{
+          latest: posts[0],
+          building,
+          now: now ? summarizeNow(now) : undefined,
+        }}
+      />
       <LatestWriting posts={posts} />
       <SelectedProjects projects={projects} />
       <ArchivePreview years={years} />
