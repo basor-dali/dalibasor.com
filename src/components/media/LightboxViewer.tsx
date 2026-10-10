@@ -14,7 +14,11 @@ import { MediaVideo } from './MediaVideo';
  *   1. The photograph owns the screen. Chrome hides itself after a moment.
  *   2. Everything works from the keyboard, and focus is trapped while open.
  *   3. Neighbours are preloaded so arrowing through an album never stalls.
- *   4. The URL carries the photo id, so any frame can be linked to directly.
+ *   4. The URL carries the photo id, so any frame can be linked to directly,
+ *      and Back closes the viewer rather than leaving the page (the provider
+ *      in MediaLightbox.tsx keeps the history entry).
+ *   5. Every gesture has a button. Swiping is a shortcut on a phone, never
+ *      the only way to the next photograph (WCAG 2.5.1).
  *
  * Split out from MediaLightbox so it can be fetched on demand — see the note
  * on the lazy import there. Mounted at most once per page, by
@@ -93,18 +97,9 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
     };
   }, []);
 
-  /* --- deep link -------------------------------------------------------- */
-  useEffect(() => {
-    if (!item) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set('photo', item.id);
-    window.history.replaceState(null, '', url.toString());
-    return () => {
-      const cleanup = new URL(window.location.href);
-      cleanup.searchParams.delete('photo');
-      window.history.replaceState(null, '', cleanup.toString());
-    };
-  }, [item]);
+  // The address bar is the provider's job, not this component's: it owns the
+  // one history entry the viewer lives in, so Back can close it. See
+  // MediaLightbox.tsx.
 
   const go = useCallback(
     (delta: number) => {
@@ -427,8 +422,14 @@ function NavButton({ side, onClick }: { side: 'left' | 'right'; onClick: () => v
       type="button"
       onClick={onClick}
       aria-label={side === 'left' ? 'Previous photograph' : 'Next photograph'}
+      // Visible at every width. Below `sm` these were display:none, which left
+      // a swipe as the only way to the next photograph on a phone — a
+      // path-based gesture with no single-tap alternative (WCAG 2.5.1). On a
+      // phone the photograph runs to the edges, so the arrow gets a dark
+      // backing to stay legible over a bright frame; the chrome still fades
+      // out with everything else.
       className={cx(
-        'text-muted hover:text-ivory pointer-events-auto absolute top-1/2 hidden -translate-y-1/2 p-6 transition-colors sm:block',
+        'text-ivory sm:text-muted hover:text-ivory bg-ground-deep/45 pointer-events-auto absolute top-1/2 block -translate-y-1/2 p-3 transition-colors sm:bg-transparent sm:p-6',
         side === 'left' ? 'left-0' : 'right-0',
       )}
     >
