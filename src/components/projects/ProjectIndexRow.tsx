@@ -61,6 +61,11 @@ export function ProjectIndexRow({
           ) : null}
         </div>
 
+        {/* Status and period share a line until the 9rem column of the wide
+            layout, where "Building / 2025 —" does not fit and used to wrap with
+            the slash left hanging at the end of the first line. There the two
+            stack on purpose instead: no slash, period under the status, both
+            on the same left edge. */}
         <p className="col-start-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 lg:col-start-auto">
           <StatusDot status={project.status} />
           <span className={cx('u-label', dimmed ? 'text-muted' : 'text-muted')}>
@@ -68,10 +73,12 @@ export function ProjectIndexRow({
           </span>
           {/* The <p> is not itself a u-label, so the divider has to carry the
               mono sizing or it renders at body size next to 11px metadata. */}
-          <span aria-hidden="true" className="u-label text-line-strong">
+          <span aria-hidden="true" className="u-label text-line-strong lg:hidden">
             /
           </span>
-          <span className="u-label u-nums text-muted">{project.period}</span>
+          <span className="u-label u-nums text-muted lg:w-full lg:pl-4">
+            {project.period}
+          </span>
         </p>
 
         <div className="col-start-2 flex items-baseline justify-between gap-4 lg:col-start-auto">
