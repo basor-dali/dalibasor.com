@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Footer } from '@/components/chrome/Footer';
 import { SiteChrome } from '@/components/chrome/SiteChrome';
 import { LightboxProvider } from '@/components/media/MediaLightbox';
 import { getArchiveSpan } from '@/lib/content';
@@ -103,7 +104,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const mediaOrigin = mediaOriginFor();
 
   return (
-    <html lang={site.language} className={fontVariables} suppressHydrationWarning>
+    // data-scroll-behavior: globals.css sets `scroll-behavior: smooth` for
+    // in-page anchors, and since Next 16 the router only suspends it during a
+    // route change when this attribute says so. Without it every navigation
+    // animated the new page up from wherever the old one was scrolled to —
+    // measured at 44 frames of scrolling after a footer link.
+    <html
+      lang={site.language}
+      className={fontVariables}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: IMAGE_REVEAL }} />
         {/* Warm the host photographs actually come from. This pointed at
@@ -115,7 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <LightboxProvider>
-          <SiteChrome span={span}>{children}</SiteChrome>
+          <SiteChrome footer={<Footer span={span} />}>{children}</SiteChrome>
         </LightboxProvider>
 
         <script

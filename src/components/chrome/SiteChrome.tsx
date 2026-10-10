@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { Navigation } from './Navigation';
-import { Footer } from './Footer';
 
 /**
  * Decides whether a route gets the site's chrome.
@@ -16,16 +15,25 @@ import { Footer } from './Footer';
  * This is a client component purely so it can read the pathname; the pages it
  * wraps stay server components, because `children` is already-rendered output
  * passed through untouched.
+ *
+ * The footer arrives the same way, as a slot, and that is load-bearing. It
+ * used to be imported here, which made it a client component — and it prints
+ * the current year. A static page is built in one year and read in the next:
+ * every January the browser's year disagreed with the HTML's, React threw
+ * hydration error #418 and re-rendered the whole page from scratch, on every
+ * page, until the next deploy. Rendered on the server, the year is simply
+ * part of the built HTML.
  */
 
 const ADMIN_PREFIXES = ['/keystatic', '/admin'];
 
 export function SiteChrome({
   children,
-  span,
+  footer,
 }: {
   children: ReactNode;
-  span: { from: number; to: number };
+  /** Server-rendered. See the note above before importing a footer here. */
+  footer: ReactNode;
 }) {
   const pathname = usePathname();
   const isAdmin = ADMIN_PREFIXES.some(
@@ -46,7 +54,7 @@ export function SiteChrome({
       </a>
       <Navigation />
       <main id="main">{children}</main>
-      <Footer span={span} />
+      {footer}
     </>
   );
 }
