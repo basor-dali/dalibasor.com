@@ -14,7 +14,11 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
             Mastodon-style verification read. Invisible on screen; the name,
             place, address and accounts below are the same ones shown. */}
         <div className="h-card grid gap-12 md:grid-cols-12">
-          <data className="u-url u-uid" value={site.url} />
+          {/* `hidden`, because an empty element is still a grid item: this one
+              took the first of the twelve columns, pushed the name a column
+              right and "Elsewhere" onto a row of its own. Parsers read the
+              markup, not the CSS, so it still counts. */}
+          <data className="u-url u-uid hidden" value={site.url} />
           {/* --- identity --- */}
           <div className="md:col-span-5">
             <p className="p-name u-display text-ivory text-2xl">{site.name}</p>
