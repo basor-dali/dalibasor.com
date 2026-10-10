@@ -3,7 +3,7 @@ import { Footer } from '@/components/chrome/Footer';
 import { SiteChrome } from '@/components/chrome/SiteChrome';
 import { LightboxProvider } from '@/components/media/MediaLightbox';
 import { getArchiveSpan } from '@/lib/content';
-import { jsonLdScript, personJsonLd } from '@/lib/metadata';
+import { feedTypes, jsonLdScript, personJsonLd } from '@/lib/metadata';
 import { ALLOW_INDEXING, site } from '@/lib/site';
 import { fontVariables } from './fonts';
 import './globals.css';
@@ -20,14 +20,7 @@ export const metadata: Metadata = {
   creator: site.author.name,
   alternates: {
     canonical: '/',
-    types: {
-      'application/rss+xml': [
-        { url: '/writing/rss.xml', title: `${site.name} — Writing` },
-      ],
-      'application/feed+json': [
-        { url: '/writing/feed.json', title: `${site.name} — Writing` },
-      ],
-    },
+    types: feedTypes(),
   },
   openGraph: {
     type: 'website',
