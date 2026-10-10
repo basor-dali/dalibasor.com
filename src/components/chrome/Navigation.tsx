@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { trapTab } from '@/lib/focus-trap';
+import { inertOutside, trapTab } from '@/lib/focus-trap';
 import { requestSearchFocus } from '@/lib/search/intent';
 import { primaryNav, site } from '@/lib/site';
 import { cx } from '@/lib/utils';
@@ -67,6 +67,10 @@ export function Navigation() {
   }
 
   /* --- menu behaviour ---------------------------------------------------- */
+  // Set when the menu is closed with Close or Escape, so focus goes back to
+  // the Menu button. Not when a link closes it: the next page has the focus.
+  const returnFocusRef = useRef(false);
+
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -76,22 +80,32 @@ export function Navigation() {
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        returnFocusRef.current = true;
         setMenuOpen(false);
-        menuButtonRef.current?.focus();
         return;
       }
       trapTab(event, panelRef.current);
     }
 
     document.addEventListener('keydown', onKeyDown);
+    const menuButton = menuButtonRef.current;
+    // The page behind the overlay can't be reached or read while it is open.
+    const restoreInert = inertOutside(panelRef.current);
     // Move focus into the panel so a screen reader lands inside the menu, on
     // the Close control — the right landing spot for a dialog. By ref rather
     // than "the first focusable": the wordmark link now comes first.
     closeButtonRef.current?.focus();
 
     return () => {
+      // Inert off first: the Menu button is behind the overlay, and focusing
+      // an inert element silently does nothing.
+      restoreInert();
       body.style.overflow = previous;
       document.removeEventListener('keydown', onKeyDown);
+      if (returnFocusRef.current) {
+        returnFocusRef.current = false;
+        menuButton?.focus();
+      }
     };
   }, [menuOpen]);
 
@@ -255,8 +269,8 @@ export function Navigation() {
             ref={closeButtonRef}
             type="button"
             onClick={() => {
+              returnFocusRef.current = true;
               setMenuOpen(false);
-              menuButtonRef.current?.focus();
             }}
             className="u-label text-ivory -m-3 p-3"
           >

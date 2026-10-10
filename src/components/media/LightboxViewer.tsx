@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MediaItem } from '@/types/content';
-import { trapTab } from '@/lib/focus-trap';
+import { inertOutside, trapTab } from '@/lib/focus-trap';
 import { formatDuration, mediaAlt, responsiveImage } from '@/lib/media';
 import { cx, formatDate } from '@/lib/utils';
 import { MediaVideo } from './MediaVideo';
@@ -79,8 +79,15 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
   useEffect(() => {
     restoreFocusRef.current = document.activeElement as HTMLElement | null;
     const node = dialogRef.current;
+    // The page behind can't be reached or read while the viewer is open.
+    const restoreInert = inertOutside(node);
     node?.focus();
-    return () => restoreFocusRef.current?.focus?.();
+    return () => {
+      // Inert off first: the photograph that opened the viewer is in the page
+      // behind, and focusing an inert element silently does nothing.
+      restoreInert();
+      restoreFocusRef.current?.focus?.();
+    };
   }, []);
 
   /* --- scroll lock ------------------------------------------------------ */
