@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { PostSummary } from '@/types/content';
 import { ArrowLink, Label, SectionHeader } from '@/components/primitives';
+import { replyHref } from '@/lib/site';
 import { cx, formatDate, isoDate } from '@/lib/utils';
 import { ArticlePreview } from './ArticlePreview';
 
@@ -10,6 +11,11 @@ import { ArticlePreview } from './ArticlePreview';
  * A colophon, the two entries either side of this one in time, and a few
  * things on the same subjects. Nothing to sign up for, nothing to share,
  * nothing to count. The archive is the reward.
+ *
+ * And two quiet ways to stay in touch with the person behind it: an email
+ * with the subject already filled in — no comments here, but a reply has
+ * always been possible, it just was not offered — and the feeds, for anyone
+ * who wants the next one. Neither tracks anything.
  */
 
 export type ArticleFooterProps = {
@@ -101,6 +107,22 @@ export function ArticleFooter({
           <ArrowLink href={`/years/${post.year}`}>More from {post.year}</ArrowLink>
           <ArrowLink href="/writing">The full archive</ArrowLink>
         </div>
+      </div>
+
+      {/* --- answer, follow -------------------------------------------------- */}
+      <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <a
+          href={replyHref(`Re: ${post.title}`)}
+          className="u-label border-line-strong text-ivory hover:border-ember border px-4 py-3 transition-colors duration-300 hover:text-white"
+        >
+          Reply by email
+        </a>
+        <p className="u-label text-muted">
+          Follow by{' '}
+          <Link href="/feeds" className="u-link u-link-reveal hover:text-ivory">
+            RSS or JSON Feed
+          </Link>
+        </p>
       </div>
 
       {/* --- either side in time ------------------------------------------- */}

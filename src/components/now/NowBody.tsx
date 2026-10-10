@@ -3,6 +3,7 @@ import { Placeholder } from '@/components/mdx/components';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage } from '@/components/media/MediaImage';
 import { ArrowLink, MetaLine } from '@/components/primitives';
+import { replyHref } from '@/lib/site';
 import { formatDate, formatPeriod, isoDate, parseDate, pluralize } from '@/lib/utils';
 import type { NowEntry, NowSummary } from '@/types/content';
 
@@ -176,6 +177,19 @@ export function NowBody({
                 <Placeholder />
               )}
             </div>
+
+            {/* A Now entry is the closest thing here to a letter; it can be
+                answered like one. Not on scaffolding — nothing to answer. */}
+            {hasBody && !entry.placeholder ? (
+              <p className="mt-12">
+                <a
+                  href={replyHref(`Re: ${entry.title}`)}
+                  className="u-label u-link u-link-reveal text-muted hover:text-ivory"
+                >
+                  Reply by email
+                </a>
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

@@ -81,6 +81,14 @@ export const primaryNav: NavItem[] = [
   { href: '/now', label: 'Now', note: 'What I am doing at this moment in my life' },
 ];
 
+/**
+ * A mailto: for answering one particular thing — an essay, a project, a month.
+ * The subject says which, so a reply arrives with its context attached.
+ */
+export function replyHref(subject: string): string {
+  return `mailto:${site.author.email}?subject=${encodeURIComponent(subject)}`;
+}
+
 /** Age at a given date — used for the time-as-design-element treatments. */
 export function ageAt(date: Date | string): number {
   const d = typeof date === 'string' ? new Date(date) : date;

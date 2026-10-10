@@ -16,6 +16,7 @@ import {
   STATUS_LABELS,
 } from '@/lib/content';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
+import { replyHref } from '@/lib/site';
 import { cx, isoDate, pluralize, yearOf } from '@/lib/utils';
 import type { Post, ProjectSummary } from '@/types/content';
 
@@ -229,6 +230,21 @@ export default async function ProjectPage({ params }: PageProps) {
           </ul>
         </section>
       ) : null}
+
+      {/* --- ask ---------------------------------------------------------- */}
+      {/* Project pages are where the conversations about hardware start —
+          someone building the same thing, someone who hit the same wall. */}
+      <div className="u-page mt-(--spacing-section)">
+        <div className="border-line flex flex-wrap items-center gap-x-8 gap-y-4 border-t pt-8">
+          <a
+            href={replyHref(`About ${project.title}`)}
+            className="u-label border-line-strong text-ivory hover:border-ember border px-4 py-3 transition-colors duration-300 hover:text-white"
+          >
+            Ask about this project
+          </a>
+          <p className="u-label text-muted">By email</p>
+        </div>
+      </div>
 
       {/* --- neighbours --------------------------------------------------- */}
       {previous || next ? (
