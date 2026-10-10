@@ -4,10 +4,11 @@ import type { ArchiveEntry } from '@/types/content';
 import { site } from '@/lib/site';
 import { hashString, parseDate, yearOf } from '@/lib/utils';
 import { once } from './fs';
-import { getAllAlbums, getArchiveYears, getFeaturedMedia, getYear } from './media';
+import { getAllAlbums, getFeaturedMedia, getYear } from './media';
 import { getCurrentNow, getNowEntries } from './now';
 import { getPosts } from './writing';
 import { getProjects } from './projects';
+import { getYearRecords } from './years';
 
 /**
  * "From the archive".
@@ -143,45 +144,44 @@ export type TimelineYear = {
   photos: number;
   videos: number;
   albums: number;
+  /** Things that happened that year — see YearRecord.total. */
   total: number;
-  /** Where a year page exists to link to. */
+  /** The year's own page, when it has one. */
   href?: string;
 };
 
+/**
+ * One mark per year, from the year records.
+ *
+ * Each mark used to link to the year's photographs and nothing else, so a
+ * year of writing with no photographs was a dead mark, and a year whose
+ * manifest existed but was empty — 2025, on the day this changed — was a link
+ * to a page that said "Nothing filed yet". Marks now link to the year itself,
+ * where the photographs are one section among the rest.
+ *
+ * The count also stopped adding albums on top of the photographs inside them.
+ */
 export const getTimeline = once((): TimelineYear[] => {
-  const posts = getPosts();
-  const projects = getProjects();
-  const mediaYears = new Set(getArchiveYears());
-
-  const years = new Set<number>([
-    ...posts.map((post) => post.year),
-    ...projects.map((project) => yearOf(project.startDate)),
-    ...mediaYears,
-    ...getNowEntries().map((entry) => entry.year),
-  ]);
+  const records = new Map(getYearRecords().map((record) => [record.year, record]));
 
   // Always show the declared start of the archive, even before it has content.
-  years.add(site.archiveStartYear);
+  const years = new Set<number>([...records.keys(), site.archiveStartYear]);
 
   return [...years]
     .sort((a, b) => b - a)
     .map((year) => {
+      const record = records.get(year);
       const media = getYear(year);
-      const yearPosts = posts.filter((post) => post.year === year).length;
-      const yearProjects = projects.filter(
-        (project) => yearOf(project.startDate) === year,
-      ).length;
 
       return {
         year,
-        posts: yearPosts,
-        projects: yearProjects,
+        posts: record?.posts.length ?? 0,
+        projects: record?.projects.started.length ?? 0,
         photos: media?.photoCount ?? 0,
         videos: media?.videoCount ?? 0,
         albums: media?.albums.length ?? 0,
-        total:
-          yearPosts + yearProjects + (media?.totalCount ?? 0) + (media?.albums.length ?? 0),
-        href: media ? media.href : undefined,
+        total: record?.total ?? 0,
+        href: record?.href,
       };
     });
 });

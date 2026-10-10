@@ -16,9 +16,19 @@ export type YearSelectorProps = {
   years: number[];
   current: number;
   className?: string;
+  /** Where a year lives: `/photos` for its photographs, `/years` for all of it. */
+  basePath?: string;
+  /** Accessible name for the whole selector. */
+  label?: string;
 };
 
-export function YearSelector({ years, current, className }: YearSelectorProps) {
+export function YearSelector({
+  years,
+  current,
+  className,
+  basePath = '/photos',
+  label = 'Archive years',
+}: YearSelectorProps) {
   if (years.length === 0) return null;
 
   const index = years.indexOf(current);
@@ -27,12 +37,12 @@ export function YearSelector({ years, current, className }: YearSelectorProps) {
   const earlier = index >= 0 ? years[index + 1] : undefined;
 
   return (
-    <nav aria-label="Archive years" className={cx(className)}>
+    <nav aria-label={label} className={cx(className)}>
       <hr className="u-rule-strong" />
 
       <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-8 pt-7">
-        <StepLink year={earlier} direction="earlier" />
-        <StepLink year={later} direction="later" />
+        <StepLink year={earlier} direction="earlier" basePath={basePath} />
+        <StepLink year={later} direction="later" basePath={basePath} />
       </div>
 
       <ol className="mt-12 flex list-none flex-wrap items-baseline gap-x-5 gap-y-4 p-0 sm:gap-x-7">
@@ -41,7 +51,7 @@ export function YearSelector({ years, current, className }: YearSelectorProps) {
           return (
             <li key={year}>
               <Link
-                href={`/photos/${year}`}
+                href={`${basePath}/${year}`}
                 aria-current={isCurrent ? 'page' : undefined}
                 className={cx(
                   'u-label-lg u-nums block py-1 transition-colors duration-300',
@@ -64,9 +74,11 @@ export function YearSelector({ years, current, className }: YearSelectorProps) {
 function StepLink({
   year,
   direction,
+  basePath,
 }: {
   year: number | undefined;
   direction: 'earlier' | 'later';
+  basePath: string;
 }) {
   const isEarlier = direction === 'earlier';
   const align = isEarlier ? 'text-left' : 'text-right';
@@ -80,7 +92,7 @@ function StepLink({
   }
 
   return (
-    <Link href={`/photos/${year}`} className={cx('group block max-w-[14rem]', align)}>
+    <Link href={`${basePath}/${year}`} className={cx('group block max-w-[14rem]', align)}>
       <span className="u-label text-muted group-hover:text-muted block transition-colors duration-300">
         {isEarlier ? 'Earlier' : 'Later'}
       </span>

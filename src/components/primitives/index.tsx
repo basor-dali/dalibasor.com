@@ -28,7 +28,7 @@ export function Label({
 }: {
   children: ReactNode;
   className?: string;
-  as?: 'span' | 'p' | 'div' | 'h2';
+  as?: 'span' | 'p' | 'div' | 'h2' | 'h3';
 }) {
   // `muted` (5.40:1) rather than `mute` (3.58:1): u-label is 11px, which needs
   // 4.5:1. This is the colour of nearly every date, tag and count on the site.

@@ -8,7 +8,7 @@ import {
   getAllPages,
   getAllPostsWithBodies,
   getAllProjectsWithBodies,
-  getYearSummaries,
+  getYearRecords,
 } from '@/lib/content';
 import {
   formatDate,
@@ -225,30 +225,43 @@ export function buildSearchIndex(): SearchDoc[] {
 
   /* --- years ----------------------------------------------------------- */
 
-  for (const year of getYearSummaries()) {
-    const yearAlbums = albums.filter((album) => album.year === year.year);
+  /* A year is a page of its own now — everything dated to it — so searching
+     "2019" lands there rather than on the photographs alone, and a year with
+     writing and no photographs can be found at all. Its text is the titles
+     of what it holds, so a search for an essay's title also turns up the
+     year it belongs to, ranked below the essay itself. */
+  for (const record of getYearRecords()) {
+    const yearAlbums = record.photographs?.albums ?? [];
+    const places = [
+      ...new Set(
+        [
+          ...yearAlbums.map((album) => album.location),
+          ...record.posts.map((post) => post.location),
+          ...record.now.map((entry) => entry.location),
+        ].filter((location): location is string => Boolean(location)),
+      ),
+    ];
 
     docs.push({
-      id: `year:${year.year}`,
+      id: `year:${record.year}`,
       kind: 'year',
-      title: String(year.year),
-      href: year.href,
+      title: String(record.year),
+      href: record.href,
       meta: joinMeta([
-        frameCount(year.photoCount, year.videoCount),
-        year.albumCount > 0 ? pluralize(year.albumCount, 'album') : undefined,
+        record.posts.length > 0 ? pluralize(record.posts.length, 'essay') : undefined,
+        record.projects.started.length > 0
+          ? pluralize(record.projects.started.length, 'project')
+          : undefined,
+        frameCount(record.photographs?.photoCount ?? 0, record.photographs?.videoCount ?? 0),
       ]),
-      year: year.year,
-      date: `${year.year}-12-31`,
-      text: searchable(String(year.year), [
-        year.note,
+      year: record.year,
+      date: `${record.year}-12-31`,
+      text: searchable(String(record.year), [
+        record.note,
+        record.posts.map((post) => post.title).join(' · '),
+        record.projects.started.map((project) => project.title).join(' · '),
         yearAlbums.map((album) => album.title).join(' · '),
-        [
-          ...new Set(
-            yearAlbums
-              .map((album) => album.location)
-              .filter((location): location is string => Boolean(location)),
-          ),
-        ].join(' · '),
+        places.join(' · '),
       ]),
     });
   }

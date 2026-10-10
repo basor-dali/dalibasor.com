@@ -72,6 +72,11 @@ export const primaryNav: NavItem[] = [
     note: 'Things I am building, finished and abandoned',
   },
   { href: '/photos', label: 'Photos + Video', note: 'The archive, year by year' },
+  {
+    href: '/years',
+    label: 'Years',
+    note: 'Everything from one year, together',
+  },
   { href: '/about', label: 'About', note: 'Where I came from and what I do' },
   { href: '/now', label: 'Now', note: 'What I am doing at this moment in my life' },
 ];

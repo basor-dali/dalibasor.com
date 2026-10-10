@@ -177,9 +177,18 @@ Years are not metadata here, they are the organising principle:
 
 - writing is grouped by year in the archive
 - the media archive is `content/media/<year>.yml`, one file per year
-- `getTimeline()` reports what exists in every year across all content types
+- every year with anything in it has a page at `/years/<year>`, built by `getYearRecords()`
+  in `src/lib/content/years.ts`: the writing, the projects that started, ended or carried on,
+  the photographs and albums, and the Now entries, in the order the year went. Nothing is
+  stored for it — it is a second view of the same files — and `/years` lists them all with
+  the gaps left in
+- `getTimeline()` reads the year records, so every mark on the homepage timeline is a door
+  to its year rather than only to its photographs
+- every dated thing links to its year: the end of an essay, a project's period, a Now
+  entry, a photo year, the year in "From the archive"
 - `pickArchiveEntry()` weights **older** material higher, because the point of "From the
-  archive" is being shown something you had forgotten
+  archive" is being shown something you had forgotten. Nothing younger than six months,
+  no placeholder, and nothing marked `resurface: false` is ever picked
 
 That randomiser is seeded deterministically (build SHA + date) rather than using
 `Math.random()`, because a statically generated page and a later rebuild would otherwise

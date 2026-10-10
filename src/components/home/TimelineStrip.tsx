@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import type { TimelineYear } from '@/lib/content';
-import { Label } from '@/components/primitives';
-import { cx } from '@/lib/utils';
+import { ArrowLink, Label } from '@/components/primitives';
+import { cx, pluralize } from '@/lib/utils';
 
 /**
  * The timeline strip.
  *
  * `2016 ——— 2020 ——— 2024 ——— 2026`. Only years the archive actually knows
- * about appear, so the gaps are real gaps. Years with a photo archive are
- * links; years that only hold writing or projects are marks on the line.
+ * about appear, so the gaps are real gaps. Every year with something in it is
+ * a link to its own page — writing, projects, photographs and Now together —
+ * and the declared start of the archive is a mark on the line until it has
+ * something too.
  *
  * It scrolls horizontally inside itself on small screens and never pushes the
  * page sideways.
@@ -29,9 +31,15 @@ export function TimelineStrip({ years }: { years: TimelineYear[] }) {
         <Label as="h2">
           <span id="home-timeline">Timeline</span>
         </Label>
-        <p className="u-label u-nums text-muted">
-          {first.year} <span aria-hidden="true">—</span> {last.year}
-        </p>
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
+          <p className="u-label u-nums text-muted">
+            {first.year}
+            <span aria-hidden="true"> — </span>
+            <span className="sr-only"> to </span>
+            {last.year}
+          </p>
+          <ArrowLink href="/years">Every year</ArrowLink>
+        </div>
       </div>
 
       <nav aria-label="Archive timeline" className="mt-10 overflow-x-auto pb-3 sm:mt-12">
@@ -90,7 +98,7 @@ function YearNode({ year, isLatest }: { year: TimelineYear; isLatest: boolean })
       <Link
         href={year.href}
         className={cx('group', classes)}
-        aria-label={`${year.year} — ${year.total} entries`}
+        aria-label={`${year.year} — ${pluralize(year.total, 'entry', 'entries')}`}
       >
         {inner}
       </Link>
