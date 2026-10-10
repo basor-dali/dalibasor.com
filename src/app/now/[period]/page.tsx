@@ -53,8 +53,11 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
   });
 
   // While this entry is the live one, `/now` is the address that should rank.
+  // Spread, not replaced: `alternates` also carries the feed links, and
+  // assigning a fresh object dropped them from exactly this one page — the
+  // trap metadata.ts documents for every other route.
   if (getCurrentNow()?.period === entry.period) {
-    meta.alternates = { canonical: absoluteUrl('/now') };
+    meta.alternates = { ...meta.alternates, canonical: absoluteUrl('/now') };
   }
 
   return meta;
