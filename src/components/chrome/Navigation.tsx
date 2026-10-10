@@ -127,7 +127,8 @@ export function Navigation() {
       ) {
         return;
       }
-      if (menuOpen || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      if (menuOpen || document.querySelector('[role="dialog"][aria-modal="true"]'))
+        return;
 
       event.preventDefault();
       const field = document.querySelector<HTMLInputElement>('input[type="search"]');

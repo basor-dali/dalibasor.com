@@ -238,7 +238,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
       const item = entry.item;
       // Straight to the photograph itself, in its own album or year, open in
       // the viewer — not to the top of a year page with hundreds in it.
-      const home = item.album ? `/photos/${item.year}/${item.album}` : `/photos/${item.year}`;
+      const home = item.album
+        ? `/photos/${item.year}/${item.album}`
+        : `/photos/${item.year}`;
       const href = `${home}?photo=${encodeURIComponent(item.id)}`;
       return (
         <div className="group relative">
@@ -254,7 +256,8 @@ function Body({ entry }: { entry: ArchiveEntry }) {
             <div>
               <h3 className="u-serif text-ivory text-xl">
                 <TitleLink href={href}>
-                  {item.caption ?? (item.capturedAt ? formatDate(item.capturedAt) : String(item.year))}
+                  {item.caption ??
+                    (item.capturedAt ? formatDate(item.capturedAt) : String(item.year))}
                 </TitleLink>
               </h3>
 

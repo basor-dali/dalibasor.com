@@ -64,7 +64,8 @@ export default function ColophonPage() {
     ...(host ? [{ label: 'Hosted on', value: host }] : []),
     {
       label: 'Typefaces',
-      value: 'Archivo, Instrument Serif and IBM Plex Mono, all under the SIL Open Font License.',
+      value:
+        'Archivo, Instrument Serif and IBM Plex Mono, all under the SIL Open Font License.',
     },
     {
       label: 'Feeds',

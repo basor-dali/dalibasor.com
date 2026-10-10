@@ -139,7 +139,9 @@ function Lead({ post }: { post: PostSummary }) {
             <TagList
               className="mt-5"
               linked={false}
-              tags={post.tags.slice(0, 4).map((tag) => ({ label: tag, slug: slugify(tag) }))}
+              tags={post.tags
+                .slice(0, 4)
+                .map((tag) => ({ label: tag, slug: slugify(tag) }))}
             />
           ) : null}
         </div>
@@ -202,7 +204,9 @@ function TypeLead({ post }: { post: PostSummary }) {
             <TagList
               className="mt-5"
               linked={false}
-              tags={post.tags.slice(0, 4).map((tag) => ({ label: tag, slug: slugify(tag) }))}
+              tags={post.tags
+                .slice(0, 4)
+                .map((tag) => ({ label: tag, slug: slugify(tag) }))}
             />
           ) : null}
         </div>

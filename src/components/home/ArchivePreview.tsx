@@ -182,8 +182,8 @@ function ArchiveEmpty() {
       <YearMark year={site.archiveStartYear} className="text-line" aria-hidden="true" />
       <div className="border-line mt-7 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t pt-5">
         <p className="u-label text-muted">
-          No photographs filed yet <span aria-hidden="true">·</span> the archive starts
-          in {site.archiveStartYear}
+          No photographs filed yet <span aria-hidden="true">·</span> the archive starts in{' '}
+          {site.archiveStartYear}
         </p>
         <ArrowLink href="/photos">Photos + Video</ArrowLink>
       </div>

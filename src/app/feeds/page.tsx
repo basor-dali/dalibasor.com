@@ -89,7 +89,11 @@ export default function FeedsPage() {
               one place, in the order they were written — no algorithm deciding what you
               see. Paste one of the addresses above into any reader.
             </p>
-            <ArrowLink href="https://aboutfeeds.com" external className="mt-6 inline-block">
+            <ArrowLink
+              href="https://aboutfeeds.com"
+              external
+              className="mt-6 inline-block"
+            >
               A longer explanation at aboutfeeds.com
             </ArrowLink>
           </div>

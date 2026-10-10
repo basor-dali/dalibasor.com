@@ -28,7 +28,10 @@ const isClient = (source) => /^\s*['"]use client['"]/.test(source);
 
 describe('site chrome', () => {
   it('renders the footer on the server, not inside the client chrome', () => {
-    assert.ok(!isClient(read('src/components/chrome/Footer.tsx')), 'Footer must stay a server component');
+    assert.ok(
+      !isClient(read('src/components/chrome/Footer.tsx')),
+      'Footer must stay a server component',
+    );
     const chrome = read('src/components/chrome/SiteChrome.tsx');
     assert.ok(isClient(chrome), 'SiteChrome is expected to be the client boundary');
     assert.ok(

@@ -259,7 +259,10 @@ export function buildSearchIndex(): SearchDoc[] {
         record.projects.started.length > 0
           ? pluralize(record.projects.started.length, 'project')
           : undefined,
-        frameCount(record.photographs?.photoCount ?? 0, record.photographs?.videoCount ?? 0),
+        frameCount(
+          record.photographs?.photoCount ?? 0,
+          record.photographs?.videoCount ?? 0,
+        ),
       ]),
       year: record.year,
       date: `${record.year}-12-31`,

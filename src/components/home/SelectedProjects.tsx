@@ -125,7 +125,10 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
         {/* The title is the link; its ::after stretches over the whole
             article, so the photograph and the words go to the same place
             without the entry's accessible name becoming a paragraph. */}
-        <Link href={project.href} className="after:absolute after:inset-0 after:content-['']">
+        <Link
+          href={project.href}
+          className="after:absolute after:inset-0 after:content-['']"
+        >
           <span className="u-link u-link-reveal group-hover:[background-size:100%_1px]">
             {project.title}
           </span>

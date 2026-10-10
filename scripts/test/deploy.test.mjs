@@ -60,7 +60,9 @@ describe('the lockfile the host installs from', () => {
     );
 
     assert.ok(linux.length > 0, 'expected sharp Linux builds in the lockfile');
-    const missing = linux.filter(([, entry]) => !Array.isArray(entry.libc)).map(([key]) => key);
+    const missing = linux
+      .filter(([, entry]) => !Array.isArray(entry.libc))
+      .map(([key]) => key);
     assert.deepEqual(
       missing,
       [],

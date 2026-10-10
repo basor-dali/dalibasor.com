@@ -22,7 +22,8 @@ const SECTION_LIMIT = 4;
 const LINE_LIMIT = 150;
 
 export function NowPreview({ entry }: { entry?: NowEntry }) {
-  const sections = entry && !entry.placeholder ? nowSections(entry).slice(0, SECTION_LIMIT) : [];
+  const sections =
+    entry && !entry.placeholder ? nowSections(entry).slice(0, SECTION_LIMIT) : [];
   const excerpt =
     entry && !entry.placeholder && sections.length === 0 && entry.plain
       ? truncate(entry.plain, 320)
@@ -72,7 +73,9 @@ export function NowPreview({ entry }: { entry?: NowEntry }) {
             <div className="border-ember-deep/70 bg-ember-deep/[0.06] max-w-(--container-text) border border-dashed p-5">
               <p className="u-label text-ember mb-3">Placeholder — replace this</p>
               <p className="text-soft text-sm">
-                <strong className="text-ivory">[DALI: WRITE THIS IN YOUR OWN WORDS]</strong>
+                <strong className="text-ivory">
+                  [DALI: WRITE THIS IN YOUR OWN WORDS]
+                </strong>
               </p>
             </div>
           ) : (

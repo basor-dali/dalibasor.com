@@ -102,7 +102,10 @@ export function WritingArchive({
 
     const next = params.toString();
     const url = `${window.location.pathname}${next ? `?${next}` : ''}${window.location.hash}`;
-    if (url !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+    if (
+      url !==
+      `${window.location.pathname}${window.location.search}${window.location.hash}`
+    ) {
       window.history.replaceState(null, '', url);
     }
   }, [year, tag, query]);

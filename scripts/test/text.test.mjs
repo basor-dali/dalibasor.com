@@ -39,7 +39,10 @@ describe('toPlainText', () => {
   });
 
   it('leaves a heading that already has punctuation alone', () => {
-    assert.equal(toPlainText('## What happened?\n\nIt failed.'), 'What happened? It failed.');
+    assert.equal(
+      toPlainText('## What happened?\n\nIt failed.'),
+      'What happened? It failed.',
+    );
     assert.equal(toPlainText('### Notes:\n\nOne.'), 'Notes: One.');
   });
 

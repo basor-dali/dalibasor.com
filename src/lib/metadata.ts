@@ -171,7 +171,11 @@ export function articleJsonLd(input: {
 }) {
   // The author is the person the About page is about — Google's guidance is
   // for author.url to point at the page that identifies them.
-  const author = { '@type': 'Person', name: site.author.name, url: absoluteUrl('/about') };
+  const author = {
+    '@type': 'Person',
+    name: site.author.name,
+    url: absoluteUrl('/about'),
+  };
 
   return {
     '@context': 'https://schema.org',

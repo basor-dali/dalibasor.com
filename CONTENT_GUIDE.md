@@ -50,7 +50,7 @@ Your words. Exactly as you want them.
 | ------------- | -------- | ------------------------------------------------------------------------------------- |
 | `title`       | yes      | The headline                                                                          |
 | `date`        | yes      | `YYYY-MM-DD`. Drives ordering and the archive grouping                                |
-| `updated`     | no       | `YYYY-MM-DD` of a real revision after publishing. Shown as "Revised", sent to feeds    |
+| `updated`     | no       | `YYYY-MM-DD` of a real revision after publishing. Shown as "Revised", sent to feeds   |
 | `slug`        | no       | Defaults to the filename. **Once published, never change it** — it is a permanent URL |
 | `subtitle`    | no       | A short editorial line under the title                                                |
 | `tags`        | no       | `[Life, Technology]`. Free-form; tag pages are generated automatically                |

@@ -146,7 +146,11 @@ export default function YearsPage() {
 function YearRow({ record }: { record: YearRecord }) {
   const titles = highlights(record);
   const turned =
-    record.turned === undefined ? undefined : record.turned === 0 ? 'Born' : `Turned ${record.turned}`;
+    record.turned === undefined
+      ? undefined
+      : record.turned === 0
+        ? 'Born'
+        : `Turned ${record.turned}`;
 
   return (
     <Link
@@ -163,7 +167,9 @@ function YearRow({ record }: { record: YearRecord }) {
           {[turned, ...holds(record)].filter(Boolean).join('  ·  ')}
         </span>
         {titles.length > 0 ? (
-          <span className="u-serif text-soft mt-2 block text-lg">{titles.join(' · ')}</span>
+          <span className="u-serif text-soft mt-2 block text-lg">
+            {titles.join(' · ')}
+          </span>
         ) : null}
       </span>
 
@@ -171,7 +177,14 @@ function YearRow({ record }: { record: YearRecord }) {
         aria-hidden="true"
         className="text-line-strong group-hover:text-ember hidden transition-colors duration-500 lg:block"
       >
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.4">
+        <svg
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+        >
           <path d="M3 8h10M9 4l4 4-4 4" />
         </svg>
       </span>

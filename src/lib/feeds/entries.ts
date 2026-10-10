@@ -26,7 +26,8 @@ export const WRITING_FEED: FeedChannel = {
 
 export const NOW_FEED: FeedChannel = {
   title: `${site.name} — Now`,
-  description: 'What I am doing, one month at a time. Every entry is kept at its own address.',
+  description:
+    'What I am doing, one month at a time. Every entry is kept at its own address.',
   home: '/now',
   rss: '/now/rss.xml',
   json: '/now/feed.json',

@@ -73,7 +73,9 @@ function isWordStart(haystack: string, index: number): boolean {
 function scoreDoc(doc: SearchDoc, tokens: string[]): number {
   const title = foldApostrophes(doc.title.toLowerCase());
   const tags =
-    doc.tags && doc.tags.length > 0 ? foldApostrophes(doc.tags.join(' ').toLowerCase()) : '';
+    doc.tags && doc.tags.length > 0
+      ? foldApostrophes(doc.tags.join(' ').toLowerCase())
+      : '';
   let score = 0;
 
   for (const token of tokens) {

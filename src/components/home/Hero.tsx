@@ -219,8 +219,13 @@ function HeroName() {
  * Starting This Website at 33", not a paragraph of labels.
  */
 function HeroDoors({ pointers }: { pointers: HeroPointers }) {
-  const doors: { key: string; label: string; href: string; title: string; meta: ReactNode }[] =
-    [];
+  const doors: {
+    key: string;
+    label: string;
+    href: string;
+    title: string;
+    meta: ReactNode;
+  }[] = [];
 
   if (pointers.latest) {
     doors.push({
@@ -273,7 +278,10 @@ function HeroDoors({ pointers }: { pointers: HeroPointers }) {
               {door.label}
             </p>
             <p className="u-display text-ivory mt-3 text-xl transition-colors duration-300 group-hover:text-white">
-              <Link href={door.href} className="after:absolute after:inset-0 after:content-['']">
+              <Link
+                href={door.href}
+                className="after:absolute after:inset-0 after:content-['']"
+              >
                 {door.title}
               </Link>
             </p>

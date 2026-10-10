@@ -53,7 +53,11 @@ type JsxNode = {
 
 type HandlerState = { all: (node: unknown) => Hast[] };
 
-const el = (tagName: string, properties: Record<string, unknown>, children: Hast[] = []): Hast => ({
+const el = (
+  tagName: string,
+  properties: Record<string, unknown>,
+  children: Hast[] = [],
+): Hast => ({
   type: 'element',
   tagName,
   properties,
@@ -62,7 +66,17 @@ const el = (tagName: string, properties: Record<string, unknown>, children: Hast
 const text = (value: string): Hast => ({ type: 'text', value });
 
 /** Plain HTML elements allowed through as themselves. Anything else keeps its children only. */
-const PASS_THROUGH = new Set(['br', 'em', 'strong', 'sup', 'sub', 'small', 'kbd', 'abbr', 'span']);
+const PASS_THROUGH = new Set([
+  'br',
+  'em',
+  'strong',
+  'sup',
+  'sub',
+  'small',
+  'kbd',
+  'abbr',
+  'span',
+]);
 
 /** Attribute values as strings or flags. Expressions arrive as their source. */
 function attributesOf(node: JsxNode): Record<string, string | true> {
@@ -97,10 +111,18 @@ function imageFor(publicId: string, item: MediaItem | undefined): string {
 }
 
 function figure(media: Hast, caption: string | undefined): Hast {
-  return el('figure', {}, caption ? [media, el('figcaption', {}, [text(caption)])] : [media]);
+  return el(
+    'figure',
+    {},
+    caption ? [media, el('figcaption', {}, [text(caption)])] : [media],
+  );
 }
 
-function translate(state: HandlerState, node: JsxNode, entryUrl: string): Hast | Hast[] | undefined {
+function translate(
+  state: HandlerState,
+  node: JsxNode,
+  entryUrl: string,
+): Hast | Hast[] | undefined {
   const attributes = attributesOf(node);
   const name = node.name ?? '';
 
@@ -120,7 +142,9 @@ function translate(state: HandlerState, node: JsxNode, entryUrl: string): Hast |
     case 'Row': {
       const caption = str(attributes.caption);
       const figures = state.all(node);
-      return caption ? [...figures, el('p', {}, [el('em', {}, [text(caption)])])] : figures;
+      return caption
+        ? [...figures, el('p', {}, [el('em', {}, [text(caption)])])]
+        : figures;
     }
 
     case 'Video': {
@@ -140,7 +164,10 @@ function translate(state: HandlerState, node: JsxNode, entryUrl: string): Hast |
       const poster = el('a', { href: entryUrl }, [
         el('img', { src: video.poster, alt: caption ? `Video: ${caption}` : 'Video' }),
       ]);
-      return figure(poster, `${caption ? `${caption} — ` : ''}a video, playable on the site.`);
+      return figure(
+        poster,
+        `${caption ? `${caption} — ` : ''}a video, playable on the site.`,
+      );
     }
 
     case 'Pull':
@@ -169,7 +196,8 @@ function absolutize(node: Hast, entryUrl: string): void {
       const value = properties[key];
       if (typeof value !== 'string') continue;
       if (value.startsWith('#')) properties[key] = `${entryUrl}${value}`;
-      else if (value.startsWith('/') && !value.startsWith('//')) properties[key] = absoluteUrl(value);
+      else if (value.startsWith('/') && !value.startsWith('//'))
+        properties[key] = absoluteUrl(value);
     }
   }
   for (const child of node.children ?? []) absolutize(child, entryUrl);

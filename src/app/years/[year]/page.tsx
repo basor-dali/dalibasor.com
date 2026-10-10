@@ -7,7 +7,12 @@ import { MediaImage } from '@/components/media/MediaImage';
 import { YearSelector } from '@/components/media/YearSelector';
 import { ArrowLink, Label, MetaLine, StatusDot, YearMark } from '@/components/primitives';
 import { ArticlePreview } from '@/components/writing/ArticlePreview';
-import { getRecordedYears, getYearRecord, STATUS_LABELS, type YearRecord } from '@/lib/content';
+import {
+  getRecordedYears,
+  getYearRecord,
+  STATUS_LABELS,
+  type YearRecord,
+} from '@/lib/content';
 import { mediaAlt, mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import { cx, formatPeriod, pluralize, truncate } from '@/lib/utils';
@@ -64,7 +69,11 @@ function countLine(record: YearRecord): string[] {
 
 function ogImage(item: MediaItem | undefined): string | undefined {
   if (!item || item.type !== 'image' || !providerCanResize()) return undefined;
-  return mediaProvider().imageUrl(item.publicId, { width: 1200, height: 630, fit: 'fill' });
+  return mediaProvider().imageUrl(item.publicId, {
+    width: 1200,
+    height: 630,
+    fit: 'fill',
+  });
 }
 
 export async function generateMetadata({
@@ -74,7 +83,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { year } = await params;
   const record = recordFor(year);
-  if (!record) return pageMetadata({ title: 'Year not found', path: `/years/${year}`, noIndex: true });
+  if (!record)
+    return pageMetadata({
+      title: 'Year not found',
+      path: `/years/${year}`,
+      noIndex: true,
+    });
 
   const counts = countLine(record);
   return pageMetadata({
@@ -161,7 +175,10 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
             {noteParagraphs.map((paragraph, index) => (
               <p
                 key={index}
-                className={cx('u-serif text-ivory text-2xl leading-[1.32]', index > 0 && 'mt-7')}
+                className={cx(
+                  'u-serif text-ivory text-2xl leading-[1.32]',
+                  index > 0 && 'mt-7',
+                )}
               >
                 {paragraph}
               </p>
@@ -175,8 +192,14 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
         <Rubric
           id="year-photographs"
           title="Photographs"
-          count={albumCountLabel(record.photographs.photoCount, record.photographs.videoCount)}
-          link={{ href: record.photographs.href, label: `Open ${record.year} in photographs` }}
+          count={albumCountLabel(
+            record.photographs.photoCount,
+            record.photographs.videoCount,
+          )}
+          link={{
+            href: record.photographs.href,
+            label: `Open ${record.year} in photographs`,
+          }}
         >
           <Contact items={record.photographs.preview} year={record.year} />
 
@@ -191,11 +214,16 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
                     <span className="u-display text-ivory text-xl transition-colors duration-300 group-hover:text-white">
                       {album.title}
                       {album.subtitle ? (
-                        <span className="u-serif text-muted ml-3 text-lg">{album.subtitle}</span>
+                        <span className="u-serif text-muted ml-3 text-lg">
+                          {album.subtitle}
+                        </span>
                       ) : null}
                     </span>
                     <span className="u-label text-muted">
-                      {[albumCountLabel(album.photoCount, album.videoCount), album.location]
+                      {[
+                        albumCountLabel(album.photoCount, album.videoCount),
+                        album.location,
+                      ]
                         .filter(Boolean)
                         .join('  ·  ')}
                     </span>
@@ -213,7 +241,10 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
           id="year-writing"
           title="Writing"
           count={pluralize(record.posts.length, 'essay')}
-          link={{ href: `/writing?year=${record.year}#index`, label: `Writing from ${record.year}` }}
+          link={{
+            href: `/writing?year=${record.year}#index`,
+            label: `Writing from ${record.year}`,
+          }}
         >
           <ol className="m-0 list-none p-0">
             {record.posts.map((post) => (

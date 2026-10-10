@@ -215,7 +215,7 @@ function EmptyYearRow({ year }: { year: number }) {
       href={`/photos/${year}`}
       className="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 py-5"
     >
-      <span className="u-display u-nums text-soft text-2xl transition-colors duration-300 group-hover:text-ivory">
+      <span className="u-display u-nums text-soft group-hover:text-ivory text-2xl transition-colors duration-300">
         {year}
       </span>
       <span className="u-label text-muted">Nothing filed yet</span>

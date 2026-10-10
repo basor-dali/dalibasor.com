@@ -49,7 +49,11 @@ describe('image reveal', () => {
     // A bare `addEventListener(` or `window.addEventListener(` is the window.
     const windowLevel = script
       .split('\n')
-      .filter((line) => /(^|[^.\w])addEventListener\(\s*'load'|window\.addEventListener\(\s*'load'/.test(line));
+      .filter((line) =>
+        /(^|[^.\w])addEventListener\(\s*'load'|window\.addEventListener\(\s*'load'/.test(
+          line,
+        ),
+      );
     assert.deepEqual(
       windowLevel,
       [],

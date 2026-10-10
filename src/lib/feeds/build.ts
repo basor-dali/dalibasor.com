@@ -45,7 +45,9 @@ export type FeedChannel = {
 
 export function rssResponse(channel: FeedChannel, entries: FeedEntry[]): Response {
   const newest = entries[0];
-  const lastBuildDate = newest ? rfc822(newest.updated ?? newest.date) : rfc822(new Date());
+  const lastBuildDate = newest
+    ? rfc822(newest.updated ?? newest.date)
+    : rfc822(new Date());
 
   const items = entries.map((entry) =>
     [
@@ -57,7 +59,9 @@ export function rssResponse(channel: FeedChannel, entries: FeedEntry[]): Respons
       entry.summary ? `      ${tag('description', entry.summary)}` : '',
       // A post can be a title and nothing else. An empty content:encoded is
       // worse than none — some readers show it as a blank item body.
-      entry.html.trim() ? `      <content:encoded>${cdata(entry.html)}</content:encoded>` : '',
+      entry.html.trim()
+        ? `      <content:encoded>${cdata(entry.html)}</content:encoded>`
+        : '',
       ...(entry.tags ?? []).map((value) => `      ${tag('category', value)}`),
       '    </item>',
     ]
@@ -89,7 +93,8 @@ export function rssResponse(channel: FeedChannel, entries: FeedEntry[]): Respons
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+      'Cache-Control':
+        'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
     },
   });
 }
@@ -122,7 +127,8 @@ export function jsonFeedResponse(channel: FeedChannel, entries: FeedEntry[]): Re
   return new Response(JSON.stringify(feed, null, 2), {
     headers: {
       'Content-Type': 'application/feed+json; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+      'Cache-Control':
+        'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
     },
   });
 }

@@ -29,7 +29,9 @@ export function ProjectMeta({
           <StatusDot status={project.status} />
           <span className="u-label-lg text-ivory">{STATUS_LABELS[project.status]}</span>
           {/* What the word means, so it keeps meaning it. */}
-          <span className="text-muted text-sm">— {STATUS_DEFINITIONS[project.status]}</span>
+          <span className="text-muted text-sm">
+            — {STATUS_DEFINITIONS[project.status]}
+          </span>
         </span>
       ),
     },
