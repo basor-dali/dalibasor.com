@@ -73,7 +73,7 @@ export function ArticleHeader({
         <div className="col-span-2 md:col-span-6 lg:col-span-8">
           <Label className="text-ember mb-7 block">Writing</Label>
 
-          <h1 className="u-display u-display-tight max-w-[16ch] text-4xl text-white">
+          <h1 className="p-name u-display u-display-tight max-w-[16ch] text-4xl text-white">
             {post.title}
           </h1>
 
@@ -94,13 +94,17 @@ export function ArticleHeader({
         {/* The facts, set small and mono, off to the side. */}
         <dl className="col-span-2 flex flex-wrap gap-x-10 gap-y-6 md:col-span-6 lg:col-span-3 lg:col-start-10 lg:mt-4 lg:flex-col">
           <Fact term="Published">
-            <time dateTime={isoDate(post.date)}>{formatDate(post.date)}</time>
+            <time className="dt-published" dateTime={isoDate(post.date)}>
+              {formatDate(post.date)}
+            </time>
           </Fact>
           {post.updated ? (
             // Revised after publication. Shown rather than silently folded
             // into the date: an archive should say when a piece changed.
             <Fact term="Revised">
-              <time dateTime={isoDate(post.updated)}>{formatDate(post.updated)}</time>
+              <time className="dt-updated" dateTime={isoDate(post.updated)}>
+                {formatDate(post.updated)}
+              </time>
             </Fact>
           ) : null}
           {post.location ? <Fact term="Written in">{post.location}</Fact> : null}

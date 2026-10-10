@@ -9,11 +9,13 @@ import {
   getRelatedPosts,
 } from '@/lib/content';
 import {
+  absoluteUrl,
   articleJsonLd,
   breadcrumbJsonLd,
   jsonLdScript,
   pageMetadata,
 } from '@/lib/metadata';
+import { site } from '@/lib/site';
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { ArticleFooter } from '@/components/writing/ArticleFooter';
 import { ArticleHeader } from '@/components/writing/ArticleHeader';
@@ -130,14 +132,18 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
         )}
       />
 
-      <article>
+      {/* An h-entry, so feed tools and IndieWeb readers can find the title,
+          the date, the author and the text without guessing. */}
+      <article className="h-entry">
+        <data className="u-url" value={absoluteUrl(post.href)} />
+        <data className="p-author" value={site.author.name} />
         <ArticleHeader post={post} projects={partOf} />
 
         <div className="u-page pt-(--spacing-section-sm) pb-(--spacing-section)">
           <div className="u-measure">
             {post.placeholder ? <PlaceholderNotice /> : null}
             {post.body.trim() ? (
-              <div className="prose">
+              <div className="prose e-content">
                 <MdxContent source={post.body} />
               </div>
             ) : post.placeholder ? null : (

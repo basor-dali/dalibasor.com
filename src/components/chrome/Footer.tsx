@@ -10,11 +10,15 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
   return (
     <footer className="border-line mt-(--spacing-section) border-t print:hidden">
       <div className="u-page py-14 sm:py-20">
-        <div className="grid gap-12 md:grid-cols-12">
+        {/* An h-card: the site's owner, in the microformat IndieWeb tools and
+            Mastodon-style verification read. Invisible on screen; the name,
+            place, address and accounts below are the same ones shown. */}
+        <div className="h-card grid gap-12 md:grid-cols-12">
+          <data className="u-url u-uid" value={site.url} />
           {/* --- identity --- */}
           <div className="md:col-span-5">
-            <p className="u-display text-ivory text-2xl">{site.name}</p>
-            <p className="u-label text-muted mt-3">{site.location}</p>
+            <p className="p-name u-display text-ivory text-2xl">{site.name}</p>
+            <p className="p-locality u-label text-muted mt-3">{site.location}</p>
             {span ? (
               <p className="u-label text-muted mt-8">
                 {/* "to" belongs between the years, not after them — the old
@@ -62,7 +66,7 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
                     href={social.href}
                     target="_blank"
                     rel="me noreferrer"
-                    className="u-link u-link-reveal text-soft text-sm hover:text-white"
+                    className="u-url u-link u-link-reveal text-soft text-sm hover:text-white"
                   >
                     {social.label}
                     <span className="u-label text-muted ml-2">{social.handle}</span>
@@ -72,7 +76,7 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
               <li>
                 <a
                   href={`mailto:${site.author.email}`}
-                  className="u-link u-link-reveal text-soft text-sm hover:text-white"
+                  className="u-email u-link u-link-reveal text-soft text-sm hover:text-white"
                 >
                   Email
                 </a>
