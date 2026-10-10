@@ -46,6 +46,7 @@ export function Navigation() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const scrolled = useSyncExternalStore(
@@ -94,9 +95,10 @@ export function Navigation() {
     }
 
     document.addEventListener('keydown', onKeyDown);
-    // Move focus into the panel so a screen reader lands inside the menu.
-    // The Close control is first, which is the right landing spot for a dialog.
-    panelRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus();
+    // Move focus into the panel so a screen reader lands inside the menu, on
+    // the Close control — the right landing spot for a dialog. By ref rather
+    // than "the first focusable": the wordmark link now comes first.
+    closeButtonRef.current?.focus();
 
     return () => {
       body.style.overflow = previous;
@@ -157,12 +159,12 @@ export function Navigation() {
           <button
             ref={menuButtonRef}
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => setMenuOpen(true)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             className="u-label text-ivory -m-3 p-3 md:hidden"
           >
-            {menuOpen ? 'Close' : 'Menu'}
+            Menu
           </button>
         </div>
       </header>
@@ -175,20 +177,33 @@ export function Navigation() {
         aria-modal={menuOpen ? true : undefined}
         aria-label="Site menu"
         hidden={!menuOpen}
-        className="bg-ground fixed inset-0 z-40 flex flex-col md:hidden"
+        // Above the bar, not below it. At z-40 under the bar's z-50 the bar
+        // stayed on top — transparent, because the scrolled treatment is
+        // suppressed while the menu is open — so its trigger, relabelled
+        // "Close", was drawn straight over this panel's own "Close ✕": two
+        // labels on top of each other at the corner of every phone. The panel
+        // now covers the bar and carries its own copy of the bar's top row.
+        className="bg-ground fixed inset-0 z-[60] flex flex-col md:hidden"
         style={menuOpen ? { animation: 'fade-in 0.3s var(--ease-out-quart)' } : undefined}
       >
-        {/* A close control inside the dialog.
-            The trigger that opened this sits in the bar behind it, covered by
-            the panel — so an aria-modal dialog offered no way out except the
-            Escape key, which is not discoverable and not available on a touch
-            screen. First child, so it is also the first thing the focus trap
-            and a screen-reader swipe reach. */}
+        {/* The bar's own row, repeated inside the dialog: the wordmark where
+            it always is, and the one way out. An aria-modal dialog needs its
+            close control inside it — Escape is not discoverable and does not
+            exist on a touch screen. */}
         <div
-          className="u-page flex shrink-0 items-center justify-end"
+          className="u-page flex shrink-0 items-center justify-between gap-6"
           style={{ height: 'var(--nav-height)' }}
         >
+          <Link
+            href="/"
+            onClick={() => setMenuOpen(false)}
+            className="-m-2 shrink-0 p-2"
+            aria-current={isHome ? 'page' : undefined}
+          >
+            <span className="u-label-lg text-ivory block font-medium">{site.name}</span>
+          </Link>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={() => {
               setMenuOpen(false);
@@ -221,6 +236,10 @@ export function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  // The menu closes itself when the pathname changes, which a
+                  // link to the page you are already on never does — tapping
+                  // "Writing" on /writing left the menu standing open.
+                  onClick={() => setMenuOpen(false)}
                   aria-current={active ? 'page' : undefined}
                   className="group border-line block border-b py-5"
                   style={
