@@ -44,6 +44,32 @@ function routeFiles(dir = APP_DIR, out = []) {
  */
 const MAX_DURATION_CEILING = 300;
 
+describe('the lockfile the host installs from', () => {
+  /* docs/DEPLOY.md warns that `vercel` once rewrote package-lock.json and
+     dropped the `libc` constraints from sharp's Linux packages — after which
+     the build fails on Vercel and works on Windows. npm itself does the same:
+     an ordinary `npm install` on this machine stripped all 38 of them while
+     adding a dependency during the 2026 audit. Nothing failed locally; the
+     next deploy would have. */
+  it('keeps the libc constraint on every Linux build of sharp', () => {
+    const lock = JSON.parse(
+      fs.readFileSync(new URL('../../package-lock.json', import.meta.url), 'utf8'),
+    );
+    const linux = Object.entries(lock.packages).filter(([key]) =>
+      /node_modules\/@img\/sharp-(libvips-)?linux/.test(key),
+    );
+
+    assert.ok(linux.length > 0, 'expected sharp Linux builds in the lockfile');
+    const missing = linux.filter(([, entry]) => !Array.isArray(entry.libc)).map(([key]) => key);
+    assert.deepEqual(
+      missing,
+      [],
+      `libc constraints are gone from package-lock.json for:\n  ${missing.join('\n  ')}\n` +
+        'Restore the lockfile from git and re-apply only the change you meant to make.',
+    );
+  });
+});
+
 describe('route configuration the host validates, not Next', () => {
   it('never asks for a longer function duration than the plan allows', () => {
     for (const { file, source } of routeFiles()) {
