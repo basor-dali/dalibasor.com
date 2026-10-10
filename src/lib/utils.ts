@@ -183,6 +183,17 @@ export function formatPeriod(period: string): string {
 
 /** Strips MDX/markdown syntax down to something searchable and countable. */
 export function toPlainText(mdx: string): string {
+  // Inline code keeps its words and loses only the backticks. It used to be
+  // deleted outright, which tore holes in sentences wherever plain text is
+  // shown: "add `content/now/2026-10.mdx` next month" reached the homepage,
+  // the meta description and the feed as "add  next month".
+  //
+  // The spans are lifted out and put back at the end, because the emphasis
+  // pass below strips underscores and asterisks — and inside code those are
+  // the content: `duty_cycle` would come out as "dutycycle".
+  const code: string[] = [];
+  const keep = (text: string) => `\u0000${code.push(text) - 1}\u0000`;
+
   return (
     mdx
       // MDX expression comments first. Without this the component reference that
@@ -190,15 +201,22 @@ export function toPlainText(mdx: string): string {
       // feed description as "{/ Components you can use here: , /}".
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
       .replace(/```[\s\S]*?```/g, ' ')
-      .replace(/`[^`]*`/g, ' ')
+      .replace(/`([^`]*)`/g, (_match, text: string) => keep(text))
       .replace(/<[^>]+>/g, ' ')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      // A heading ends a thought. Flattened without a stop it ran into the
+      // paragraph under it — a Now entry read "Working Shipping firmware for
+      // a sensor" — so it gets a full stop unless it already has punctuation.
+      .replace(/^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/gm, (_match, text: string) =>
+        text && !/[.!?:…]$/.test(text) ? `${text}.` : text,
+      )
       .replace(/^\s{0,3}>\s?/gm, '')
       .replace(/[*_~]{1,3}/g, '')
       .replace(/^\s*[-+*]\s+/gm, '')
       .replace(/\|/g, ' ')
+      // eslint-disable-next-line no-control-regex -- the sentinel from `keep`
+      .replace(/\u0000(\d+)\u0000/g, (_match, index: string) => code[Number(index)] ?? '')
       .replace(/\s+/g, ' ')
       .trim()
   );
