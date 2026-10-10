@@ -55,10 +55,18 @@ export const viewport: Viewport = {
  * A single capture-phase listener that marks images as loaded so CSS can fade
  * them in. Inlined in <head> so it is running before the first image decodes,
  * and gated behind a class so photographs are simply visible if it never runs.
+ *
+ * On `document`, never on `window`. The DOM spec stops a `load` event fired at
+ * an element at the document — the window is deliberately left out of its
+ * path, capture phase included — so a listener on window never hears a single
+ * photograph arrive. That version shipped: every image that finished after
+ * DOMContentLoaded (every lazy one, and on a real network the hero too) sat at
+ * opacity 0 forever behind its blurred placeholder. Verified in Chromium and
+ * WebKit; pinned in scripts/test/reveal.test.mjs.
  */
 const IMAGE_REVEAL = `
 document.documentElement.classList.add('js-media');
-addEventListener('load',function(e){
+document.addEventListener('load',function(e){
   var t=e.target;
   if(t&&t.tagName==='IMG')t.dataset.loaded='1';
 },true);
