@@ -115,6 +115,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
           <div className="grid items-center gap-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <CoverFrame
               publicId={project.coverImage}
+              item={project.coverItem}
               alt={project.coverAlt ?? project.title}
               ratio="4 / 3"
               ladder="grid"

@@ -303,6 +303,10 @@ function LeadPreview({
                  and the article page shows the same photograph described. */
               alt=""
               publicId={cover}
+              /* The manifest entry, so this gets the real ladder and formats.
+                 Without it this — the /writing page's LCP image — fell back to
+                 the single 1024px JPEG under R2, no srcset, no AVIF. */
+              item={post.coverItem}
               ratio={COVER_RATIO[post.coverShape] ?? COVER_RATIO.wide}
               ladder="feature"
               /* Two thirds of the page on desktop, the whole of it below that. */
