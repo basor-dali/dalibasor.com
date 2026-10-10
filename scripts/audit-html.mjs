@@ -212,6 +212,17 @@ function checkPage(file, report) {
     const href = attr(tag, 'href');
     const name = attr(tag, 'aria-label') || visibleText(inner) || attr(tag, 'title');
 
+    // A duplicate link that only widens a click target — the photograph beside
+    // a title that already carries the real link — is correctly taken out of
+    // the accessibility tree AND the tab order, and then needs no name. Hidden
+    // but still focusable is the actual fault: a tab stop that says nothing.
+    if (/aria-hidden="true"/i.test(tag)) {
+      if (attr(tag, 'tabindex') !== '-1') {
+        add('hidden-focusable', `<a href="${(href ?? '').slice(0, 50)}"> is aria-hidden but still focusable.`);
+      }
+      continue;
+    }
+
     if (!name) add('link-name', `<a href="${(href ?? '').slice(0, 50)}"> announces nothing.`);
     if (!hasAttr(tag, 'href')) add('link-href', 'an <a> with no href is not a link.');
     if (attr(tag, 'target') === '_blank' && !/noreferrer|noopener/.test(attr(tag, 'rel') ?? '')) {
