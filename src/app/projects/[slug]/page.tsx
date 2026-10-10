@@ -54,6 +54,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       project.description ??
       `${STATUS_LABELS[project.status]} — ${project.period}. A project by Dali Basor.`,
     path: project.href,
+    // Its own card — the status, the period and the name — rather than the
+    // site's. See ./opengraph-image.tsx.
+    image: `${project.href}/opengraph-image`,
     type: 'article',
     publishedTime: isoDate(project.startDate),
     tags: project.technologies,

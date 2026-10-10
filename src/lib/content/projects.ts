@@ -6,6 +6,7 @@ import {
   type ProjectFrontmatter,
   type ProjectStatus,
   type ProjectSummary,
+  type ProjectUpdate,
 } from '@/types/content';
 import { slugify, toDateString, toPlainText, yearOf } from '@/lib/utils';
 import { contentPath, once, readMdx, showDrafts, walk } from './fs';
@@ -24,6 +25,22 @@ export const STATUS_LABELS: Record<ProjectStatus, string> = {
   abandoned: 'Abandoned',
 };
 
+/**
+ * What each status means, in a line.
+ *
+ * A status vocabulary without definitions drifts: one personal site studied
+ * for the 2026 audit had grown "Completed", "Complete", "Completeish" and
+ * "Completed (sorta)" for the same thing. These are shown on /projects and
+ * beside the status on each project, so the words keep their meaning.
+ */
+export const STATUS_DEFINITIONS: Record<ProjectStatus, string> = {
+  building: 'Being worked on now',
+  experiment: 'Testing an idea that may go nowhere',
+  paused: 'Stopped for now, meant to resume',
+  finished: 'Done, and it does what it was for',
+  abandoned: 'Stopped for good, and kept here anyway',
+};
+
 /** Ordering for the index: live things first, dead things last but present. */
 export const STATUS_ORDER: ProjectStatus[] = [
   'building',
@@ -32,6 +49,52 @@ export const STATUS_ORDER: ProjectStatus[] = [
   'finished',
   'abandoned',
 ];
+
+/* ==========================================================================
+   The log
+   ==========================================================================
+   The content guide has always said to write a project's progress as dated
+   `##` sections, newest at the top, "so the page reads as a log rather than a
+   pitch" — and nothing ever read them. A heading that starts with a date is
+   an update:
+
+     ## 2026-03-14 — Wheel encoders
+     ## 2026-03
+     ## 2025-11-02: First full run
+
+   Anything else is an ordinary heading. The updates give a project a "last
+   worked on" date, a count, and a place in each year it was worked on. */
+
+const UPDATE_HEADING = /^##[ \t]+(\d{4}-\d{2}(?:-\d{2})?)\b[ \t]*(?:[—–:-][ \t]*)?(.*)$/;
+
+export function parseUpdates(body: string): ProjectUpdate[] {
+  const updates: ProjectUpdate[] = [];
+  let current: ProjectUpdate | undefined;
+  const lines: string[] = [];
+
+  const close = () => {
+    if (current) updates.push({ ...current, body: lines.join('\n').trim() });
+    lines.length = 0;
+  };
+
+  for (const line of body.split('\n')) {
+    const match = UPDATE_HEADING.exec(line);
+    if (match) {
+      close();
+      current = { date: match[1]!, title: match[2]?.trim() || undefined, body: '' };
+    } else if (/^##[ \t]/.test(line)) {
+      // An undated `##` ends the current update without starting one.
+      close();
+      current = undefined;
+    } else if (current) {
+      lines.push(line);
+    }
+  }
+  close();
+
+  // Newest first, however they were written.
+  return updates.sort((a, b) => b.date.localeCompare(a.date));
+}
 
 function isStatus(value: unknown): value is ProjectStatus {
   return PROJECT_STATUSES.includes(value as ProjectStatus);
@@ -66,6 +129,7 @@ const loadAll = once((): Project[] => {
     const slug = data.slug?.trim() || slugify(basename);
     const startDate = toDateString(data.startDate);
     const endDate = data.endDate ? toDateString(data.endDate) : undefined;
+    const updates = parseUpdates(body);
 
     return {
       slug,
@@ -89,6 +153,8 @@ const loadAll = once((): Project[] => {
       order: typeof data.order === 'number' ? data.order : 0,
       placeholder: Boolean(data.placeholder),
       resurface: data.resurface !== false,
+      updates,
+      updateDates: updates.map((update) => update.date),
       body,
       plain: toPlainText(body),
       sourcePath,
@@ -140,9 +206,31 @@ export function summarizeProject(project: Project): ProjectSummary {
     plain: _plain,
     sourcePath: _sourcePath,
     gallery: _gallery,
+    updates: _updates,
     ...rest
   } = project;
   return rest;
+}
+
+/**
+ * The projects an essay belongs to, read backwards from each project's
+ * `relatedWriting`. A project already links to its essays; this lets an
+ * essay say "part of ReMow" without anyone writing that twice.
+ */
+const projectsByPost = once((): Map<string, ProjectSummary[]> => {
+  const index = new Map<string, ProjectSummary[]>();
+  for (const project of visible(loadAll())) {
+    for (const postSlug of project.relatedWriting) {
+      const list = index.get(postSlug) ?? [];
+      list.push(summarizeProject(project));
+      index.set(postSlug, list);
+    }
+  }
+  return index;
+});
+
+export function getProjectsForPost(postSlug: string): ProjectSummary[] {
+  return projectsByPost().get(postSlug) ?? [];
 }
 
 /* ==========================================================================

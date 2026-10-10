@@ -42,10 +42,15 @@ export type YearProjects = {
    */
   ended: ProjectSummary[];
   /**
-   * Started earlier, still being worked on, no end yet. Only live statuses —
-   * a paused project is not "still going" just because it has no end date.
+   * Started earlier and not yet ended: live ones (building, experimenting),
+   * and any project with a dated log entry in this year whatever its status
+   * now — a project paused today was still worked on in the year its log says
+   * it was. A paused project with no log is not "still going" just because it
+   * has no end date.
    */
   ongoing: ProjectSummary[];
+  /** Dated log entries per project slug, in this year. */
+  updates: Record<string, number>;
 };
 
 export type YearRecord = {
@@ -90,6 +95,8 @@ const loadRecords = once((): Map<number, YearRecord> => {
     ...posts.map((post) => post.year),
     ...projects.map((project) => yearOf(project.startDate)),
     ...projects.flatMap((project) => (project.endDate ? [yearOf(project.endDate)] : [])),
+    // A year in which a project was only worked on is still a year of it.
+    ...projects.flatMap((project) => project.updateDates.map((date) => yearOf(date))),
     ...now.map((entry) => entry.year),
     ...[...summaries.values()].filter((s) => s.totalCount > 0).map((s) => s.year),
   ]);
@@ -116,12 +123,19 @@ const loadRecords = once((): Map<number, YearRecord> => {
           yearOf(project.startDate) < year,
       )
       .sort(byDate((project) => project.endDate ?? project.startDate));
+    const updates: Record<string, number> = {};
+    for (const project of projects) {
+      const count = project.updateDates.filter((date) => yearOf(date) === year).length;
+      if (count > 0) updates[project.slug] = count;
+    }
+
     const ongoing = projects.filter(
       (project) =>
-        LIVE.has(project.status) &&
+        (LIVE.has(project.status) || (updates[project.slug] ?? 0) > 0) &&
         yearOf(project.startDate) < year &&
         (!project.endDate || yearOf(project.endDate) > year),
     );
+    const updateCount = Object.values(updates).reduce((sum, count) => sum + count, 0);
 
     const yearNow = now
       .filter((entry) => entry.year === year)
@@ -146,18 +160,21 @@ const loadRecords = once((): Map<number, YearRecord> => {
       turned: year >= site.birthYear ? year - site.birthYear : undefined,
       note: resolved?.note?.trim() || undefined,
       posts: yearPosts,
-      projects: { started, ended, ongoing },
+      projects: { started, ended, ongoing, updates },
       now: yearNow,
       photographs,
       total:
         yearPosts.length +
         started.length +
         ended.length +
+        updateCount +
         yearNow.length +
         (photographs ? photographs.photoCount + photographs.videoCount : 0),
       written:
         [...yearPosts, ...started, ...ended, ...yearNow].filter((item) => !item.placeholder)
-          .length + (photographs ? photographs.photoCount + photographs.videoCount : 0),
+          .length +
+        updateCount +
+        (photographs ? photographs.photoCount + photographs.videoCount : 0),
     });
   }
 

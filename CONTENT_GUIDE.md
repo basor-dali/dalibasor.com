@@ -155,7 +155,28 @@ links:
 | `draft`          | no       |                                                                 |
 
 **`abandoned` is a real status, not a failure.** The archive is meant to show the things that
-did not work. Mark them and leave them up.
+did not work. Mark them and leave them up. Each status's one-line meaning is shown on
+/projects and beside the status on the project's page — see `STATUS_DEFINITIONS` in
+`src/lib/content/projects.ts`.
+
+### The project log
+
+Write progress as `##` sections that start with a date, newest at the top:
+
+```mdx
+## 2026-03-14 — Wheel encoders
+
+The encoders drift. Swapped to magnetic ones and the drift went with them.
+
+## 2025-11-02: First full run
+
+## 2025-06
+```
+
+`YYYY-MM-DD` or `YYYY-MM`, then optionally a dash or colon and a title. Each one is an
+update: the project page shows how many there are and when the latest was, the index shows
+"Updated Mar 2026", and the year pages list the project under every year it was worked on.
+Any `##` without a date is an ordinary heading.
 
 Gallery entries:
 

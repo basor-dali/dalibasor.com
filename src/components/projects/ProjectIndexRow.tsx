@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { StatusDot } from '@/components/primitives';
 import { STATUS_LABELS } from '@/lib/content';
-import { cx } from '@/lib/utils';
+import { cx, formatShortMonthYear } from '@/lib/utils';
 import type { ProjectSummary } from '@/types/content';
 
 /**
@@ -79,6 +79,19 @@ export function ProjectIndexRow({
           <span className="u-label u-nums text-muted lg:w-full lg:pl-4">
             {project.period}
           </span>
+          {/* When it was last worked on, from its own dated log. A list of
+              projects mostly answers "is this still alive?" — this answers it
+              with a date rather than a status alone. */}
+          {project.updateDates[0] ? (
+            <>
+              <span aria-hidden="true" className="u-label text-line-strong lg:hidden">
+                /
+              </span>
+              <span className="u-label u-nums text-muted lg:w-full lg:pl-4">
+                Updated {formatShortMonthYear(project.updateDates[0])}
+              </span>
+            </>
+          ) : null}
         </p>
 
         <div className="col-start-2 flex items-baseline justify-between gap-4 lg:col-start-auto">

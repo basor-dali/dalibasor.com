@@ -111,6 +111,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
     : [];
 
   const { started, ended, ongoing } = record.projects;
+  const activity = { updates: record.projects.updates, year: record.year };
   const hasProjects = started.length + ended.length + ongoing.length > 0;
 
   return (
@@ -237,9 +238,9 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
           link={{ href: '/projects', label: 'All projects' }}
         >
           <div className="flex flex-col gap-10">
-            <ProjectGroup label="Started" projects={started} />
-            <ProjectGroup label="Finished or stopped" projects={ended} />
-            <ProjectGroup label="Still going" projects={ongoing} />
+            <ProjectGroup label="Started" projects={started} {...activity} />
+            <ProjectGroup label="Finished or stopped" projects={ended} {...activity} />
+            <ProjectGroup label="Still going" projects={ongoing} {...activity} />
           </div>
         </Rubric>
       ) : null}
@@ -358,7 +359,18 @@ function Contact({ items, year }: { items: MediaItem[]; year: number }) {
   );
 }
 
-function ProjectGroup({ label, projects }: { label: string; projects: ProjectSummary[] }) {
+function ProjectGroup({
+  label,
+  projects,
+  updates,
+  year,
+}: {
+  label: string;
+  projects: ProjectSummary[];
+  /** Dated log entries per project in this year. */
+  updates: Record<string, number>;
+  year: number;
+}) {
   if (projects.length === 0) return null;
 
   return (
@@ -380,6 +392,12 @@ function ProjectGroup({ label, projects }: { label: string; projects: ProjectSum
                 {project.description ? (
                   <span className="text-muted mt-1.5 block max-w-[54ch] text-sm">
                     {truncate(project.description, 140)}
+                  </span>
+                ) : null}
+                {/* What happened to it this year, from its own log. */}
+                {updates[project.slug] ? (
+                  <span className="u-label text-muted mt-2.5 block">
+                    {pluralize(updates[project.slug]!, 'update')} in {year}
                   </span>
                 ) : null}
               </span>

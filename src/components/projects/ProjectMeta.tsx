@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowLink, StatusDot } from '@/components/primitives';
-import { STATUS_LABELS } from '@/lib/content';
-import { cx, yearOf } from '@/lib/utils';
+import { STATUS_DEFINITIONS, STATUS_LABELS } from '@/lib/content';
+import { cx, formatDate, formatMonthYear, isoDate, pluralize, yearOf } from '@/lib/utils';
 import type { ProjectSummary } from '@/types/content';
 
 /**
@@ -25,9 +25,11 @@ export function ProjectMeta({
     {
       label: 'Status',
       value: (
-        <span className="flex items-center gap-2">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <StatusDot status={project.status} />
           <span className="u-label-lg text-ivory">{STATUS_LABELS[project.status]}</span>
+          {/* What the word means, so it keeps meaning it. */}
+          <span className="text-muted text-sm">— {STATUS_DEFINITIONS[project.status]}</span>
         </span>
       ),
     },
@@ -39,6 +41,29 @@ export function ProjectMeta({
       value: <PeriodLinks project={project} />,
     },
   ];
+
+  // The log, read from the body's dated `##` sections: how many, and when the
+  // last one was. Absent until the first dated section is written.
+  const latest = project.updateDates[0];
+  if (latest) {
+    rows.push({
+      label: 'Log',
+      value: (
+        <span className="u-label-lg u-nums text-ivory">
+          {pluralize(project.updateDates.length, 'update')}
+          <span aria-hidden="true" className="text-line-strong">
+            {' '}
+            ·{' '}
+          </span>
+          <span className="sr-only">, </span>
+          latest{' '}
+          <time dateTime={isoDate(latest)}>
+            {/^\d{4}-\d{2}$/.test(latest) ? formatMonthYear(latest) : formatDate(latest)}
+          </time>
+        </span>
+      ),
+    });
+  }
 
   if (project.technologies.length > 0) {
     rows.push({

@@ -1,7 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { Post } from '@/types/content';
-import { getPost, getPostNeighbours, getPostSlugs, getRelatedPosts } from '@/lib/content';
+import {
+  getPost,
+  getPostNeighbours,
+  getPostSlugs,
+  getProjectsForPost,
+  getRelatedPosts,
+} from '@/lib/content';
 import {
   articleJsonLd,
   breadcrumbJsonLd,
@@ -95,6 +101,7 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
 
   const { previous, next } = getPostNeighbours(slug);
   const related = getRelatedPosts(slug, 3);
+  const partOf = getProjectsForPost(slug);
 
   return (
     <>
@@ -124,7 +131,7 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
       />
 
       <article>
-        <ArticleHeader post={post} />
+        <ArticleHeader post={post} projects={partOf} />
 
         <div className="u-page pt-(--spacing-section-sm) pb-(--spacing-section)">
           <div className="u-measure">

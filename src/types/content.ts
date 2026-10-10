@@ -187,12 +187,19 @@ export type Project = {
   order: number;
   placeholder: boolean;
   resurface: boolean;
+  /** Dated `##` sections in the body, newest first. See parseUpdates. */
+  updates: ProjectUpdate[];
+  /** Just their dates, newest first — what listings and year pages need. */
+  updateDates: DateString[];
   body: string;
   plain: string;
   sourcePath: string;
 };
 
-export type ProjectSummary = Omit<Project, 'body' | 'plain' | 'sourcePath' | 'gallery'>;
+export type ProjectSummary = Omit<
+  Project,
+  'body' | 'plain' | 'sourcePath' | 'gallery' | 'updates'
+>;
 
 /* ==========================================================================
    Now

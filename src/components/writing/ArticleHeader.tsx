@@ -1,5 +1,6 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
-import type { CoverShape, Post } from '@/types/content';
+import type { CoverShape, Post, ProjectSummary } from '@/types/content';
 import { CoverImage } from '@/components/media/MediaImage';
 import { Label, TagList } from '@/components/primitives';
 import { cx, formatDate, isoDate, pluralize, slugify } from '@/lib/utils';
@@ -55,7 +56,14 @@ function Fact({ term, children }: { term: string; children: ReactNode }) {
   );
 }
 
-export function ArticleHeader({ post }: { post: Post }) {
+export function ArticleHeader({
+  post,
+  projects = [],
+}: {
+  post: Post;
+  /** Projects that list this essay as related writing. */
+  projects?: ProjectSummary[];
+}) {
   const plan = COVER_PLANS[post.coverShape] ?? COVER_PLANS.wide;
   const cover = post.coverImage;
 
@@ -97,6 +105,23 @@ export function ArticleHeader({ post }: { post: Post }) {
           ) : null}
           {post.location ? <Fact term="Written in">{post.location}</Fact> : null}
           <Fact term="Reading">{pluralize(post.readingMinutes, 'minute')}</Fact>
+          {projects.length > 0 ? (
+            // Read backwards from the project's own list of related writing,
+            // so the link is declared once and shows up on both ends.
+            <Fact term="Part of">
+              {projects.map((project, index) => (
+                <span key={project.slug}>
+                  {index > 0 ? ', ' : null}
+                  <Link
+                    href={project.href}
+                    className="u-link u-link-reveal text-ivory hover:text-white"
+                  >
+                    {project.title}
+                  </Link>
+                </span>
+              ))}
+            </Fact>
+          ) : null}
         </dl>
       </div>
 
