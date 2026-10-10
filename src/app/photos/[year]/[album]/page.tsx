@@ -128,6 +128,7 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(
           breadcrumbJsonLd([
+            { name: 'Home', path: '/' },
             { name: 'Photos + Video', path: '/photos' },
             { name: String(album.year), path: `/photos/${album.year}` },
             { name: album.title, path: album.href },

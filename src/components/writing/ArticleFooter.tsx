@@ -94,7 +94,11 @@ export function ArticleFooter({
           </time>
           {post.location ? <> in {post.location}</> : null}
         </p>
-        <div className="col-span-2 md:col-span-2 lg:col-span-4 lg:col-start-9 lg:text-right">
+        {/* The year this was written, as a place to go: everything else
+            from then — what was being built, the photographs, the Now
+            entries. */}
+        <div className="col-span-2 flex flex-wrap gap-x-8 gap-y-3 md:col-span-2 lg:col-span-5 lg:col-start-8 lg:justify-end">
+          <ArrowLink href={`/years/${post.year}`}>More from {post.year}</ArrowLink>
           <ArrowLink href="/writing">The full archive</ArrowLink>
         </div>
       </div>

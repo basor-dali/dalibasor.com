@@ -50,9 +50,14 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
             {entry ? (
               <p className="mt-8">
                 <span className="u-label text-muted block">From</span>
-                <span className="u-display u-display-tight u-nums text-ivory mt-1 block text-4xl">
+                {/* The year is its own door: whatever else was going on then. */}
+                <Link
+                  href={`/years/${entry.year}`}
+                  className="group/year u-display u-display-tight u-nums text-ivory mt-1 block w-fit text-4xl transition-colors duration-300 hover:text-white"
+                  aria-label={`${entry.year} — everything from that year`}
+                >
                   {entry.year}
-                </span>
+                </Link>
                 <span className="u-label text-muted mt-3 block">
                   {KIND_LABEL[entry.kind]}
                 </span>

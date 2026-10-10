@@ -159,6 +159,10 @@ export function NowBody({
                   <p className="u-label text-muted">{entry.location}</p>
                 ) : null}
               </div>
+              {/* The rest of that year, beyond this one month of it. */}
+              <ArrowLink href={`/years/${entry.year}`} className="mt-5 inline-block">
+                All of {entry.year}
+              </ArrowLink>
             </div>
           </div>
 

@@ -6,8 +6,8 @@ import { AlbumGrid } from '@/components/media/AlbumGrid';
 import { MediaGrid } from '@/components/media/MediaGrid';
 import { MediaImage } from '@/components/media/MediaImage';
 import { YearSelector } from '@/components/media/YearSelector';
-import { EmptyState, Label, MetaLine, YearMark } from '@/components/primitives';
-import { EVERYDAY_LABEL, getArchiveYears, getYear } from '@/lib/content';
+import { ArrowLink, EmptyState, Label, MetaLine, YearMark } from '@/components/primitives';
+import { EVERYDAY_LABEL, getArchiveYears, getYear, getYearRecord } from '@/lib/content';
 import { mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import { cx, pluralize } from '@/lib/utils';
@@ -95,6 +95,15 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
   const portraitCover = cover?.orientation === 'portrait';
   const allYears = getArchiveYears();
   const position = allYears.indexOf(year.year);
+  const record = getYearRecord(year.year);
+  const hasMoreThanPhotographs = Boolean(
+    record &&
+      record.posts.length +
+        record.projects.started.length +
+        record.projects.ended.length +
+        record.now.length >
+        0,
+  );
 
   const counts = [
     year.photoCount > 0 ? pluralize(year.photoCount, 'photograph') : undefined,
@@ -121,6 +130,7 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(
           breadcrumbJsonLd([
+            { name: 'Home', path: '/' },
             { name: 'Photos + Video', path: '/photos' },
             { name: String(year.year), path: year.href },
           ]),
@@ -136,11 +146,19 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
           >
             <span aria-hidden="true">&larr;</span> The archive
           </Link>
-          {position >= 0 ? (
-            <Label as="p">
-              Year {position + 1} of {allYears.length}
-            </Label>
-          ) : null}
+          <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
+            {/* Everything else dated to this year: the writing, the projects,
+                the Now entries. Only when there is more than photographs to
+                go to. */}
+            {hasMoreThanPhotographs ? (
+              <ArrowLink href={`/years/${year.year}`}>Everything from {year.year}</ArrowLink>
+            ) : null}
+            {position >= 0 ? (
+              <Label as="p">
+                Year {position + 1} of {allYears.length}
+              </Label>
+            ) : null}
+          </div>
         </div>
 
         {cover ? (
