@@ -88,6 +88,7 @@ const loadAll = once((): Project[] => {
       draft: Boolean(data.draft),
       order: typeof data.order === 'number' ? data.order : 0,
       placeholder: Boolean(data.placeholder),
+      resurface: data.resurface !== false,
       body,
       plain: toPlainText(body),
       sourcePath,

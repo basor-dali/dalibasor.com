@@ -46,6 +46,8 @@ export type WritingFrontmatter = {
   excerpt?: string;
   /** Marks placeholder scaffolding so it can be found and replaced. */
   placeholder?: boolean;
+  /** `false` keeps this out of "From the archive". See RESURFACE in archive.ts. */
+  resurface?: boolean;
 };
 
 export type CoverShape = 'wide' | 'tall' | 'square';
@@ -75,6 +77,8 @@ export type Post = {
   draft: boolean;
   excerpt?: string;
   placeholder: boolean;
+  /** False when the author asked for this never to be resurfaced. */
+  resurface: boolean;
   /** Raw MDX body, compiled at render time. */
   body: string;
   /** Plain text, used for search indexing and reading time only. */
@@ -124,6 +128,8 @@ export type ProjectFrontmatter = {
   draft?: boolean;
   order?: number;
   placeholder?: boolean;
+  /** `false` keeps this out of "From the archive". */
+  resurface?: boolean;
 };
 
 export type ProjectMediaInput = {
@@ -172,6 +178,7 @@ export type Project = {
   draft: boolean;
   order: number;
   placeholder: boolean;
+  resurface: boolean;
   body: string;
   plain: string;
   sourcePath: string;
@@ -195,6 +202,8 @@ export type NowFrontmatter = {
   coverAlt?: string;
   draft?: boolean;
   placeholder?: boolean;
+  /** `false` keeps this out of "From the archive". */
+  resurface?: boolean;
 };
 
 export type NowEntry = {
@@ -216,6 +225,7 @@ export type NowEntry = {
   coverItem?: MediaItem;
   draft: boolean;
   placeholder: boolean;
+  resurface: boolean;
   body: string;
   plain: string;
   sourcePath: string;
@@ -271,6 +281,11 @@ export type MediaItem = {
    * to be deleted to stop being on the internet.
    */
   hidden?: boolean;
+  /**
+   * `false` keeps this photograph on the site but out of "From the archive".
+   * For the frame you want kept and do not want handed back to you unasked.
+   */
+  resurface?: boolean;
 };
 
 /**
@@ -324,6 +339,8 @@ export type Album = {
    * idea as `draft` on a post: a way to put something aside without losing it.
    */
   hidden?: boolean;
+  /** `false` keeps the album, and every photograph in it, out of resurfacing. */
+  resurface?: boolean;
 };
 
 export type YearManifest = {

@@ -50,6 +50,8 @@ const loadAll = once((): Post[] => {
       draft: Boolean(data.draft),
       excerpt: data.excerpt,
       placeholder: Boolean(data.placeholder),
+      // Opt-out, so every existing file means "yes" without saying so.
+      resurface: data.resurface !== false,
       body,
       plain,
       readingMinutes: readingMinutes(plain),

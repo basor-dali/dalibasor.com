@@ -30,6 +30,8 @@
 #  note      Optional. A short plain-text note. Yours to write, not generated.
 #  location  Optional. Broad and manual. Never derived from GPS.
 #  featured  Optional. true to surface the album on the archive index.
+#  resurface Optional. false keeps the album, and every photograph in it,
+#            out of "From the archive". It stays on the site as it is.
 #
 #  ---------------------------------------------------------------------------
 #  ITEM FIELDS
@@ -56,6 +58,8 @@
 #                    description. Write it for anything that carries meaning.
 #  location          Broad and manual: "Wichita, Kansas". Never from GPS.
 #  featured          true to pull it into year previews and the archive index.
+#  resurface         false keeps it out of "From the archive". Nothing else
+#                    changes; it stays in its grid, album and search.
 #  lqip              Tiny base64 data URI painted before the image loads.
 #                    Generated at import, roughly 400 bytes. If one is
 #                    kilobytes long, something went wrong.

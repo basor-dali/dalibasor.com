@@ -55,6 +55,16 @@ const draftField = fields.checkbox({
   defaultValue: false,
 });
 
+/* Declared so an entry saved here keeps it: Keystatic writes the fields its
+   schema knows, and a hand-written `resurface: false` would not survive a save
+   from this form otherwise. */
+const resurfaceField = fields.checkbox({
+  label: 'Can be resurfaced',
+  description:
+    'Untick to keep this out of "From the archive" on the homepage. It stays on the site exactly as it is.',
+  defaultValue: true,
+});
+
 /* ==========================================================================
    MDX components
    ==========================================================================
@@ -217,6 +227,7 @@ export default config({
         }),
         draft: draftField,
         placeholder: placeholderField,
+        resurface: resurfaceField,
         body,
       },
     }),
@@ -321,6 +332,7 @@ export default config({
         }),
         draft: draftField,
         placeholder: placeholderField,
+        resurface: resurfaceField,
         body,
       },
     }),
@@ -361,6 +373,7 @@ export default config({
         ...coverFields,
         draft: draftField,
         placeholder: placeholderField,
+        resurface: resurfaceField,
         body,
       },
     }),

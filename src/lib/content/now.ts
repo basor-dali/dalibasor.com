@@ -41,6 +41,7 @@ const loadAll = once((): NowEntry[] => {
       coverItem: findMediaByRef(data?.coverImage),
       draft: Boolean(data?.draft),
       placeholder: Boolean(data?.placeholder),
+      resurface: data?.resurface !== false,
       body,
       plain: toPlainText(body),
       sourcePath,

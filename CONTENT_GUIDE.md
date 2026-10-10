@@ -61,6 +61,7 @@ Your words. Exactly as you want them.
 | `draft`       | no       | `true` hides it in production                                                         |
 | `excerpt`     | no       | Used in listings and metadata. **Optional on purpose** — do not force one             |
 | `placeholder` | no       | `true` marks the post as scaffolding you have not written yet                         |
+| `resurface`   | no       | `false` keeps it out of "From the archive" on the homepage                            |
 
 ### Writing style
 
@@ -286,6 +287,23 @@ search index and the feeds. Hiding an album hides everything in it. It applies w
 developing too, unlike `draft:` on a post: the point of a draft is to look at it, and the
 point of hiding a photograph is that it is not there. The admin reads the raw manifest, so
 that is where hidden things stay visible to you.
+
+### Keep something from being resurfaced
+
+"From the archive" on the homepage hands back something old — a photograph, an album, a
+post, a project, a Now entry. Over twenty years it will eventually land on a day you would
+rather not be reminded of. To keep a thing on the site but never have it picked:
+
+```yaml
+resurface: false
+```
+
+It works on a photograph or an album in `content/media/<year>.yml` (an album covers every
+photograph in it), and in the frontmatter of a post, a project or a Now entry — Keystatic
+has a "Can be resurfaced" checkbox for those. Nothing else changes: the item stays in its
+grid, its album, the search and the feeds.
+
+Placeholders and anything younger than six months are never resurfaced either.
 
 ### Delete an album or a year
 

@@ -2,10 +2,10 @@ import 'server-only';
 
 import type { ArchiveEntry } from '@/types/content';
 import { site } from '@/lib/site';
-import { hashString, yearOf } from '@/lib/utils';
+import { hashString, parseDate, yearOf } from '@/lib/utils';
 import { once } from './fs';
 import { getAllAlbums, getArchiveYears, getFeaturedMedia, getYear } from './media';
-import { getNowEntries } from './now';
+import { getCurrentNow, getNowEntries } from './now';
 import { getPosts } from './writing';
 import { getProjects } from './projects';
 
@@ -18,38 +18,74 @@ import { getProjects } from './projects';
  * — the whole appeal is being shown something you had forgotten.
  */
 
-/** Everything old enough to be worth resurfacing. */
+/**
+ * What may be resurfaced, and what never is.
+ * --------------------------------------------------------------------------
+ * The homepage asked for everything with a minimum age of zero, so on a young
+ * site the "found object" was whatever happened to exist — on the day this was
+ * written, this month's Now entry, shown again directly under "Currently",
+ * which was showing it already. Scaffolding was just as eligible, so a
+ * placeholder could be presented as a memory.
+ *
+ * So, in order:
+ *   - nothing younger than MIN_AGE_MONTHS. Six months is the shortest gap at
+ *     which being shown something reads as remembering rather than repeating.
+ *   - no placeholders, and not the Now entry that is live right now.
+ *   - nothing marked `resurface: false` — on a post, a project, a Now entry,
+ *     an album (which covers every photograph in it) or a single photograph.
+ *     A deterministic pick running for twenty years will eventually land on a
+ *     bad anniversary; this is the way to say "keep it, but don't hand it
+ *     back to me". Nothing about the item changes anywhere else on the site.
+ *
+ * Until something qualifies, the section says so in plain words.
+ */
+export const RESURFACE = { MIN_AGE_MONTHS: 6 } as const;
+
+/** Everything old enough, and allowed, to be resurfaced. */
 export function getArchiveEntries(options: { minAgeMonths?: number } = {}): ArchiveEntry[] {
   const minAgeMonths = options.minAgeMonths ?? 0;
   const cutoff = Date.now() - minAgeMonths * 30 * 24 * 60 * 60 * 1000;
+  const live = getCurrentNow()?.period;
 
   const entries: ArchiveEntry[] = [];
 
   for (const post of getPosts()) {
+    if (post.placeholder || !post.resurface) continue;
     entries.push({ kind: 'post', date: post.date, year: post.year, post });
   }
 
   for (const project of getProjects()) {
+    if (project.placeholder || !project.resurface) continue;
     const date = project.endDate ?? project.startDate;
     entries.push({ kind: 'project', date, year: yearOf(date), project });
   }
 
+  const quietAlbums = new Set<string>();
   for (const album of getAllAlbums()) {
+    if (album.resurface === false) {
+      quietAlbums.add(`${album.year}/${album.slug}`);
+      continue;
+    }
     const date = album.date ?? `${album.year}-06-15`;
     entries.push({ kind: 'album', date, year: album.year, album });
   }
 
   for (const item of getFeaturedMedia(60)) {
+    if (item.resurface === false) continue;
+    if (item.album && quietAlbums.has(`${item.year}/${item.album}`)) continue;
     const date = item.capturedAt ?? `${item.year}-06-15`;
     entries.push({ kind: 'photo', date, year: item.year, item });
   }
 
   for (const now of getNowEntries()) {
+    if (now.placeholder || !now.resurface || now.period === live) continue;
     entries.push({ kind: 'now', date: now.date, year: now.year, now });
   }
 
+  // Compared as parsed dates. `new Date()` reads a naive EXIF timestamp in the
+  // host's timezone; parseDate pins it, like every other date on the site.
   return entries
-    .filter((entry) => new Date(entry.date).getTime() <= cutoff)
+    .filter((entry) => parseDate(entry.date).getTime() <= cutoff)
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
@@ -65,7 +101,7 @@ export function getArchiveEntries(options: { minAgeMonths?: number } = {}): Arch
  * than one from last month, which is the entire point of the feature.
  */
 export function pickArchiveEntry(seed: string): ArchiveEntry | undefined {
-  const entries = getArchiveEntries();
+  const entries = getArchiveEntries({ minAgeMonths: RESURFACE.MIN_AGE_MONTHS });
   if (entries.length === 0) return undefined;
   if (entries.length === 1) return entries[0];
 
