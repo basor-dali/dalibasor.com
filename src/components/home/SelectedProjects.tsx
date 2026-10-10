@@ -83,21 +83,87 @@ export function SelectedProjects({ projects }: { projects: ProjectSummary[] }) {
   );
 }
 
+/**
+ * Where a project with no photograph sits, by position — so a run of them
+ * still walks across the page instead of stacking down one edge.
+ */
+const TYPE_PLACEMENT = [
+  'lg:col-span-8 lg:col-start-1',
+  'lg:col-span-8 lg:col-start-5',
+  'lg:col-span-8 lg:col-start-3',
+];
+
 function Feature({ project, index }: { project: ProjectSummary; index: number }) {
   const layout = LAYOUTS[index % LAYOUTS.length]!;
   const technologies = project.technologies.slice(0, 6);
   const overflow = project.technologies.length - technologies.length;
 
+  // A project with no photograph is drawn as type rather than as an empty
+  // frame labelled "Cover pending" — some projects (software, a trading bot)
+  // will never have one, and a frame says something is missing.
+  const hasCover = Boolean(project.coverImage);
+
+  const text = (
+    <>
+      <div className="flex items-baseline gap-4">
+        <span className="u-label u-nums text-ember">{ordinalLabel(index)}</span>
+        <hr className="u-rule flex-1" />
+      </div>
+
+      <p className="u-label text-muted mt-6 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="inline-flex items-center gap-2">
+          <StatusDot status={project.status} />
+          {STATUS_LABELS[project.status]}
+        </span>
+        <span aria-hidden="true" className="text-line-strong">
+          ·
+        </span>
+        <span className="u-nums">{project.period}</span>
+      </p>
+
+      <h3 className={cx('u-display mt-4 text-white', hasCover ? 'text-3xl' : 'text-4xl')}>
+        {/* The title is the link; its ::after stretches over the whole
+            article, so the photograph and the words go to the same place
+            without the entry's accessible name becoming a paragraph. */}
+        <Link href={project.href} className="after:absolute after:inset-0 after:content-['']">
+          <span className="u-link u-link-reveal group-hover:[background-size:100%_1px]">
+            {project.title}
+          </span>
+        </Link>
+      </h3>
+
+      {project.description ? (
+        <p
+          className={cx(
+            'mt-5 max-w-(--container-text)',
+            hasCover ? 'text-soft' : 'u-serif text-soft text-xl',
+          )}
+        >
+          {truncate(project.description, 200)}
+        </p>
+      ) : null}
+
+      {technologies.length > 0 ? (
+        <p className="u-label text-muted mt-7">
+          {technologies.join('  /  ')}
+          {overflow > 0 ? `  /  +${overflow}` : ''}
+        </p>
+      ) : null}
+
+      <LinkCue className="mt-8">Open</LinkCue>
+    </>
+  );
+
   return (
     <article
       className={cx(
-        'u-page',
+        'group u-page relative',
         index === 0
           ? 'mt-14 sm:mt-20'
           : 'mt-(--spacing-section-sm) sm:mt-(--spacing-section)',
       )}
     >
-      <Link href={project.href} className="group block">
+      {hasCover ? (
         <div className={cx('u-grid', layout.align)}>
           <div className={cx('col-span-2 md:col-span-6', layout.media)}>
             <CoverFrame
@@ -112,44 +178,20 @@ function Feature({ project, index }: { project: ProjectSummary; index: number })
             />
           </div>
 
-          <div className={cx('col-span-2 md:col-span-6', layout.text)}>
-            <div className="flex items-baseline gap-4">
-              <span className="u-label u-nums text-ember">{ordinalLabel(index)}</span>
-              <hr className="u-rule flex-1" />
-            </div>
-
-            <p className="u-label text-muted mt-6 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="inline-flex items-center gap-2">
-                <StatusDot status={project.status} />
-                {STATUS_LABELS[project.status]}
-              </span>
-              <span aria-hidden="true" className="text-line-strong">
-                ·
-              </span>
-              <span className="u-nums">{project.period}</span>
-            </p>
-
-            <h3 className="u-display mt-4 text-3xl text-white">
-              <span className="u-link u-link-reveal">{project.title}</span>
-            </h3>
-
-            {project.description ? (
-              <p className="text-soft mt-5 max-w-(--container-text)">
-                {truncate(project.description, 200)}
-              </p>
-            ) : null}
-
-            {technologies.length > 0 ? (
-              <p className="u-label text-muted mt-7">
-                {technologies.join('  /  ')}
-                {overflow > 0 ? `  /  +${overflow}` : ''}
-              </p>
-            ) : null}
-
-            <LinkCue className="mt-8">Open</LinkCue>
+          <div className={cx('col-span-2 md:col-span-6', layout.text)}>{text}</div>
+        </div>
+      ) : (
+        <div className="u-grid">
+          <div
+            className={cx(
+              'col-span-2 md:col-span-6',
+              TYPE_PLACEMENT[index % TYPE_PLACEMENT.length],
+            )}
+          >
+            {text}
           </div>
         </div>
-      </Link>
+      )}
     </article>
   );
 }

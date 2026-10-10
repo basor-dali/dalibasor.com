@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import type { ArchiveEntry } from '@/types/content';
 import { MetaLine, StatusDot } from '@/components/primitives';
 import { MediaImage } from '@/components/media/MediaImage';
@@ -15,6 +16,10 @@ import { CoverFrame, LinkCue } from './Hero';
  * the archive coughed up today, presented as a found object in its own band.
  *
  * The pick gets more interesting every year the site exists.
+ *
+ * Each found object is clickable as a whole, with only its title as the link
+ * (a stretched ::after carries the hit area), so its accessible name is the
+ * title rather than every label in the block read out in a row.
  */
 
 const KIND_LABEL: Record<ArchiveEntry['kind'], string> = {
@@ -72,6 +77,17 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
   );
 }
 
+/** The one link in a found object. Its ::after covers the whole block. */
+function TitleLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="after:absolute after:inset-0 after:content-['']">
+      <span className="u-link u-link-reveal group-hover:[background-size:100%_1px]">
+        {children}
+      </span>
+    </Link>
+  );
+}
+
 /* ==========================================================================
    One renderer per kind
    ========================================================================== */
@@ -81,9 +97,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
     case 'post': {
       const post = entry.post;
       return (
-        <Link href={post.href} className="group block">
+        <div className="group relative">
           <h3 className="u-display text-3xl text-white">
-            <span className="u-link u-link-reveal">{post.title}</span>
+            <TitleLink href={post.href}>{post.title}</TitleLink>
           </h3>
 
           {post.excerpt ? (
@@ -104,25 +120,35 @@ function Body({ entry }: { entry: ArchiveEntry }) {
           />
 
           <LinkCue className="mt-7">Read</LinkCue>
-        </Link>
+        </div>
       );
     }
 
     case 'project': {
       const project = entry.project;
       return (
-        <Link href={project.href} className="group block">
-          <div className="grid items-center gap-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <CoverFrame
-              publicId={project.coverImage}
-              item={project.coverItem}
-              alt={project.coverAlt ?? project.title}
-              ratio="4 / 3"
-              ladder="grid"
-              sizes={SPLIT_SIZES}
-              tone="surface-3"
-              placeholderLabel="Photograph pending"
-            />
+        <div className="group relative">
+          <div
+            className={
+              project.coverImage
+                ? 'grid items-center gap-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
+                : undefined
+            }
+          >
+            {/* No cover, no frame: a project that never had a photograph is
+                not missing one. */}
+            {project.coverImage ? (
+              <CoverFrame
+                publicId={project.coverImage}
+                item={project.coverItem}
+                alt={project.coverAlt ?? project.title}
+                ratio="4 / 3"
+                ladder="grid"
+                sizes={SPLIT_SIZES}
+                tone="surface-3"
+                placeholderLabel="Photograph pending"
+              />
+            ) : null}
             <div>
               <p className="u-label text-muted flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="inline-flex items-center gap-2">
@@ -135,8 +161,14 @@ function Body({ entry }: { entry: ArchiveEntry }) {
                 <span className="u-nums">{project.period}</span>
               </p>
 
-              <h3 className="u-display mt-4 text-2xl text-white">
-                <span className="u-link u-link-reveal">{project.title}</span>
+              <h3
+                className={
+                  project.coverImage
+                    ? 'u-display mt-4 text-2xl text-white'
+                    : 'u-display mt-4 text-3xl text-white'
+                }
+              >
+                <TitleLink href={project.href}>{project.title}</TitleLink>
               </h3>
 
               {project.description ? (
@@ -148,7 +180,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               <LinkCue className="mt-6">Open</LinkCue>
             </div>
           </div>
-        </Link>
+        </div>
       );
     }
 
@@ -156,7 +188,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
       const album = entry.album;
       const cover = album.coverItem;
       return (
-        <Link href={album.href} className="group block">
+        <div className="group relative">
           <div className="grid items-center gap-7 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {cover && cover.type === 'image' ? (
               <MediaImage
@@ -176,7 +208,7 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               ) : null}
 
               <h3 className="u-display mt-3 text-2xl text-white">
-                <span className="u-link u-link-reveal">{album.title}</span>
+                <TitleLink href={album.href}>{album.title}</TitleLink>
               </h3>
 
               <MetaLine
@@ -193,14 +225,18 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               <LinkCue className="mt-6">Open the album</LinkCue>
             </div>
           </div>
-        </Link>
+        </div>
       );
     }
 
     case 'photo': {
       const item = entry.item;
+      // Straight to the photograph itself, in its own album or year, open in
+      // the viewer — not to the top of a year page with hundreds in it.
+      const home = item.album ? `/photos/${item.year}/${item.album}` : `/photos/${item.year}`;
+      const href = `${home}?photo=${encodeURIComponent(item.id)}`;
       return (
-        <Link href={`/photos/${item.year}`} className="group block">
+        <div className="group relative">
           <div className="grid items-end gap-7 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
             <MediaImage
               item={item}
@@ -211,37 +247,41 @@ function Body({ entry }: { entry: ArchiveEntry }) {
             />
 
             <div>
-              {item.caption ? (
-                <p className="u-serif text-ivory text-xl">{item.caption}</p>
-              ) : null}
+              <h3 className="u-serif text-ivory text-xl">
+                <TitleLink href={href}>
+                  {item.caption ?? (item.capturedAt ? formatDate(item.capturedAt) : String(item.year))}
+                </TitleLink>
+              </h3>
 
               <MetaLine
                 className="mt-5"
                 items={[
                   item.location,
-                  item.capturedAt ? formatDate(item.capturedAt) : String(item.year),
+                  // Whichever of the date or the year the title did not use.
+                  item.caption && item.capturedAt ? formatDate(item.capturedAt) : null,
+                  item.caption && !item.capturedAt ? String(item.year) : null,
                 ]}
               />
 
-              <LinkCue className="mt-6">See {item.year}</LinkCue>
+              <LinkCue className="mt-6">See it in {item.year}</LinkCue>
             </div>
           </div>
-        </Link>
+        </div>
       );
     }
 
     case 'now': {
       const now = entry.now;
       return (
-        <Link href={now.href} className="group block">
+        <div className="group relative">
           <h3 className="u-display u-nums text-3xl text-white">
-            <span className="u-link u-link-reveal">{now.title}</span>
+            <TitleLink href={now.href}>{now.title}</TitleLink>
           </h3>
 
           <MetaLine className="mt-6" items={[now.location, formatMonthYear(now.date)]} />
 
           <LinkCue className="mt-7">Read that month</LinkCue>
-        </Link>
+        </div>
       );
     }
   }
