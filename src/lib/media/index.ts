@@ -81,6 +81,22 @@ export function providerCanResize(): boolean {
   return mediaProvider().name !== 'local';
 }
 
+/**
+ * A photograph as a link's share image, 1200×630.
+ *
+ * Only when a CDN is actually configured. On the local provider the URL points
+ * into /public/media, where nothing exists, and every unfurl would carry a
+ * dead image; undefined falls back to the site card, which always resolves.
+ */
+export function shareImageUrl(item: MediaItem | undefined): string | undefined {
+  if (!item || item.type !== 'image' || !providerCanResize()) return undefined;
+  return mediaProvider().imageUrl(item.publicId, {
+    width: 1200,
+    height: 630,
+    fit: 'fill',
+  });
+}
+
 /* ==========================================================================
    The single call every image component makes
    ========================================================================== */

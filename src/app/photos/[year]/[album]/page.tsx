@@ -5,7 +5,7 @@ import { albumCountLabel } from '@/components/media/AlbumCard';
 import { PhotoEssay } from '@/components/media/PhotoEssay';
 import { ArrowLink, EmptyState, Label } from '@/components/primitives';
 import { getAlbum, getAlbumNeighbours, getAlbumParams, getAlbums } from '@/lib/content';
-import { mediaProvider, providerCanResize } from '@/lib/media';
+import { shareImageUrl } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import { cx, formatCaptured, formatMonthYear, ordinalLabel } from '@/lib/utils';
 import type { MediaItem, ResolvedAlbum } from '@/types/content';
@@ -35,20 +35,6 @@ function findAlbum(params: Params): ResolvedAlbum | undefined {
   const year = parseYear(params.year);
   if (year === undefined) return undefined;
   return getAlbum(year, params.album);
-}
-
-function ogImage(item: MediaItem | undefined): string | undefined {
-  if (!item || item.type !== 'image') return undefined;
-  // A photograph is the better share image, but only when a CDN is actually
-  // configured. On the local provider the URL points into /public/media, where
-  // nothing exists, and every unfurl would carry a dead image. Returning
-  // undefined falls back to the site card, which always resolves.
-  if (!providerCanResize()) return undefined;
-  return mediaProvider().imageUrl(item.publicId, {
-    width: 1200,
-    height: 630,
-    fit: 'fill',
-  });
 }
 
 /**
@@ -101,7 +87,7 @@ export async function generateMetadata({
       ? album.note.replace(/\s+/g, ' ').trim().slice(0, 200)
       : `${albumCountLabel(album.photoCount, album.videoCount)} from ${album.year}.`,
     path: album.href,
-    image: ogImage(album.coverItem) ?? '/opengraph-image',
+    image: shareImageUrl(album.coverItem) ?? '/opengraph-image',
   });
 }
 

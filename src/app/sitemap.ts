@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import type { MediaItem } from '@/types/content';
 import {
   getAllAlbums,
+  getAllMediaItems,
   getArchiveYears,
   getNowEntries,
   getPosts,
@@ -220,6 +221,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: album.date ? parseDate(album.date) : lastCapture(album.items),
         changeFrequency: 'yearly',
         priority: album.featured ? 0.7 : 0.6,
+      }),
+    );
+  }
+
+  /* A photograph's own page, when it has a caption — the same line its robots
+     tag draws. Without words it is a frame in an album, and the album is the
+     page to crawl. */
+  for (const item of getAllMediaItems()) {
+    if (!item.caption) continue;
+    entries.push(
+      entry(`/photo/${item.id}`, {
+        lastModified:
+          item.capturedAt && !item.circa ? parseDate(item.capturedAt) : undefined,
+        changeFrequency: 'yearly',
+        priority: 0.4,
       }),
     );
   }

@@ -371,34 +371,42 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
           </>
         ) : null}
 
-        {/* caption */}
-        {(item.caption || metaBits.length > 0) && (
-          <figcaption className="from-ground-deep/85 pointer-events-auto absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
-            <div className="u-page">
-              {item.caption ? (
-                <p className="text-ivory max-w-2xl text-sm sm:text-base">
-                  {item.caption}
-                </p>
-              ) : null}
-              {metaBits.length > 0 ? (
-                <p className="u-label text-muted mt-2">
-                  {metaBits.map((bit, i) => (
-                    <span key={bit}>
-                      {i > 0 ? <span className="text-line-strong mx-2">·</span> : null}
-                      {bit}
-                    </span>
-                  ))}
-                  {item.type === 'video' && item.duration ? (
-                    <span>
-                      <span className="text-line-strong mx-2">·</span>
-                      {formatDuration(item.duration)}
-                    </span>
-                  ) : null}
-                </p>
-              ) : null}
-            </div>
-          </figcaption>
-        )}
+        {/* caption, and the frame's own page */}
+        <figcaption className="from-ground-deep/85 pointer-events-auto absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
+          <div className="u-page">
+            {item.caption ? (
+              <p className="text-ivory max-w-2xl text-sm sm:text-base">{item.caption}</p>
+            ) : null}
+            {metaBits.length > 0 ? (
+              <p className="u-label text-muted mt-2">
+                {metaBits.map((bit, i) => (
+                  <span key={bit}>
+                    {i > 0 ? <span className="text-line-strong mx-2">·</span> : null}
+                    {bit}
+                  </span>
+                ))}
+                {item.type === 'video' && item.duration ? (
+                  <span>
+                    <span className="text-line-strong mx-2">·</span>
+                    {formatDuration(item.duration)}
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
+            {/* The address to send someone for this one frame: its link
+                  unfurls with the photograph, not the album's cover. A plain
+                  link, not a client-side one — the viewer lives above the
+                  page, and a client-side navigation would leave it open over
+                  the next one. Back returns here, viewer open on this frame. */}
+            <a
+              href={`/photo/${item.id}`}
+              className="u-label u-link u-link-reveal text-muted hover:text-ivory mt-3 inline-block transition-colors"
+            >
+              Open this {item.type === 'video' ? 'video' : 'photograph'}&rsquo;s page{' '}
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </figcaption>
       </div>
     </div>,
     document.body,

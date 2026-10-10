@@ -405,6 +405,59 @@ export function getAllMediaItems(): MediaItem[] {
   });
 }
 
+/** A photograph or video, where it lives, and its place in that sequence. */
+export type MediaPlacement = {
+  item: MediaItem;
+  /** Undefined for the year's everyday photographs. */
+  album?: ResolvedAlbum;
+  /** The sequence it belongs to: its album's items, or the year's everyday. */
+  sequence: MediaItem[];
+  index: number;
+  previous?: MediaItem;
+  next?: MediaItem;
+};
+
+/**
+ * Every visible photograph and video, keyed by its permanent id.
+ *
+ * Ids never change — not when an album is renamed or deleted and its
+ * photographs move to the year's everyday — which is why a photograph's own
+ * page is addressed by id alone. Hidden items and hidden albums are already
+ * gone by this point, so they have no page.
+ */
+const placements = once((): Map<string, MediaPlacement> => {
+  const out = new Map<string, MediaPlacement>();
+  for (const year of getArchiveYears()) {
+    const resolved = resolveAll().get(year)!;
+    const sequences: [ResolvedAlbum | undefined, MediaItem[]][] = [
+      [undefined, resolved.everyday],
+      ...resolved.albums.map((album): [ResolvedAlbum, MediaItem[]] => [album, album.items]),
+    ];
+    for (const [album, sequence] of sequences) {
+      sequence.forEach((item, index) => {
+        out.set(item.id, {
+          item,
+          album,
+          sequence,
+          index,
+          previous: sequence[index - 1],
+          next: sequence[index + 1],
+        });
+      });
+    }
+  }
+  return out;
+});
+
+export function getMediaPlacement(id: string): MediaPlacement | undefined {
+  return placements().get(id);
+}
+
+/** Every id that has a page of its own, for generateStaticParams. */
+export function getMediaIds(): string[] {
+  return [...placements().keys()];
+}
+
 export function getFeaturedMedia(
   limit = 12,
   type: 'image' | 'video' | 'any' = 'image',
