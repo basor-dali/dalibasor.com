@@ -778,6 +778,21 @@ body:has([data-admin='true']) {
 }
 
 /* ==========================================================================
+   Labels a pixel larger on a phone
+   ==========================================================================
+   The mono labels (dates, counts, tags, eyebrows) are 11px. On a desk that is
+   the design. On a phone, read at arm's length by family as much as by
+   anyone, it was a third of the homepage's text below 12px. One pixel more
+   below the sm breakpoint; nothing changes from 640px up. Unlayered, so it
+   outranks the @theme value. */
+
+@media (width < 40rem) {
+  :root {
+    --text-micro: 0.75rem;
+  }
+}
+
+/* ==========================================================================
    More contrast, when asked for
    ==========================================================================
    One dark identity stays — a light mode would be a different site — but a
