@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { trapTab } from '@/lib/focus-trap';
 import { requestSearchFocus } from '@/lib/search/intent';
 import { primaryNav, site } from '@/lib/site';
 import { cx } from '@/lib/utils';
@@ -79,20 +80,7 @@ export function Navigation() {
         menuButtonRef.current?.focus();
         return;
       }
-      if (event.key !== 'Tab') return;
-
-      const focusable =
-        panelRef.current?.querySelectorAll<HTMLElement>('a[href], button');
-      if (!focusable || focusable.length === 0) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      trapTab(event, panelRef.current);
     }
 
     document.addEventListener('keydown', onKeyDown);

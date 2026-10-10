@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MediaItem } from '@/types/content';
+import { trapTab } from '@/lib/focus-trap';
 import { formatDuration, mediaAlt, responsiveImage } from '@/lib/media';
 import { cx, formatDate } from '@/lib/utils';
 import { MediaVideo } from './MediaVideo';
@@ -135,33 +136,12 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
           event.preventDefault();
           onIndexChange(count - 1);
           break;
-        case 'Tab': {
-          // Trap focus inside the dialog.
-          // Filtered on what is actually tabbable, not on tag name. The
-          // backdrop is a <button tabindex="-1"> and the prev/next buttons are
-          // display:none below sm — counting either made "first" wrong, so
-          // shift+Tab from the real first control escaped into the page behind.
-          const focusable = Array.from(
-            dialogRef.current?.querySelectorAll<HTMLElement>('button, a[href], video') ??
-              [],
-          ).filter(
-            (el) =>
-              !el.hasAttribute('disabled') &&
-              el.tabIndex >= 0 &&
-              el.getClientRects().length > 0,
-          );
-          if (focusable.length === 0) break;
-          const first = focusable[0]!;
-          const last = focusable[focusable.length - 1]!;
-          if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-          } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-          }
+        case 'Tab':
+          // Trap focus inside the dialog. Filtered on what is actually
+          // tabbable, not on tag name: the backdrop is a <button tabindex="-1">,
+          // and counting it once let shift+Tab escape into the page behind.
+          trapTab(event, dialogRef.current);
           break;
-        }
         default:
           break;
       }
