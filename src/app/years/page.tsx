@@ -152,14 +152,17 @@ function YearRow({ record }: { record: YearRecord }) {
         ? 'Born'
         : `Turned ${record.turned}`;
 
+  // No aria-label: the row's name is everything it shows — the year, the
+  // age, the counts and the titles — so nothing on screen is withheld from a
+  // screen reader, and a voice command for the year finds it.
   return (
     <Link
       href={record.href}
-      aria-label={`${record.year} — ${holds(record).join(', ')}`}
       className="group grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-baseline gap-x-6 gap-y-2 py-7 sm:gap-x-10 sm:py-9 lg:grid-cols-[14rem_minmax(0,1fr)_auto]"
     >
       <span className="u-display u-display-tight u-nums text-ivory text-4xl transition-colors duration-300 group-hover:text-white">
         {record.year}
+        <span className="sr-only">,</span>
       </span>
 
       <span className="min-w-0">
@@ -168,6 +171,7 @@ function YearRow({ record }: { record: YearRecord }) {
         </span>
         {titles.length > 0 ? (
           <span className="u-serif text-soft mt-2 block text-lg">
+            <span className="sr-only">. </span>
             {titles.join(' · ')}
           </span>
         ) : null}

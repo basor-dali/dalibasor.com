@@ -70,13 +70,13 @@ function LeadYear({ year }: { year: YearSummary }) {
   const images = year.preview.filter((item) => item.type === 'image').slice(0, 3);
   const cells: (MediaItem | undefined)[] = [images[0], images[1], images[2]];
 
+  // The link is named by what it shows — "2026, 39 photographs · 1 album" and
+  // the note — not an aria-label that replaced it. The photographs are
+  // previews of the year, not its name, and "Open 2026" only repeats it, so
+  // both are left out of what a screen reader announces.
   return (
     <article className="u-page mt-14 sm:mt-20">
-      <Link
-        href={year.href}
-        className="group block"
-        aria-label={`${year.year} — ${countLine(year).replace(/\s+·\s+/g, ', ')}`}
-      >
+      <Link href={year.href} className="group block">
         <YearMark
           year={year.year}
           className="text-line-strong group-hover:text-muted transition-colors duration-700"
@@ -84,7 +84,10 @@ function LeadYear({ year }: { year: YearSummary }) {
 
         {/* pushed right and pulled up so the photographs sit across the
             numeral's lower half rather than beside it */}
-        <div className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4">
+        <div
+          aria-hidden="true"
+          className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4"
+        >
           {cells.map((item, index) =>
             item ? (
               <MediaImage
@@ -107,12 +110,16 @@ function LeadYear({ year }: { year: YearSummary }) {
         </div>
 
         <div className="border-line mt-7 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t pt-5">
-          <p className="u-label text-muted">{countLine(year)}</p>
-          <LinkCue>Open {year.year}</LinkCue>
+          <p className="u-label text-muted">
+            <span className="sr-only">, </span>
+            {countLine(year)}
+          </p>
+          <LinkCue decorative>Open {year.year}</LinkCue>
         </div>
 
         {year.note ? (
           <p className="u-serif text-soft mt-7 max-w-(--container-text) text-xl">
+            <span className="sr-only">. </span>
             {year.note}
           </p>
         ) : null}
@@ -132,15 +139,16 @@ function YearRow({ year }: { year: YearSummary }) {
     <Link
       href={year.href}
       className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 py-5 sm:gap-8 sm:py-7"
-      aria-label={`${year.year} — ${countLine(year).replace(/\s+·\s+/g, ', ')}`}
     >
       <span className="u-display u-nums text-ivory text-2xl transition-colors duration-300 group-hover:text-white">
         {year.year}
+        <span className="sr-only">,</span>
       </span>
 
       <span className="u-label text-muted min-w-0 truncate">{countLine(year)}</span>
 
-      <span className="flex items-center gap-4">
+      {/* The thumbnail and "Open" are the eye's; the year and count are the name. */}
+      <span aria-hidden="true" className="flex items-center gap-4">
         {cover && cover.type === 'image' ? (
           <MediaImage
             item={cover}

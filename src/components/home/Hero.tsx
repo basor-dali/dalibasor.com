@@ -71,12 +71,20 @@ export function CoverFrame({
 export function LinkCue({
   children,
   className,
+  decorative = false,
 }: {
   children: ReactNode;
   className?: string;
+  /**
+   * Leave it out of the link's accessible name — for a cue such as "Open 2026"
+   * that only repeats what the link already says. Set on the cue itself: a
+   * wrapper would add a line box of its own and push the layout.
+   */
+  decorative?: boolean;
 }) {
   return (
     <span
+      aria-hidden={decorative || undefined}
       className={cx(
         'u-label text-muted group-hover:text-ivory inline-flex items-baseline gap-2 transition-colors duration-300',
         className,

@@ -79,12 +79,12 @@ export function AlbumCard({
     !album.subtitle && album.date ? formatMonthYear(album.date) : undefined;
   const meta = [count, album.location, dateLabel].filter(Boolean) as string[];
 
+  // The link is named by the words on it — title, subtitle, count, place,
+  // date — not an aria-label that kept only the first two. The cover is the
+  // album's picture, not its name: inside the link its description would be
+  // read out ahead of the title every time, so here it is decorative.
   return (
-    <Link
-      href={album.href}
-      className={cx('group block', className)}
-      aria-label={`${album.title} — ${count}`}
-    >
+    <Link href={album.href} className={cx('group block', className)}>
       <div className="relative">
         {cover ? (
           <MediaImage
@@ -93,7 +93,7 @@ export function AlbumCard({
             sizes={sizes}
             ratio={ratio}
             priority={priority}
-            alt={cover.alt ?? cover.caption ?? `${album.title}, ${album.year}`}
+            alt=""
             imgClassName="transition-transform duration-[1100ms] ease-[var(--ease-out-expo)] group-hover:scale-[1.035] motion-reduce:transform-none"
           />
         ) : (
@@ -101,7 +101,10 @@ export function AlbumCard({
         )}
 
         {typeof index === 'number' ? (
-          <span className="u-label bg-ground/70 text-ivory/90 pointer-events-none absolute top-0 left-0 px-2.5 py-2 backdrop-blur-[2px]">
+          <span
+            aria-hidden="true"
+            className="u-label bg-ground/70 text-ivory/90 pointer-events-none absolute top-0 left-0 px-2.5 py-2 backdrop-blur-[2px]"
+          >
             {ordinalLabel(index)}
           </span>
         ) : null}
@@ -117,10 +120,16 @@ export function AlbumCard({
                 {album.title}
               </Heading>
               {album.subtitle ? (
-                <p className="u-serif text-ivory/85 mt-2 text-xl">{album.subtitle}</p>
+                <p className="u-serif text-ivory/85 mt-2 text-xl">
+                  <span className="sr-only">. </span>
+                  {album.subtitle}
+                </p>
               ) : null}
               {meta.length > 0 ? (
-                <p className="u-label text-ivory/70 mt-4">{meta.join('  ·  ')}</p>
+                <p className="u-label text-ivory/70 mt-4">
+                  <span className="sr-only">. </span>
+                  {meta.join('  ·  ')}
+                </p>
               ) : null}
             </div>
           </>
@@ -133,10 +142,16 @@ export function AlbumCard({
             {album.title}
           </Heading>
           {album.subtitle ? (
-            <p className="u-serif text-muted mt-1.5 text-lg">{album.subtitle}</p>
+            <p className="u-serif text-muted mt-1.5 text-lg">
+              <span className="sr-only">. </span>
+              {album.subtitle}
+            </p>
           ) : null}
           {meta.length > 0 ? (
-            <p className="u-label text-muted mt-3.5">{meta.join('  ·  ')}</p>
+            <p className="u-label text-muted mt-3.5">
+              <span className="sr-only">. </span>
+              {meta.join('  ·  ')}
+            </p>
           ) : null}
           <span
             aria-hidden="true"

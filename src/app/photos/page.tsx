@@ -290,15 +290,14 @@ function YearBlock({
     ? truncate(summary.note.replace(/\s+/g, ' ').trim(), 150)
     : undefined;
 
+  // Named by what it shows — the year, the counts, the note — rather than an
+  // aria-label that replaced them. The photographs are previews of the year
+  // and "Open 2019" repeats it, so neither is announced.
   return (
-    <Link
-      href={summary.href}
-      className="group block"
-      aria-label={`${year} — ${countLine.replace(/\s+·\s+/g, ', ')}`}
-    >
+    <Link href={summary.href} className="group block">
       {variant === 0 ? (
         <>
-          <div className="u-grid items-end">
+          <div aria-hidden="true" className="u-grid items-end">
             <figure className="relative col-span-2 m-0 md:col-span-6 lg:col-span-8 lg:col-start-5 lg:row-start-1">
               {lead ? (
                 <MediaImage
@@ -355,7 +354,10 @@ function YearBlock({
           </h3>
 
           {lead ? (
-            <figure className="col-span-2 m-0 md:col-span-4 lg:col-span-5 lg:col-start-6 lg:row-start-1">
+            <figure
+              aria-hidden="true"
+              className="col-span-2 m-0 md:col-span-4 lg:col-span-5 lg:col-start-6 lg:row-start-1"
+            >
               <MediaImage
                 item={lead}
                 ladder="feature"
@@ -368,7 +370,10 @@ function YearBlock({
           ) : null}
 
           {second ? (
-            <figure className="m-0 hidden md:col-span-2 md:block lg:col-span-2 lg:col-start-11 lg:row-start-1">
+            <figure
+              aria-hidden="true"
+              className="m-0 hidden md:col-span-2 md:block lg:col-span-2 lg:col-start-11 lg:row-start-1"
+            >
               <MediaImage
                 item={second}
                 ladder="thumb"
@@ -391,7 +396,7 @@ function YearBlock({
             />
           </h3>
 
-          <div className="u-grid mt-10 items-end">
+          <div aria-hidden="true" className="u-grid mt-10 items-end">
             <ContactFrame
               item={frames[0]}
               className="col-span-2 md:col-span-6 lg:col-span-5"
@@ -417,14 +422,23 @@ function YearBlock({
 
       {/* --- the line under every year ---------------------------------- */}
       <div className="mt-9 flex flex-wrap items-baseline justify-between gap-x-10 gap-y-4">
-        <p className="u-label text-muted">{countLine}</p>
-        <span className="u-label text-muted group-hover:text-ivory transition-colors duration-300">
+        <p className="u-label text-muted">
+          <span className="sr-only">, </span>
+          {countLine}
+        </p>
+        <span
+          aria-hidden="true"
+          className="u-label text-muted group-hover:text-ivory transition-colors duration-300"
+        >
           Open {year} <span aria-hidden="true">&rarr;</span>
         </span>
       </div>
 
       {note ? (
-        <p className="u-serif text-muted mt-7 max-w-(--container-text) text-lg">{note}</p>
+        <p className="u-serif text-muted mt-7 max-w-(--container-text) text-lg">
+          <span className="sr-only">. </span>
+          {note}
+        </p>
       ) : null}
     </Link>
   );
