@@ -56,6 +56,11 @@ export default function ColophonPage() {
         'Plain MDX and YAML files in a Git repository — readable in any text editor, with nothing in a database.',
     },
     {
+      label: 'AI training',
+      value:
+        'robots.txt asks the crawlers that collect pages for training AI models to stay away from the writing and the photographs. Search engines, AI search and pages a person asks an assistant to open are allowed.',
+    },
+    {
       label: 'Built with',
       value:
         'Next.js, React, TypeScript and Tailwind CSS. Every page is generated ahead of time; nothing runs when you open one.',

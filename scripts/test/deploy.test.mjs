@@ -19,6 +19,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { AI_TRAINING_CRAWLERS } from '../../src/lib/site.ts';
+
 // fileURLToPath, not .pathname: on Windows the latter yields '/C:/Users/...',
 // which fs then resolves to 'C:\C:\Users\...' and cannot open.
 const APP_DIR = fileURLToPath(new URL('../../src/app', import.meta.url));
@@ -107,6 +109,48 @@ describe('route configuration the host validates, not Next', () => {
         `${file} sets maxDuration, but it returns 404 in production — the setting ` +
           'cannot help an upload and can fail a deploy.',
       );
+    }
+  });
+});
+
+describe('who robots.txt turns away once indexing is on', () => {
+  /* The list is drawn by purpose, and several companies run one crawler of
+     each kind: GPTBot trains while OAI-SearchBot searches, ClaudeBot trains
+     while Claude-User fetches a page someone asked about. A search crawler on
+     the list takes the site out of that search engine without a sound —
+     "Applebot" where "Applebot-Extended" was meant drops it from Apple's. */
+  it('never lists a search crawler, or an assistant a person is using', () => {
+    const mustStayAllowed = [
+      'Googlebot',
+      'Bingbot',
+      'Applebot',
+      'DuckDuckBot',
+      'OAI-SearchBot',
+      'ChatGPT-User',
+      'Claude-SearchBot',
+      'Claude-User',
+      'PerplexityBot',
+      'Perplexity-User',
+      'MistralAI-User',
+      'Meta-ExternalFetcher',
+    ];
+    const listed = AI_TRAINING_CRAWLERS.map((name) => name.toLowerCase());
+    assert.deepEqual(
+      mustStayAllowed.filter((name) => listed.includes(name.toLowerCase())),
+      [],
+      'a crawler that sends readers back is on the AI training list',
+    );
+  });
+
+  it('keeps the switches that stop training without leaving search', () => {
+    for (const token of [
+      'Google-Extended',
+      'Applebot-Extended',
+      'GPTBot',
+      'ClaudeBot',
+      'CCBot',
+    ]) {
+      assert.ok(AI_TRAINING_CRAWLERS.includes(token), `${token} is missing`);
     }
   });
 });
