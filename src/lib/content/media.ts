@@ -156,8 +156,17 @@ function normalizeItem(
     );
   }
 
+  // A hand-written `capturedAt: 1998` is a number to YAML. Everything that
+  // reads the date expects a string, so it becomes one here, once.
+  const capturedAt =
+    rest.capturedAt === undefined || rest.capturedAt === null || rest.capturedAt === ''
+      ? undefined
+      : String(rest.capturedAt);
+
   return {
     ...rest,
+    capturedAt,
+    circa: rest.circa === true ? true : undefined,
     id: rest.id || `${year}-${album ?? 'everyday'}-${String(index + 1).padStart(4, '0')}`,
     type: rest.type === 'video' ? 'video' : 'image',
     year,

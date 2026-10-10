@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import type { MediaItem } from '@/types/content';
 import { inertOutside, trapTab } from '@/lib/focus-trap';
 import { formatDuration, mediaAlt, responsiveImage } from '@/lib/media';
-import { cx, formatDate } from '@/lib/utils';
+import { cx, formatCaptured } from '@/lib/utils';
 import { MediaVideo } from './MediaVideo';
 
 /**
@@ -252,7 +252,9 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
         })
       : null;
 
-  const captured = item.capturedAt ? formatDate(item.capturedAt) : undefined;
+  const captured = item.capturedAt
+    ? formatCaptured(item.capturedAt, item.circa)
+    : undefined;
   const metaBits = [captured, item.location, label].filter(Boolean) as string[];
 
   return createPortal(

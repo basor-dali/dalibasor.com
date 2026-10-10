@@ -4,7 +4,14 @@ import type { ArchiveEntry } from '@/types/content';
 import { MetaLine, StatusDot } from '@/components/primitives';
 import { MediaImage } from '@/components/media/MediaImage';
 import { STATUS_LABELS } from '@/lib/content';
-import { formatDate, formatMonthYear, isoDate, pluralize, truncate } from '@/lib/utils';
+import {
+  formatCaptured,
+  formatDate,
+  formatMonthYear,
+  isoDate,
+  pluralize,
+  truncate,
+} from '@/lib/utils';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverFrame, LinkCue } from './Hero';
 
@@ -257,7 +264,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
               <h3 className="u-serif text-ivory text-xl">
                 <TitleLink href={href}>
                   {item.caption ??
-                    (item.capturedAt ? formatDate(item.capturedAt) : String(item.year))}
+                    (item.capturedAt
+                      ? formatCaptured(item.capturedAt, item.circa)
+                      : String(item.year))}
                 </TitleLink>
               </h3>
 
@@ -266,7 +275,9 @@ function Body({ entry }: { entry: ArchiveEntry }) {
                 items={[
                   item.location,
                   // Whichever of the date or the year the title did not use.
-                  item.caption && item.capturedAt ? formatDate(item.capturedAt) : null,
+                  item.caption && item.capturedAt
+                    ? formatCaptured(item.capturedAt, item.circa)
+                    : null,
                   item.caption && !item.capturedAt ? String(item.year) : null,
                 ]}
               />

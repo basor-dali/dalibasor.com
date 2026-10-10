@@ -7,14 +7,7 @@ import { ArrowLink, EmptyState, Label } from '@/components/primitives';
 import { getAlbum, getAlbumNeighbours, getAlbumParams, getAlbums } from '@/lib/content';
 import { mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
-import {
-  cx,
-  formatDate,
-  formatDayMonth,
-  formatMonthYear,
-  isoDate,
-  ordinalLabel,
-} from '@/lib/utils';
+import { cx, formatCaptured, formatMonthYear, ordinalLabel } from '@/lib/utils';
 import type { MediaItem, ResolvedAlbum } from '@/types/content';
 
 /**
@@ -58,21 +51,32 @@ function ogImage(item: MediaItem | undefined): string | undefined {
   });
 }
 
-/** The span the photographs were actually taken over, when EXIF knows. */
+/**
+ * The span the photographs were actually taken over, when it is known — at
+ * the precision it is known, so an album of scans reads "c. 1998".
+ */
 function capturedRange(album: ResolvedAlbum): string | undefined {
-  const dates = album.items
-    .map((item) => item.capturedAt)
-    .filter((value): value is string => Boolean(value))
-    .sort();
+  const dated = album.items
+    .filter((item): item is MediaItem & { capturedAt: string } =>
+      Boolean(item.capturedAt),
+    )
+    .sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
 
-  const first = dates[0];
-  const last = dates[dates.length - 1];
+  const first = dated[0];
+  const last = dated[dated.length - 1];
 
   if (!first || !last) {
     return album.date ? formatMonthYear(album.date) : undefined;
   }
-  if (isoDate(first) === isoDate(last)) return formatDate(first);
-  return `${formatDayMonth(first)} — ${formatDate(last)}`;
+  const one = formatCaptured(first.capturedAt, first.circa);
+  if (one === formatCaptured(last.capturedAt, last.circa)) return one;
+  // Exact dates keep the old "June 14 — August 2, 2019"; a guess at either
+  // end is written out in full, year and all, because the year may be it.
+  const start =
+    first.circa || /^\d{4}(-\d{2})?$/.test(first.capturedAt.trim())
+      ? one
+      : formatCaptured(first.capturedAt, false, 'dayMonth');
+  return `${start} — ${formatCaptured(last.capturedAt, last.circa)}`;
 }
 
 export async function generateMetadata({

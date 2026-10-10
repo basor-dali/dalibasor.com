@@ -265,8 +265,17 @@ export type MediaItem = {
   width: number;
   height: number;
   orientation: MediaOrientation;
-  /** Local ISO capture time from EXIF, when it could be read. */
+  /**
+   * Local ISO capture time from EXIF, when it could be read — or, with
+   * `circa`, as much of the date as anyone knows: `1998` or `1998-06`.
+   */
   capturedAt?: DateString;
+  /**
+   * The date is a guess: a scanned print, a photograph older than anyone's
+   * EXIF. Shown as "c. 1998" or "c. June 1998", never with a day, and never
+   * offered as "on this day".
+   */
+  circa?: boolean;
   caption?: string;
   /** Alt text. Falls back to caption, then to a generic description. */
   alt?: string;

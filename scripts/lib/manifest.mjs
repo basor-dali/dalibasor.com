@@ -424,6 +424,7 @@ const ITEM_KEY_ORDER = [
   'variants',
   'formats',
   'capturedAt',
+  'circa',
   'caption',
   'alt',
   'location',

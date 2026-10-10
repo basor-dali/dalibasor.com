@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MediaItem } from '@/types/content';
 import { formatDuration, mediaAlt, responsiveImage, responsiveVideo } from '@/lib/media';
-import { cx, formatShortMonthYear } from '@/lib/utils';
+import { cx, formatCaptured } from '@/lib/utils';
 import { useDeepLinkedPhoto, useLightbox } from './MediaLightbox';
 import { Picture } from './Picture';
 
@@ -181,7 +181,9 @@ function GridCell({
     ? (media as ReturnType<typeof responsiveVideo>).poster
     : (media as ReturnType<typeof responsiveImage>).src;
 
-  const stamp = item.capturedAt ? formatShortMonthYear(item.capturedAt) : undefined;
+  const stamp = item.capturedAt
+    ? formatCaptured(item.capturedAt, item.circa, 'short')
+    : undefined;
 
   return (
     <button
@@ -308,7 +310,11 @@ const CELL: Record<'wide' | 'landscape' | 'portrait' | 'contact', Cell> = {
   },
 };
 
-function cellFor(item: MediaItem, index: number, variant: MediaGridProps['variant']): Cell {
+function cellFor(
+  item: MediaItem,
+  index: number,
+  variant: MediaGridProps['variant'],
+): Cell {
   if (variant === 'contact') return CELL.contact;
 
   const isPortrait = item.orientation === 'portrait';

@@ -561,6 +561,38 @@ describe('removing an album', () => {
   });
 });
 
+describe('a date that is a guess', () => {
+  /* A scan's only honest date is the year someone remembers. The writer keeps
+     a fixed list of fields and drops anything else, so circa has to be on it —
+     or media:import --circa would date a batch of scans and then quietly lose
+     the one word saying the date was a guess. */
+  it('keeps circa, right after the date it qualifies', () => {
+    const doc = createManifestDoc(1998);
+    addItem(doc, {
+      id: '1998-everyday-0001',
+      type: 'image',
+      publicId: 'd/1998/everyday/a',
+      width: 10,
+      height: 10,
+      capturedAt: '1998',
+      circa: true,
+    });
+
+    const text = doc.toString();
+    const parsed = YAML.parse(text);
+    assert.equal(parsed.items[0].circa, true, 'circa was dropped');
+    assert.equal(
+      parsed.items[0].capturedAt,
+      '1998',
+      'the year came back as something else',
+    );
+    assert.ok(
+      text.indexOf('circa:') > text.indexOf('capturedAt:'),
+      'circa is not next to the date it qualifies',
+    );
+  });
+});
+
 describe('hiding', () => {
   it('writes hidden only when it is true', () => {
     const doc = createManifestDoc(2019);

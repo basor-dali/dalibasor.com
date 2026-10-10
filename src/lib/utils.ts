@@ -158,6 +158,43 @@ export function formatShortMonthYear(value: string): string {
   return `${MONTHS[d.getUTCMonth()]!.slice(0, 3).toUpperCase()} ${d.getUTCFullYear()}`;
 }
 
+/**
+ * When a photograph was taken, at the precision it is actually known.
+ *
+ * EXIF gives a full timestamp. A scanned family print gives at best a year
+ * someone remembers, and `circa` marks that kind: it is shown as "c. 1998" or
+ * "c. June 1998" — never with a day nobody knows, and always with its year,
+ * because the year may be the guess. A date that merely names a year or a
+ * month is shown at that precision too, rather than as the first of it.
+ *
+ * `style` keeps each call site's existing form: `full` (June 14, 2019),
+ * `dayMonth` (June 14 — the year is on screen), `short` (JUN 2019, for mono
+ * labels).
+ */
+export function formatCaptured(
+  value: string,
+  circa = false,
+  style: 'full' | 'dayMonth' | 'short' = 'full',
+): string {
+  const raw = String(value).trim();
+  const yearOnly = /^\d{4}$/.test(raw);
+  const monthOnly = /^\d{4}-\d{2}$/.test(raw);
+
+  if (circa) {
+    if (yearOnly) return `c. ${raw}`;
+    return `c. ${style === 'short' ? formatShortMonthYear(raw) : formatMonthYear(raw)}`;
+  }
+  if (yearOnly) return raw;
+  if (monthOnly) {
+    if (style === 'short') return formatShortMonthYear(raw);
+    return style === 'dayMonth'
+      ? MONTHS[parseDate(raw).getUTCMonth()]!
+      : formatMonthYear(raw);
+  }
+  if (style === 'short') return formatShortMonthYear(raw);
+  return style === 'dayMonth' ? formatDayMonth(raw) : formatDate(raw);
+}
+
 /** `2026-09-07` — the machine-readable form for <time datetime>. */
 export function isoDate(value: string): string {
   return parseDate(value).toISOString().slice(0, 10);

@@ -363,6 +363,26 @@ Re-running the importer preserves anything you have written by hand.
 **Locations are always manual.** GPS is stripped at import and never published. If you want a
 photo to say `Belgrade, Serbia`, type it.
 
+### A date nobody knows exactly
+
+A scanned print has no capture date — the file's own date is the day it was scanned. Write
+what is actually known, and say it is a guess:
+
+```yaml
+capturedAt: '1998' # or '1998-06'
+circa: true
+```
+
+The site shows `c. 1998` or `c. June 1998`: never a day, and never offered as "on this day".
+For a whole folder of scans at once:
+
+```bash
+npm run media:import -- --year 1998 --album family --dir ./scans/1998 --circa 1998
+```
+
+A date that only names a year or a month without `circa` is shown at that precision too —
+`June 1998`, not June 1.
+
 ### Feature a photograph
 
 ```yaml

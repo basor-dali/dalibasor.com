@@ -105,6 +105,10 @@ OPTIONAL
   --no-original          Skip uploading the full-resolution copy (R2 only).
                          Saves storage; loses the offsite backup copy.
   --force                Re-upload files whose hash is already in the manifest.
+  --circa <YYYY|YYYY-MM> For scans and anything else whose date is a guess.
+                         Records that date with circa: true instead of the
+                         file's own — a scan's file date is the day it was
+                         scanned. Shown on the site as "c. 1998".
   --help                 Show this.
 
 SUPPORTED FILES
@@ -131,6 +135,7 @@ const VALUE_FLAGS = new Set([
   'limit',
   'concurrency',
   'target',
+  'circa',
 ]);
 
 function parseArgs(argv) {
@@ -324,6 +329,19 @@ async function main() {
   if (!Number.isFinite(concurrency) || concurrency < 1 || concurrency > 32) {
     error(`--concurrency must be between 1 and 32. Got "${args.values.concurrency}".`);
     process.exit(1);
+  }
+
+  // --circa: for scans. The file's own date is the day it was scanned, so it
+  // is replaced by what is actually known, marked as a guess.
+  const circa = args.values.circa ? String(args.values.circa).trim() : '';
+  if (circa && !/^d{4}(-(0[1-9]|1[0-2]))?$/.test(circa)) {
+    error(`--circa takes a year or a month, like 1998 or 1998-06. Got "${circa}".`);
+    process.exit(1);
+  }
+  if (circa && Number(circa.slice(0, 4)) !== year) {
+    warn(
+      `--circa ${circa} is not in --year ${year}; they will be filed under ${year} but read "c. ${circa}".`,
+    );
   }
 
   const dryRun = Boolean(args.flags['dry-run']);
@@ -551,7 +569,8 @@ async function main() {
         // does not exist, even if the ladder changes later.
         variants: result.variants,
         formats: result.formats,
-        capturedAt: result.capturedAt,
+        capturedAt: circa || result.capturedAt,
+        circa: circa ? true : undefined,
         lqip: result.lqip,
         color: result.color,
         duration: result.duration,
@@ -570,7 +589,11 @@ async function main() {
 
       const id = formatItemId(year, album, number);
       number += 1;
-      addItem(doc, { id, ...item }, { capturedAtInferred: result.capturedAtInferred });
+      addItem(
+        doc,
+        { id, ...item },
+        { capturedAtInferred: !circa && result.capturedAtInferred },
+      );
       appended.push(id);
     }
   }
@@ -591,7 +614,7 @@ async function main() {
   const bytesRead = results.reduce((sum, r) => sum + (r?.bytesRead ?? 0), 0);
   const bytesSent = uploaded.reduce((sum, r) => sum + (r?.bytesSent ?? 0), 0);
   const strippedCount = uploaded.filter((r) => (r.removed?.length ?? 0) > 0).length;
-  const inferredDates = uploaded.filter((r) => r.capturedAtInferred).length;
+  const inferredDates = circa ? 0 : uploaded.filter((r) => r.capturedAtInferred).length;
 
   heading('Summary');
   const width = String(files.length).length;
@@ -619,6 +642,9 @@ async function main() {
     `Metadata stripped from ${strippedCount} of ${uploaded.length} file(s) before upload — ` +
       'no GPS, no serial numbers, no filesystem paths left the machine.',
   );
+  if (circa && uploaded.length > 0) {
+    detail(`Dated "c. ${circa}" (--circa), in place of each file's own date.`);
+  }
   if (inferredDates > 0) {
     warn(
       `${inferredDates} file(s) had no capture date; the file date was used instead and marked ` +

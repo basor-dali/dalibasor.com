@@ -352,7 +352,10 @@ function checkManifest(file, report) {
       if (hasVariants) {
         const widths = item.variants.map(Number);
         if (widths.some((w) => !Number.isFinite(w) || w < MIN_SANE_DIMENSION)) {
-          report.error(where, `\`variants\` contains something that is not a width: ${item.variants.join(', ')}.`);
+          report.error(
+            where,
+            `\`variants\` contains something that is not a width: ${item.variants.join(', ')}.`,
+          );
         }
         const native = Number(item.width);
         if (Number.isFinite(native) && widths.some((w) => w > native)) {
@@ -366,8 +369,18 @@ function checkManifest(file, report) {
     }
 
     /* dates */
-    if (item.capturedAt && Number.isNaN(new Date(item.capturedAt).getTime())) {
+    if (item.capturedAt && Number.isNaN(new Date(String(item.capturedAt)).getTime())) {
       report.error(where, `\`capturedAt: ${item.capturedAt}\` is not a valid date.`);
+    }
+    if (item.circa !== undefined && typeof item.circa !== 'boolean') {
+      report.error(where, `\`circa: ${item.circa}\` must be true or false.`);
+    }
+    if (item.circa === true && !item.capturedAt) {
+      report.warn(
+        where,
+        '`circa: true` says the date is a guess, but there is no `capturedAt` for it to qualify. ' +
+          'Write what is known — `capturedAt: 1998` or `1998-06`.',
+      );
     }
 
     /* video specifics */

@@ -17,6 +17,7 @@ import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 
 import {
+  formatCaptured,
   formatDate,
   toDateString,
   formatDayMonth,
@@ -122,5 +123,25 @@ describe(`dates (TZ=${TZ}, offset ${OFFSET}min)`, () => {
         `${input} produced Invalid Date`,
       );
     }
+  });
+
+  it('shows when a photograph was taken at the precision it is known', () => {
+    // EXIF: exact, and still the wall clock in every timezone.
+    assert.equal(formatCaptured('2019-06-14T23:31:02'), 'June 14, 2019');
+    assert.equal(formatCaptured('2019-06-14T23:31:02', false, 'dayMonth'), 'June 14');
+    assert.equal(formatCaptured('2019-06-14T23:31:02', false, 'short'), 'JUN 2019');
+    // A year or a month that is not a guess: never a day nobody wrote.
+    assert.equal(formatCaptured('1998'), '1998');
+    assert.equal(formatCaptured('1998-06'), 'June 1998');
+    assert.equal(formatCaptured('1998-06', false, 'dayMonth'), 'June');
+  });
+
+  it('marks a guessed date, keeps its year, and never adds a day', () => {
+    assert.equal(formatCaptured('1998', true), 'c. 1998');
+    assert.equal(formatCaptured('1998-06', true), 'c. June 1998');
+    assert.equal(formatCaptured('1998-06-14', true), 'c. June 1998');
+    assert.equal(formatCaptured('1998-06', true, 'dayMonth'), 'c. June 1998');
+    assert.equal(formatCaptured('1998', true, 'short'), 'c. 1998');
+    assert.equal(formatCaptured('1998-06', true, 'short'), 'c. JUN 1998');
   });
 });

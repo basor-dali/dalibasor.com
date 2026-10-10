@@ -53,6 +53,10 @@
 #                    not state it by hand.
 #  capturedAt        Local ISO capture time from EXIF. QUOTE IT. Drives
 #                    chronological ordering; items without one sort by id.
+#                    For a scan, as much as is known: "1998" or "1998-06".
+#  circa             true when the date is a guess — a scanned print, say.
+#                    Shown as "c. 1998", never with a day. media:import
+#                    --circa 1998 sets both for a whole batch.
 #  caption           Optional, one line, written by hand. Shown under the photo.
 #  alt               Alt text. Falls back to caption, then to a generic
 #                    description. Write it for anything that carries meaning.
