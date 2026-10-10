@@ -776,3 +776,101 @@ body:has([data-admin='true']) {
      measure, which is what makes the scroll meaningful. */
   min-width: max-content;
 }
+
+/* ==========================================================================
+   More contrast, when asked for
+   ==========================================================================
+   One dark identity stays — a light mode would be a different site — but a
+   reader who has told their system they need more contrast gets it. Every
+   tier of grey steps up one, and hairlines become visible lines. Nothing
+   changes for anyone else. Unlayered, so it outranks the @theme defaults. */
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-soft: #d9d2c9;
+    --color-muted: #b9b1a8;
+    --color-mute: #948d85;
+    --color-line: #3d3835;
+    --color-line-strong: #5e5752;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ==========================================================================
+   An essay should print as an essay: dark type on white, no navigation, no
+   footer, no "older / newer", and the address of every outside link written
+   out, because paper cannot be clicked. Browsers may drop dark backgrounds
+   when printing but are not obliged to, so this does not leave it to them —
+   least of all on a dark-only site. Elements that make no sense on paper
+   carry `print:hidden` where they are defined. */
+
+@media print {
+  /* The palette itself turns to paper and ink, rather than each element that
+     uses it: everything that reads a token — utilities, prose, table heads,
+     captions, rules — follows without being listed here, and nothing new can
+     be missed. For print only, "white" means ink. */
+  :root {
+    color-scheme: light;
+    --color-ground: #fff;
+    --color-ground-deep: #fff;
+    --color-surface: #f4f4f4;
+    --color-surface-2: #f4f4f4;
+    --color-surface-3: #ebebeb;
+    --color-line: #d0d0d0;
+    --color-line-strong: #9a9a9a;
+    --color-white: #111;
+    --color-ivory: #111;
+    --color-soft: #2b2b2b;
+    --color-muted: #555;
+    --color-mute: #6b6b6b;
+    --color-ember: #a8432a;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .prose a {
+    background: none;
+    text-decoration: underline;
+  }
+
+  .prose a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    word-break: break-all;
+  }
+
+  .prose pre {
+    white-space: pre-wrap;
+  }
+
+  /* Highlighted code is coloured token by token, in inline styles, for a
+     dark ground. On paper those colours are pale on pale; ink instead. */
+  .prose pre span {
+    color: #111 !important;
+  }
+
+  .u-frame,
+  figure {
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  /* Photographs print as they are; a placeholder colour behind them does not. */
+  .u-frame {
+    background: none !important;
+  }
+
+  .js-media .media-img {
+    opacity: 1 !important;
+  }
+}

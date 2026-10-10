@@ -8,7 +8,7 @@ import { primaryNav, site } from '@/lib/site';
 
 export function Footer({ span }: { span?: { from: number; to: number } }) {
   return (
-    <footer className="border-line mt-(--spacing-section) border-t">
+    <footer className="border-line mt-(--spacing-section) border-t print:hidden">
       <div className="u-page py-14 sm:py-20">
         <div className="grid gap-12 md:grid-cols-12">
           {/* --- identity --- */}

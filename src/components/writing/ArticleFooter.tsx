@@ -103,14 +103,14 @@ export function ArticleFooter({
         {/* The year this was written, as a place to go: everything else
             from then — what was being built, the photographs, the Now
             entries. */}
-        <div className="col-span-2 flex flex-wrap gap-x-8 gap-y-3 md:col-span-2 lg:col-span-5 lg:col-start-8 lg:justify-end">
+        <div className="col-span-2 flex flex-wrap gap-x-8 gap-y-3 md:col-span-2 lg:col-span-5 lg:col-start-8 lg:justify-end print:hidden">
           <ArrowLink href={`/years/${post.year}`}>More from {post.year}</ArrowLink>
           <ArrowLink href="/writing">The full archive</ArrowLink>
         </div>
       </div>
 
       {/* --- answer, follow -------------------------------------------------- */}
-      <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+      <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 print:hidden">
         <a
           href={replyHref(`Re: ${post.title}`)}
           className="u-label border-line-strong text-ivory hover:border-ember border px-4 py-3 transition-colors duration-300 hover:text-white"
@@ -128,7 +128,7 @@ export function ArticleFooter({
       {/* --- either side in time ------------------------------------------- */}
       <nav
         aria-label="Nearby entries"
-        className="border-line mt-(--spacing-section-sm) grid border-t md:grid-cols-2"
+        className="border-line mt-(--spacing-section-sm) grid border-t md:grid-cols-2 print:hidden"
       >
         <Neighbour
           post={previous}
@@ -146,7 +146,7 @@ export function ArticleFooter({
 
       {/* --- same subjects ------------------------------------------------- */}
       {related.length > 0 ? (
-        <section className="mt-(--spacing-section)">
+        <section className="mt-(--spacing-section) print:hidden">
           <SectionHeader eyebrow="Related" title="Nearby in the archive" />
           <ol className="mt-14 grid list-none grid-cols-1 gap-x-(--spacing-gutter) gap-y-12 p-0 md:grid-cols-3">
             {related.slice(0, 3).map((entry, index) => (

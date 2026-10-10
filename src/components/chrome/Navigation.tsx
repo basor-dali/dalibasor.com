@@ -152,7 +152,7 @@ export function Navigation() {
     <>
       <header
         className={cx(
-          'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500',
+          'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500 print:hidden',
           scrolled && !menuOpen
             ? 'border-line bg-ground/85 border-b backdrop-blur-md'
             : 'border-b border-transparent',
