@@ -122,9 +122,15 @@ export function articleJsonLd(input: {
   description?: string;
   path: string;
   datePublished: string;
+  /** When it was last meaningfully revised; omitted when never. */
+  dateModified?: string;
   image?: string;
   tags?: string[];
 }) {
+  // The author is the person the About page is about — Google's guidance is
+  // for author.url to point at the page that identifies them.
+  const author = { '@type': 'Person', name: site.author.name, url: absoluteUrl('/about') };
+
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -132,10 +138,11 @@ export function articleJsonLd(input: {
     description: input.description,
     url: absoluteUrl(input.path),
     datePublished: input.datePublished,
+    dateModified: input.dateModified ?? input.datePublished,
     keywords: input.tags?.join(', '),
     image: input.image ? absoluteUrl(input.image) : undefined,
-    author: { '@type': 'Person', name: site.author.name, url: site.url },
-    publisher: { '@type': 'Person', name: site.author.name, url: site.url },
+    author,
+    publisher: author,
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(input.path) },
     inLanguage: site.language,
   };

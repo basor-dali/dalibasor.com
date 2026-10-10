@@ -30,6 +30,12 @@ export type MediaRef = {
 export type WritingFrontmatter = {
   title: string;
   date: DateString;
+  /**
+   * When the piece was last meaningfully revised. Optional, and only for real
+   * changes — a typo fixed is not an update. Shown under the date, and given
+   * to search engines and feed readers as the modified date.
+   */
+  updated?: DateString;
   slug?: string;
   /** A short editorial subtitle. Optional — most posts will not have one. */
   subtitle?: string;
@@ -59,6 +65,8 @@ export type Post = {
   title: string;
   subtitle?: string;
   date: DateString;
+  /** Last meaningful revision, when it is later than `date`. */
+  updated?: DateString;
   year: number;
   tags: string[];
   coverImage?: string;

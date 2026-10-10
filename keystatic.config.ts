@@ -188,6 +188,12 @@ export default config({
           validation: { isRequired: true },
           defaultValue: { kind: 'today' },
         }),
+        updated: fields.date({
+          label: 'Revised',
+          description:
+            'Only for a real revision after publishing, not a typo fixed. Shown under the date and sent to feed readers.',
+          validation: { isRequired: false },
+        }),
         subtitle: fields.text({
           label: 'Subtitle',
           description: 'Optional editorial line under the title.',

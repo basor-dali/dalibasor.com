@@ -92,7 +92,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const captureOf = (year: (typeof resolvedYears)[number]) =>
     lastCapture([...year.everyday, ...year.albums.flatMap((album) => album.items)]);
 
-  const newestPost = latest(posts.map((post) => post.date));
+  const newestPost = latest(posts.map((post) => post.updated ?? post.date));
   const newestProject = latest(
     projects.map((project) => project.endDate ?? project.startDate),
   );
@@ -154,7 +154,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const post of posts) {
     entries.push(
       entry(post.href, {
-        lastModified: parseDate(post.date),
+        lastModified: parseDate(post.updated ?? post.date),
         changeFrequency: 'yearly',
         priority: post.featured ? 0.8 : 0.7,
       }),

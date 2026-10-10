@@ -62,6 +62,7 @@ export async function generateMetadata({
     image: `${post.href}/opengraph-image`,
     type: 'article',
     publishedTime: isoDateTime(post.date),
+    modifiedTime: post.updated ? isoDateTime(post.updated) : undefined,
     tags: post.tags,
     /* Scaffolding is not indexable. Everything is noindex today because
        NEXT_PUBLIC_ALLOW_INDEXING is unset, which makes this look redundant —
@@ -105,6 +106,7 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
             description: descriptionFor(post),
             path: post.href,
             datePublished: isoDateTime(post.date),
+            dateModified: post.updated ? isoDateTime(post.updated) : undefined,
             image: coverUrl(post.coverImage),
             tags: post.tags,
           }),

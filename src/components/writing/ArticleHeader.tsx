@@ -88,6 +88,13 @@ export function ArticleHeader({ post }: { post: Post }) {
           <Fact term="Published">
             <time dateTime={isoDate(post.date)}>{formatDate(post.date)}</time>
           </Fact>
+          {post.updated ? (
+            // Revised after publication. Shown rather than silently folded
+            // into the date: an archive should say when a piece changed.
+            <Fact term="Revised">
+              <time dateTime={isoDate(post.updated)}>{formatDate(post.updated)}</time>
+            </Fact>
+          ) : null}
           {post.location ? <Fact term="Written in">{post.location}</Fact> : null}
           <Fact term="Reading">{pluralize(post.readingMinutes, 'minute')}</Fact>
         </dl>
