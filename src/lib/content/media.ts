@@ -363,6 +363,24 @@ export function getAllAlbums(): ResolvedAlbum[] {
   return getArchiveYears().flatMap((year) => getAlbums(year));
 }
 
+/**
+ * The albums either side of one in time, across years — so an album leads to
+ * the next without a trip back to the index, the way an essay leads to the
+ * next essay. Years run in order; within a year, the year page's own order
+ * (by date, then title).
+ */
+export function getAlbumNeighbours(
+  year: number,
+  slug: string,
+): { older?: ResolvedAlbum; newer?: ResolvedAlbum } {
+  const ordered = [...getArchiveYears()]
+    .sort((a, b) => a - b)
+    .flatMap((each) => getAlbums(each));
+  const index = ordered.findIndex((album) => album.year === year && album.slug === slug);
+  if (index === -1) return {};
+  return { older: ordered[index - 1], newer: ordered[index + 1] };
+}
+
 /** `[{ year, album }]` for `generateStaticParams`. */
 export function getAlbumParams(): { year: string; album: string }[] {
   return getAllAlbums().map((album) => ({

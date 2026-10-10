@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { albumCountLabel } from '@/components/media/AlbumCard';
 import { PhotoEssay } from '@/components/media/PhotoEssay';
 import { ArrowLink, EmptyState, Label } from '@/components/primitives';
-import { getAlbum, getAlbumParams, getAlbums } from '@/lib/content';
+import { getAlbum, getAlbumNeighbours, getAlbumParams, getAlbums } from '@/lib/content';
 import { mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import {
@@ -101,6 +101,52 @@ export async function generateMetadata({
   });
 }
 
+/** One side of "either side in time" — the same shape as an essay's. */
+function AlbumNeighbour({
+  album,
+  direction,
+  fallback,
+  className,
+}: {
+  album?: ResolvedAlbum;
+  direction: 'Older' | 'Newer';
+  fallback: string;
+  className?: string;
+}) {
+  const align = direction === 'Newer' ? 'md:text-right' : undefined;
+
+  return (
+    <div className={cx('group relative py-9', className)}>
+      <Label className={cx('block', align)}>{direction}</Label>
+      {album ? (
+        <>
+          <p
+            className={cx(
+              'u-display text-ivory mt-5 text-xl transition-colors duration-300 group-hover:text-white',
+              align,
+            )}
+          >
+            <Link
+              href={album.href}
+              className="after:absolute after:inset-0 after:content-['']"
+            >
+              {album.title}
+            </Link>
+          </p>
+          <p className={cx('u-label u-nums text-muted mt-4', align)}>
+            {[
+              String(album.year),
+              albumCountLabel(album.photoCount, album.videoCount),
+            ].join('  ·  ')}
+          </p>
+        </>
+      ) : (
+        <p className={cx('u-serif text-muted mt-5 text-xl', align)}>{fallback}</p>
+      )}
+    </div>
+  );
+}
+
 export default async function AlbumPage({ params }: { params: Promise<Params> }) {
   const resolved = await params;
   const album = findAlbum(resolved);
@@ -110,6 +156,7 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
   const siblings = getAlbums(album.year);
   const position = siblings.findIndex((entry) => entry.slug === album.slug);
   const others = siblings.filter((entry) => entry.slug !== album.slug);
+  const { older, newer } = getAlbumNeighbours(album.year, album.slug);
 
   const countLabel = albumCountLabel(album.photoCount, album.videoCount);
   const dateLabel = capturedRange(album);
@@ -238,6 +285,28 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
           </Link>
           <ArrowLink href="/photos">The whole archive</ArrowLink>
         </div>
+
+        {/* Either side in time, across years — the album's equivalent of an
+            essay's older and newer. Only when there is somewhere to go. */}
+        {older || newer ? (
+          <nav
+            aria-label="Albums either side in time"
+            className="border-line mt-16 grid border-t sm:mt-24 md:grid-cols-2"
+          >
+            <AlbumNeighbour
+              album={older}
+              direction="Older"
+              fallback="The first album in the archive."
+              className="border-line border-b md:border-r md:border-b-0 md:pr-(--spacing-gutter)"
+            />
+            <AlbumNeighbour
+              album={newer}
+              direction="Newer"
+              fallback="The most recent album."
+              className="md:pl-(--spacing-gutter)"
+            />
+          </nav>
+        ) : null}
 
         {others.length > 0 ? (
           <nav aria-label={`Other albums from ${album.year}`} className="mt-16 sm:mt-24">
