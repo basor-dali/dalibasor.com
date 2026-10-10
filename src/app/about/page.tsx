@@ -6,7 +6,8 @@ import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage } from '@/components/media/MediaImage';
 import { MetaLine, SectionHeader } from '@/components/primitives';
 import { getAboutTimeline, getPage } from '@/lib/content';
-import { pageMetadata } from '@/lib/metadata';
+import { mediaProvider, providerCanResize } from '@/lib/media';
+import { jsonLdScript, pageMetadata, profilePageJsonLd } from '@/lib/metadata';
 import { site } from '@/lib/site';
 import { truncate } from '@/lib/utils';
 
@@ -43,8 +44,24 @@ export default function AboutPage() {
   const portrait = page?.coverImage?.trim();
   const portraitAlt = page?.coverAlt?.trim() || site.name;
 
+  // The page Google reads as the one about a person. Its Person is the same
+  // one the layout declares on every page, joined by @id, now with a face.
+  const portraitUrl =
+    portrait && providerCanResize()
+      ? mediaProvider().imageUrl(portrait, {
+          width: 1200,
+          fit: 'fit',
+          availableWidths: page?.coverItem?.variants,
+        })
+      : undefined;
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(profilePageJsonLd({ image: portraitUrl }))}
+      />
+
       {/* ---------------------------------------------------------------- */}
       {/* Opener                                                            */}
       {/* ---------------------------------------------------------------- */}

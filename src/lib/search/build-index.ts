@@ -308,6 +308,35 @@ export function buildSearchIndex(): SearchDoc[] {
     });
   }
 
+  /* --- pages with no content file --------------------------------------- */
+
+  /* Pages that are code rather than content, findable by the words someone
+     would look for them with. */
+  for (const page of [
+    {
+      slug: 'feeds',
+      title: 'Feeds',
+      meta: 'RSS and JSON Feed',
+      words: 'feeds rss json feed subscribe follow reader newsletter writing now',
+    },
+    {
+      slug: 'colophon',
+      title: 'Colophon',
+      meta: 'How this site is made',
+      words:
+        'colophon privacy cookies analytics tracking typefaces fonts built with gps location photographs about this site',
+    },
+  ]) {
+    docs.push({
+      id: `page:${page.slug}`,
+      kind: 'page',
+      title: page.title,
+      href: `/${page.slug}`,
+      meta: page.meta,
+      text: searchable(page.title, [page.meta, page.words]),
+    });
+  }
+
   /* Newest first, so any tie in the client's ranking still reads
      chronologically rather than in filesystem order. */
   return docs.sort(

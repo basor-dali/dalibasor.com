@@ -147,6 +147,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     }),
+    entry('/feeds', {
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    }),
+    entry('/colophon', {
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    }),
   ];
 
   /* --- writing --------------------------------------------------------- */

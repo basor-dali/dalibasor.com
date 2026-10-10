@@ -19,7 +19,7 @@ import {
   pickArchiveEntry,
   summarizeNow,
 } from '@/lib/content';
-import { pageMetadata } from '@/lib/metadata';
+import { jsonLdScript, pageMetadata, websiteJsonLd } from '@/lib/metadata';
 import { site } from '@/lib/site';
 
 /**
@@ -66,6 +66,10 @@ export default function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(websiteJsonLd())}
+      />
       <Hero
         item={heroItem}
         span={span}

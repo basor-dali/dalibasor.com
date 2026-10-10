@@ -114,15 +114,48 @@ export function pageMetadata(input: PageMetaInput): Metadata {
    Minimal and honest. Enough for a search engine to understand that an
    article is an article; nothing that pretends this is a publication. */
 
-export function personJsonLd() {
+export function personJsonLd(options: { image?: string } = {}) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
+    '@id': `${site.url}/#person`,
     name: site.author.name,
     url: site.url,
     email: `mailto:${site.author.email}`,
     homeLocation: { '@type': 'Place', name: site.location },
     sameAs: site.social.map((entry) => entry.href),
+    ...(options.image ? { image: absoluteUrl(options.image) } : {}),
+  };
+}
+
+/**
+ * The site's name, for search results. Google reads WebSite markup on the home
+ * page for the name it shows above a result, and that is all it is used for
+ * now — the sitelinks search box it once powered was retired in 2024, so no
+ * SearchAction is declared.
+ */
+export function websiteJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.url,
+    inLanguage: site.language,
+    publisher: { '@id': `${site.url}/#person` },
+  };
+}
+
+/**
+ * /about as a profile page — the one Google treats as the page about a person.
+ * Its main entity is the same Person the layout declares, by @id.
+ */
+export function profilePageJsonLd(input: { image?: string; dateModified?: string }) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url: absoluteUrl('/about'),
+    ...(input.dateModified ? { dateModified: input.dateModified } : {}),
+    mainEntity: personJsonLd({ image: input.image }),
   };
 }
 

@@ -78,21 +78,30 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
                 </a>
               </li>
               <li>
-                <a
-                  href="/writing/rss.xml"
+                <Link
+                  href="/feeds"
                   className="u-link u-link-reveal text-soft text-sm hover:text-white"
                 >
-                  RSS
-                </a>
+                  Feeds
+                </Link>
+                <span className="u-label text-muted ml-2">RSS · JSON</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-line mt-16 flex flex-col gap-3 border-t pt-8 sm:flex-row sm:items-baseline sm:justify-between">
+        <div className="border-line mt-16 flex flex-col gap-3 border-t pt-8 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
           <p className="u-label text-muted">
             © {site.archiveStartYear}–{new Date().getUTCFullYear()} {site.name}
           </p>
+          {/* The promises the site keeps, stated where people look for them.
+              Practised and never said, they counted for nothing. */}
+          <Link
+            href="/colophon"
+            className="u-label u-link u-link-reveal text-muted hover:text-ivory"
+          >
+            No cookies, no analytics
+          </Link>
           <p className="u-label text-muted">Built and maintained by me.</p>
         </div>
       </div>
