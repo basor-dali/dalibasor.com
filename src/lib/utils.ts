@@ -215,7 +215,7 @@ export function toPlainText(mdx: string): string {
       .replace(/[*_~]{1,3}/g, '')
       .replace(/^\s*[-+*]\s+/gm, '')
       .replace(/\|/g, ' ')
-      // eslint-disable-next-line no-control-regex -- the sentinel from `keep`
+      // Put the code spans back, now that nothing else will touch them.
       .replace(/\u0000(\d+)\u0000/g, (_match, index: string) => code[Number(index)] ?? '')
       .replace(/\s+/g, ' ')
       .trim()
