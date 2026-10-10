@@ -19,8 +19,12 @@ import { LinkCue } from './Hero';
 const LEAD_SIZES = '(min-width: 64rem) 22vw, (min-width: 48rem) 26vw, 30vw';
 
 export function ArchivePreview({ years }: { years: YearSummary[] }) {
-  const lead = years[0];
-  const rest = years.slice(1, 5);
+  // Only years that hold something. A year's manifest can exist before a
+  // single photograph is in it, and leading with one drew the newest year at
+  // colossal size over three frames labelled "Photograph pending".
+  const filed = years.filter((year) => year.totalCount > 0);
+  const lead = filed[0];
+  const rest = filed.slice(1, 5);
 
   return (
     <section className="py-(--spacing-section)" aria-labelledby="home-archive">
@@ -68,7 +72,11 @@ function LeadYear({ year }: { year: YearSummary }) {
 
   return (
     <article className="u-page mt-14 sm:mt-20">
-      <Link href={year.href} className="group block">
+      <Link
+        href={year.href}
+        className="group block"
+        aria-label={`${year.year} — ${countLine(year).replace(/\s+·\s+/g, ', ')}`}
+      >
         <YearMark
           year={year.year}
           className="text-line-strong group-hover:text-muted transition-colors duration-700"
@@ -124,6 +132,7 @@ function YearRow({ year }: { year: YearSummary }) {
     <Link
       href={year.href}
       className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 py-5 sm:gap-8 sm:py-7"
+      aria-label={`${year.year} — ${countLine(year).replace(/\s+·\s+/g, ', ')}`}
     >
       <span className="u-display u-nums text-ivory text-2xl transition-colors duration-300 group-hover:text-white">
         {year.year}
@@ -160,24 +169,22 @@ function YearRow({ year }: { year: YearSummary }) {
 
 /* ==========================================================================
    Empty — still a composition
-   ========================================================================== */
+   ==========================================================================
+   The year the archive is declared to start, set at colossal size in the
+   dimmest line colour, and one plain sentence. It used to carry three empty
+   frames as well — which, with the hero, the lead essay and the first
+   project, made six "pending" plates on a homepage with nothing missing from
+   it but time. */
 
 function ArchiveEmpty() {
   return (
     <div className="u-page mt-14 sm:mt-20">
-      <YearMark year={site.archiveStartYear} className="text-line" />
-      <div className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4">
-        {[0, 1, 2].map((index) => (
-          <EmptyFrame
-            key={index}
-            ratio="4 / 5"
-            label="Photograph pending"
-            tone={index === 1 ? 'surface-3' : 'surface-2'}
-          />
-        ))}
-      </div>
+      <YearMark year={site.archiveStartYear} className="text-line" aria-hidden="true" />
       <div className="border-line mt-7 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t pt-5">
-        <p className="u-label text-muted">The archive starts here</p>
+        <p className="u-label text-muted">
+          No photographs filed yet <span aria-hidden="true">·</span> the archive starts
+          in {site.archiveStartYear}
+        </p>
         <ArrowLink href="/photos">Photos + Video</ArrowLink>
       </div>
     </div>

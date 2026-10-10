@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { frameRatio } from '@/components/media/AlbumCard';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { MediaImage } from '@/components/media/MediaImage';
-import { EmptyState, Label, YearMark } from '@/components/primitives';
+import { EmptyState, Label, PageHeader, YearMark } from '@/components/primitives';
 import {
   getArchiveSpan,
   getArchiveTotals,
@@ -71,6 +71,13 @@ export default function PhotosPage() {
   const olderMaterial =
     span.from < totals.firstYear && getTimeline().some((entry) => entry.total > 0);
 
+  // A year can be declared — its manifest created — before anything is in it.
+  // Those used to get the same full-page composition as a year with three
+  // hundred photographs: a colossal numeral over an empty frame. They are
+  // listed quietly instead, and an archive with nothing in it at all gets one
+  // plain opener rather than a span of years and a row of zeros.
+  if (!hasMedia) return <NothingFiledYet declared={years.map((year) => year.year)} />;
+
   return (
     <div className="pb-(--spacing-section)">
       {/* --- the span ---------------------------------------------------- */}
@@ -137,22 +144,82 @@ export default function PhotosPage() {
         <section className="u-page mt-(--spacing-section)">
           <h2 className="sr-only">Years</h2>
           <ol className="list-none p-0">
-            {years.map((summary, index) => (
-              <li
-                key={summary.year}
-                className="border-line border-t py-(--spacing-section-sm) last:pb-0"
-              >
-                <YearBlock
-                  summary={summary}
-                  index={index}
-                  priority={index === 0 && hasMedia}
-                />
-              </li>
-            ))}
+            {years.map((summary, index) =>
+              summary.totalCount > 0 ? (
+                <li
+                  key={summary.year}
+                  className="border-line border-t py-(--spacing-section-sm) last:pb-0"
+                >
+                  <YearBlock
+                    summary={summary}
+                    index={index}
+                    priority={index === 0 && hasMedia}
+                  />
+                </li>
+              ) : (
+                <li key={summary.year} className="border-line border-t">
+                  <EmptyYearRow year={summary.year} />
+                </li>
+              ),
+            )}
           </ol>
         </section>
       )}
     </div>
+  );
+}
+
+/* ==========================================================================
+   Nothing filed
+   ========================================================================== */
+
+function NothingFiledYet({ declared }: { declared: number[] }) {
+  return (
+    <div className="pb-(--spacing-section)">
+      <PageHeader
+        eyebrow="The archive"
+        title="Photos + Video"
+        lede="Photographs and video, filed a year at a time. Each year gets its own page as its photographs arrive."
+      />
+
+      <div className="u-page">
+        <EmptyState title="Nothing filed yet">
+          <p>
+            Each year lives in one file under{' '}
+            <span className="text-ivory font-mono">content/media</span>, and the first
+            photograph imported into one opens it here.
+          </p>
+        </EmptyState>
+
+        {declared.length > 0 ? (
+          <div className="mt-(--spacing-section-sm)">
+            <Label as="p">Years declared, still empty</Label>
+            <ul className="border-line mt-5 list-none border-b p-0">
+              {declared.map((year) => (
+                <li key={year} className="border-line border-t">
+                  <EmptyYearRow year={year} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** A declared year with nothing in it: one quiet line, still a real link. */
+function EmptyYearRow({ year }: { year: number }) {
+  return (
+    <Link
+      href={`/photos/${year}`}
+      className="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 py-5"
+    >
+      <span className="u-display u-nums text-soft text-2xl transition-colors duration-300 group-hover:text-ivory">
+        {year}
+      </span>
+      <span className="u-label text-muted">Nothing filed yet</span>
+    </Link>
   );
 }
 
