@@ -64,7 +64,14 @@ function searchable(
   const pieces = [title, ...parts]
     .map((part) => (typeof part === 'number' ? String(part) : part))
     .filter((part): part is string => Boolean(part && part.trim()));
-  return collapse(pieces.join(' · ')).toLowerCase();
+  // Apostrophes out, so "im" and "dont" find "I'm" and "don't" — which is how
+  // people type, and how every slug on the site is already written.
+  return foldApostrophes(collapse(pieces.join(' · ')).toLowerCase());
+}
+
+/** The same fold the client applies to titles and queries. */
+function foldApostrophes(value: string): string {
+  return value.replace(/['’‘`]/g, '');
 }
 
 function titleize(slug: string): string {

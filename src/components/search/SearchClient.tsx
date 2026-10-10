@@ -12,6 +12,7 @@ import {
 } from 'react';
 import type { SearchDoc } from '@/types/content';
 import { EmptyState } from '@/components/primitives';
+import { takeSearchFocusRequest } from '@/lib/search/intent';
 import { cx, ordinalLabel, pluralize } from '@/lib/utils';
 
 /**
@@ -47,8 +48,18 @@ const GROUPS: { label: string; kinds: Kind[] }[] = [
    Ranking
    ========================================================================== */
 
+/**
+ * Apostrophes are folded out of the index and the query alike, so "dont"
+ * finds "don't" and "I'm" stays one word rather than splitting into "i" and
+ * "m". Slugs are written without them, which is what made the 404 page's
+ * guess — "why im starting this website" — find nothing at all.
+ */
+function foldApostrophes(value: string): string {
+  return value.replace(/['’‘`]/g, '');
+}
+
 function tokenize(value: string): string[] {
-  const found = value.toLowerCase().match(/[\p{L}\p{N}]+/gu);
+  const found = foldApostrophes(value.toLowerCase()).match(/[\p{L}\p{N}]+/gu);
   // Eight words is already an unusual query; past that it is a paste.
   return found ? found.slice(0, 8) : [];
 }
@@ -60,8 +71,9 @@ function isWordStart(haystack: string, index: number): boolean {
 }
 
 function scoreDoc(doc: SearchDoc, tokens: string[]): number {
-  const title = doc.title.toLowerCase();
-  const tags = doc.tags && doc.tags.length > 0 ? doc.tags.join(' ').toLowerCase() : '';
+  const title = foldApostrophes(doc.title.toLowerCase());
+  const tags =
+    doc.tags && doc.tags.length > 0 ? foldApostrophes(doc.tags.join(' ').toLowerCase()) : '';
   let score = 0;
 
   for (const token of tokens) {
@@ -118,7 +130,7 @@ function runSearch(docs: SearchDoc[], tokens: string[]): Result[] {
  * material, set in mono to say so.
  */
 function snippetFor(doc: SearchDoc, tokens: string[]): string | null {
-  const heading = doc.title.toLowerCase().replace(/\s+/g, ' ').trim();
+  const heading = foldApostrophes(doc.title.toLowerCase().replace(/\s+/g, ' ').trim());
   const from = doc.text.startsWith(heading) ? heading.length : 0;
 
   let at = -1;
@@ -178,6 +190,15 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
   const [status, setStatus] = useState<Status>('idle');
   const [focused, setFocused] = useState(false);
   const requested = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /* Arriving by the `/` shortcut, the visitor has already said they want to
+     type. Focusing the field also fetches the index (onFocus below). Only
+     then: autofocusing every visit would yank a screen reader past the page
+     heading for someone who only followed a link. */
+  useEffect(() => {
+    if (takeSearchFocusRequest()) inputRef.current?.focus();
+  }, []);
 
   /* --- the index -------------------------------------------------------- */
 
@@ -289,6 +310,7 @@ export function SearchClient({ counts = [] }: { counts?: SearchCount[] }) {
           )}
         >
           <input
+            ref={inputRef}
             id={inputId}
             type="search"
             value={query}

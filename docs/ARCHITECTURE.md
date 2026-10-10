@@ -129,15 +129,21 @@ face detection and no automatic tagging of people, by choice.
 
 Server Components by default. `'use client'` appears in exactly the places that need it:
 
-| Component        | Why it is a client component              |
-| ---------------- | ----------------------------------------- |
-| `Navigation`     | scroll state, mobile menu, focus trapping |
-| `MediaLightbox`  | keyboard, swipe, portal, history          |
-| `MediaGrid`      | progressive reveal, opening the lightbox  |
-| `MediaVideo`     | play state                                |
-| `WritingArchive` | in-memory filtering                       |
-| `SearchClient`   | fetch-on-interaction and scoring          |
-| `error.tsx`      | React requires it                         |
+| Component        | Why it is a client component                                  |
+| ---------------- | ------------------------------------------------------------- |
+| `Navigation`     | scroll state, mobile menu, focus trapping, the `/` shortcut   |
+| `MediaLightbox`  | keyboard, swipe, portal, the history entry Back closes        |
+| `MediaGrid`      | progressive reveal, opening the lightbox                      |
+| `MediaVideo`     | play state                                                    |
+| `WritingArchive` | in-memory filtering, kept in the URL                          |
+| `SearchClient`   | fetch-on-interaction and scoring                              |
+| `SearchFromPath` | reads the address the 404 page was reached at                 |
+| `error.tsx`      | React requires it                                             |
+
+`SiteChrome` is a client component only to read the pathname, and the footer is passed
+into it as a rendered slot rather than imported — imported, it became client code and
+recomputed the copyright year in the browser, which disagreed with the static HTML every
+January. `scripts/test/chrome.test.mjs` pins that.
 
 The image fade-in is a notable exception: rather than per-image React state, one capture-phase
 `load` listener inlined in `<head>` tags images as they decode, and CSS does the rest. On a page

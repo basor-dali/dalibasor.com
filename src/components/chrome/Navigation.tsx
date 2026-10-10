@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { requestSearchFocus } from '@/lib/search/intent';
 import { primaryNav, site } from '@/lib/site';
 import { cx } from '@/lib/utils';
 
@@ -106,7 +107,45 @@ export function Navigation() {
     };
   }, [menuOpen]);
 
+  /* --- `/` to search ----------------------------------------------------
+     The search was only ever linked from the footer. It now has a place in
+     the bar, and the keyboard convention most sites with a search share:
+     `/` from anywhere goes to the field, already focused. Never while typing
+     in a field, never with a modifier held, and never while a dialog — the
+     menu or the photo viewer — has the page. */
+  const router = useRouter();
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== '/' || event.defaultPrevented) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+      ) {
+        return;
+      }
+      if (menuOpen || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+
+      event.preventDefault();
+      const field = document.querySelector<HTMLInputElement>('input[type="search"]');
+      if (window.location.pathname === '/search' && field) {
+        field.focus();
+        field.select();
+        return;
+      }
+      requestSearchFocus();
+      router.push('/search');
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen, router]);
+
   const isHome = pathname === '/';
+  const searchActive = pathname === '/search';
 
   return (
     <>
@@ -133,7 +172,7 @@ export function Navigation() {
 
           {/* --- desktop --- */}
           <nav aria-label="Primary" className="hidden md:block">
-            <ul className="flex list-none items-center gap-7 p-0 lg:gap-9">
+            <ul className="flex list-none items-center gap-5 p-0 lg:gap-8 xl:gap-9">
               {primaryNav.map((item) => {
                 const active =
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -152,6 +191,27 @@ export function Navigation() {
                   </li>
                 );
               })}
+              {/* Set apart from the sections by a hairline: it is a tool, not
+                  a place. The key hint shows where there is room for it. */}
+              <li className="border-line-strong border-l pl-5 lg:pl-8 xl:pl-9">
+                <Link
+                  href="/search"
+                  aria-current={searchActive ? 'page' : undefined}
+                  aria-keyshortcuts="/"
+                  className={cx(
+                    'u-label u-link u-link-reveal -m-2 inline-flex items-baseline gap-2 p-2 transition-colors duration-300',
+                    searchActive ? 'text-ivory' : 'text-muted hover:text-ivory',
+                  )}
+                >
+                  Search
+                  <kbd
+                    aria-hidden="true"
+                    className="border-line-strong text-muted hidden border px-1.5 font-mono text-[0.625rem] leading-[1.4] lg:inline-block"
+                  >
+                    /
+                  </kbd>
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -275,6 +335,14 @@ export function Navigation() {
         </nav>
 
         <div className="u-pad flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 pb-10">
+          <Link
+            href="/search"
+            onClick={() => setMenuOpen(false)}
+            aria-current={searchActive ? 'page' : undefined}
+            className="u-label u-link u-link-reveal text-ivory"
+          >
+            Search
+          </Link>
           {site.social.map((social) => (
             <a
               key={social.label}
