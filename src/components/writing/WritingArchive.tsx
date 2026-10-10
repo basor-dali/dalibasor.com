@@ -1,6 +1,14 @@
 'use client';
 
-import { useDeferredValue, useId, useMemo, useState, type ReactNode } from 'react';
+import {
+  useDeferredValue,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { PostSummary } from '@/types/content';
 import { EmptyState, Label } from '@/components/primitives';
 import { cx, pluralize, slugify } from '@/lib/utils';
@@ -52,6 +60,52 @@ export function WritingArchive({
   const [allTagsShown, setAllTagsShown] = useState(false);
 
   const deferredQuery = useDeferredValue(query);
+
+  /* --- the address bar -----------------------------------------------------
+     The filters live in the URL — ?year=2019&tag=travel&q=bridge — so a
+     filtered view can be linked to (a year page links to its year's writing
+     this way), and so it survives the round trip to an essay and back. Kept
+     in state only, every Back from an essay landed on the unfiltered archive.
+
+     Read once after hydration, deferred a tick: the server rendered the
+     unfiltered list, so adopting the URL during the effect body would be a
+     cascading render on top of hydration. Written with replaceState, never
+     push — a filter is not twenty entries in the back button. */
+  const adopted = useRef(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const wantedYear = Number.parseInt(params.get('year') ?? '', 10);
+    const wantedTag = params.get('tag') ?? '';
+    const wantedQuery = params.get('q') ?? '';
+
+    const id = setTimeout(() => {
+      if (posts.some((post) => post.year === wantedYear)) setYear(wantedYear);
+      if (tags?.some((entry) => entry.slug === wantedTag)) setTag(wantedTag);
+      if (wantedQuery.trim()) setQuery(wantedQuery);
+      adopted.current = true;
+    }, 0);
+    return () => clearTimeout(id);
+  }, [posts, tags]);
+
+  useEffect(() => {
+    // Nothing is written back until the URL has been read, or the first pass
+    // would wipe the very parameters it was about to adopt.
+    if (!adopted.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const set = (key: string, value: string | null) =>
+      value ? params.set(key, value) : params.delete(key);
+    set('year', year === 'all' ? null : String(year));
+    set('tag', tag === 'all' ? null : tag);
+    set('q', query.trim() ? query : null);
+
+    const next = params.toString();
+    const url = `${window.location.pathname}${next ? `?${next}` : ''}${window.location.hash}`;
+    if (url !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(null, '', url);
+    }
+  }, [year, tag, query]);
 
   /* --- derived, once ----------------------------------------------------- */
 
