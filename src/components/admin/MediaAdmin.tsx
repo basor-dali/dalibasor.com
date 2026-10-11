@@ -33,6 +33,7 @@ type AlbumRecord = {
   note?: string;
   featured?: boolean;
   hidden?: boolean;
+  noindex?: boolean;
 };
 
 /** The album form's fields, all present so a save is a whole record. */
@@ -44,6 +45,7 @@ type AlbumForm = {
   note: string;
   featured: boolean;
   hidden: boolean;
+  noindex: boolean;
 };
 
 const EMPTY_ALBUM_FORM: AlbumForm = {
@@ -54,6 +56,7 @@ const EMPTY_ALBUM_FORM: AlbumForm = {
   note: '',
   featured: false,
   hidden: false,
+  noindex: false,
 };
 
 type ManifestItem = {
@@ -69,6 +72,7 @@ type ManifestItem = {
   featured?: boolean;
   capturedAt?: string;
   hidden?: boolean;
+  noindex?: boolean;
   lqip?: string;
   color?: string;
 };
@@ -330,6 +334,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
             note: entry.note ?? '',
             featured: Boolean(entry.featured),
             hidden: Boolean(entry.hidden),
+            noindex: Boolean(entry.noindex),
           }
         : EMPTY_ALBUM_FORM,
     );
@@ -429,6 +434,8 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
           note: entry.note ?? '',
           featured: Boolean(entry.featured),
           hidden: !entry.hidden,
+          // The route writes the whole record; carry this through or a Hide wipes it.
+          noindex: Boolean(entry.noindex),
         },
       });
       if (!data) return;
@@ -653,6 +660,7 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                     <span style={styles.albumName}>
                       {entry.title ?? entry.slug}
                       {entry.hidden ? <span style={styles.tag}>hidden</span> : null}
+                      {entry.noindex ? <span style={styles.tag}>off search</span> : null}
                       {entry.featured ? <span style={styles.tag}>featured</span> : null}
                     </span>
                     <span style={styles.hintInline}>
@@ -828,6 +836,17 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                   }
                 />
                 <span>Hidden from the site</span>
+              </label>
+
+              <label style={styles.checkbox}>
+                <input
+                  type="checkbox"
+                  checked={albumForm.noindex}
+                  onChange={(e) =>
+                    setAlbumForm((f) => ({ ...f, noindex: e.target.checked }))
+                  }
+                />
+                <span>Kept out of search engines (stays on the site)</span>
               </label>
 
               <button
@@ -1007,6 +1026,9 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                 <th style={styles.th}>Location</th>
                 <th style={{ ...styles.th, width: 70, textAlign: 'center' }}>Featured</th>
                 <th style={{ ...styles.th, width: 60, textAlign: 'center' }}>Hidden</th>
+                <th style={{ ...styles.th, width: 70, textAlign: 'center' }}>
+                  Off search
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -1070,6 +1092,17 @@ export function MediaAdmin({ destination }: { destination: Destination }) {
                       checked={Boolean(item.hidden)}
                       onChange={(e) => edit(item.id, 'hidden', e.target.checked)}
                       aria-label={`Hide ${item.id}`}
+                    />
+                  </td>
+                  {/* Off search keeps the photograph on the site and its page out
+                      of search engines and the sitemap. Not privacy: anyone with
+                      the link can still open it. That is what Hidden is for. */}
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(item.noindex)}
+                      onChange={(e) => edit(item.id, 'noindex', e.target.checked)}
+                      aria-label={`Keep ${item.id} out of search engines`}
                     />
                   </td>
                 </tr>

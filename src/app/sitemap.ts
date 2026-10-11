@@ -76,8 +76,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
      Section indexes are unconditional. /writing is worth crawling even while
      everything under it is unwritten — it is the page that says so. */
-  const written = <T extends { placeholder: boolean }>(items: T[]): T[] =>
-    items.filter((item) => !item.placeholder);
+  const written = <T extends { placeholder: boolean; noindex: boolean }>(
+    items: T[],
+  ): T[] => items.filter((item) => !item.placeholder && !item.noindex);
 
   const posts = written(getPosts());
   const projects = written(getProjects());
@@ -217,6 +218,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   for (const album of albums) {
+    if (album.noindex === true) continue;
     entries.push(
       entry(album.href, {
         lastModified: album.date ? parseDate(album.date) : lastCapture(album.items),
@@ -230,7 +232,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
      tag draws. Without words it is a frame in an album, and the album is the
      page to crawl. */
   for (const item of getAllMediaItems()) {
-    if (!item.caption) continue;
+    if (!item.caption || item.noindex === true) continue;
     entries.push(
       entry(`/photo/${item.id}`, {
         lastModified:

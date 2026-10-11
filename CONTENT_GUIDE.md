@@ -63,6 +63,7 @@ Your words. Exactly as you want them.
 | `excerpt`     | no       | Used in listings and metadata. **Optional on purpose** — do not force one             |
 | `placeholder` | no       | `true` marks the post as scaffolding you have not written yet                         |
 | `resurface`   | no       | `false` keeps it out of "From the archive" on the homepage                            |
+| `noindex`     | no       | `true` keeps it off search engines and out of the sitemap. It stays on the site       |
 
 ### Writing style
 
@@ -326,6 +327,28 @@ has a "Can be resurfaced" checkbox for those. Nothing else changes: the item sta
 grid, its album, the search and the feeds.
 
 Placeholders and anything younger than six months are never resurfaced either.
+
+### Keep something out of search engines
+
+For a page you are happy to have on the site and shared by link, but would rather nobody
+found through Google:
+
+```yaml
+noindex: true
+```
+
+It works on a photograph or an album in `content/media/<year>.yml` (an album covers every
+photograph in it; "Off search" in <http://localhost:3000/admin/media>), and in the
+frontmatter of a post, a project or a Now entry ("Keep out of search engines" in Keystatic).
+The page gets a `noindex` tag and leaves the sitemap. Nothing else changes: it stays in its
+lists, the site's own search, the feeds and "From the archive".
+
+This is not privacy. Anyone with the link can still open the page. If a photograph should
+not be public at all, hide it (above) or do not upload it.
+
+The photographs themselves are already kept out of image search, everywhere — see
+`IMAGES_IN_SEARCH` in `src/lib/site.ts`, and step 4 of [docs/DEPLOY.md](docs/DEPLOY.md) for
+the header the media CDN needs.
 
 ### Delete an album or a year
 

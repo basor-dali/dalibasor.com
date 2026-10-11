@@ -261,3 +261,5 @@ and use it in that one component.
 | change the importer                   | `scripts/media-import.mjs`                                    |
 | change which crawlers are turned away | `src/lib/site.ts` (`AI_TRAINING_CRAWLERS`)                    |
 | date a scan approximately             | `circa: true` in the manifest, or `media:import --circa 1998` |
+| keep one page out of search engines   | `noindex: true` in its frontmatter or manifest entry          |
+| let photographs into image search     | `src/lib/site.ts` (`IMAGES_IN_SEARCH`)                        |

@@ -167,6 +167,7 @@ function normalizeItem(
     ...rest,
     capturedAt,
     circa: rest.circa === true ? true : undefined,
+    noindex: rest.noindex === true ? true : undefined,
     id: rest.id || `${year}-${album ?? 'everyday'}-${String(index + 1).padStart(4, '0')}`,
     type: rest.type === 'video' ? 'video' : 'image',
     year,
@@ -248,9 +249,17 @@ const resolveAll = once((): Map<number, ResolvedYear> => {
       manifest.albums.filter((album) => album.hidden).map((album) => album.slug),
     );
 
-    const visibleItems = manifest.items.filter(
-      (item) => !item.hidden && !(item.album && hiddenAlbums.has(item.album)),
+    // Likewise out of search: a photograph in an album kept out of search
+    // engines is kept out with it, or its own page would be found instead.
+    const unindexedAlbums = new Set(
+      manifest.albums.filter((album) => album.noindex === true).map((album) => album.slug),
     );
+
+    const visibleItems = manifest.items
+      .filter((item) => !item.hidden && !(item.album && hiddenAlbums.has(item.album)))
+      .map((item) =>
+        item.album && unindexedAlbums.has(item.album) ? { ...item, noindex: true } : item,
+      );
 
     for (const item of visibleItems) {
       if (item.album) {

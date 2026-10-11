@@ -24,6 +24,7 @@ const EDITABLE_ITEM_FIELDS = [
   'location',
   'featured',
   'hidden',
+  'noindex',
 ] as const;
 
 type ItemEdit = {
@@ -33,6 +34,7 @@ type ItemEdit = {
   location?: string;
   featured?: boolean;
   hidden?: boolean;
+  noindex?: boolean;
 };
 
 export async function GET(request: Request): Promise<Response> {
@@ -89,6 +91,7 @@ type AlbumEdit = {
   note?: string;
   featured?: boolean;
   hidden?: boolean;
+  noindex?: boolean;
 };
 
 type Payload = {
@@ -155,6 +158,7 @@ export async function POST(request: Request): Promise<Response> {
       note: payload.album?.note?.trim() ?? '',
       featured: Boolean(payload.album?.featured),
       hidden: Boolean(payload.album?.hidden),
+      noindex: Boolean(payload.album?.noindex),
     };
 
     if (fields.date && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(fields.date)) {

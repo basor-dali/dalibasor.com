@@ -42,6 +42,7 @@ const loadAll = once((): NowEntry[] => {
       draft: Boolean(data?.draft),
       placeholder: Boolean(data?.placeholder),
       resurface: data?.resurface !== false,
+      noindex: data?.noindex === true,
       body,
       plain: toPlainText(body),
       sourcePath,

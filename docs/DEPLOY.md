@@ -113,9 +113,31 @@ albums, dimensions — and the bucket holds the files.
    with the reasoning beside it; empty it to allow training, and review it once a year, because
    new crawlers appear.
 
+4. Keep the photographs themselves out of image search. The pages stay findable, but every page
+   asks search engines not to index the images on it (`noimageindex`), and photographs served
+   from this site carry `X-Robots-Tag: noindex`. Photographs on the media CDN are a different
+   domain, so the header has to be set there too:
+
+   - **R2 on a custom domain** (e.g. `media.dalibasor.com`): Cloudflare dashboard → that zone →
+     Rules → Transform Rules → Modify Response Header → when the hostname equals the media
+     domain, set `X-Robots-Tag` to `noindex`. The `r2.dev` address cannot carry rules, which is
+     one more reason to serve from your own domain.
+   - **Cloudinary**: the page-level tag covers images found through the site. Cloudinary's own
+     response headers were not checked when this was written; look for custom delivery headers
+     in its settings before relying on them.
+
+   The switch is `IMAGES_IN_SEARCH` in `src/lib/site.ts`; set it to `true` to let photographs into
+   image search.
+
 Anything still marked `placeholder: true` stays `noindex` and stays out of the sitemap and both
 feeds even after indexing is switched on, so you can publish the site before every page is
 written. A placeholder starts being advertised the moment you remove that flag.
+
+A finished page can be kept out of search engines too, while staying on the site: `noindex: true`
+on an essay, project or Now entry (or "Keep out of search engines" in Keystatic), and on an album
+or a photograph in its manifest (or "Off search" in `/admin/media`). A photograph in such an album
+is kept out with it. This is not privacy — anyone with the link can still open the page. For
+that, use `draft: true`, or `hidden: true` on photographs and albums.
 
 ---
 

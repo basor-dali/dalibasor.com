@@ -78,7 +78,7 @@ export async function generateMetadata({
        public, and without this line it would take every unwritten placeholder
        with it, handing search engines notes-to-self as the first thing they
        ever saw at these URLs. */
-    noIndex: post.draft || post.placeholder,
+    noIndex: post.draft || post.placeholder || post.noindex,
   });
 }
 
