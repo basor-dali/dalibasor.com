@@ -239,6 +239,11 @@ export function toPlainText(mdx: string): string {
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
       .replace(/```[\s\S]*?```/g, ' ')
       .replace(/`([^`]*)`/g, (_match, text: string) => keep(text))
+      // A backslash-escaped character is that character, written so MDX leaves
+      // it alone: `I \<3 this` reads "I <3 this". Lifted out with the code, or
+      // the tag pass below would take `\<b\>` for markup and the backslashes
+      // would reach every title and feed as typed.
+      .replace(/\\([!-/:-@[-`{-~])/g, (_match, char: string) => keep(char))
       .replace(/<[^>]+>/g, ' ')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')

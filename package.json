@@ -25,7 +25,9 @@
     "new:now": "node scripts/new-now.mjs",
     "new:project": "node scripts/new-project.mjs",
     "new:year": "node scripts/new-year.mjs",
-    "new:album": "node scripts/new-album.mjs"
+    "new:album": "node scripts/new-album.mjs",
+    "new:note": "node scripts/new-note.mjs",
+    "note": "node scripts/new-note.mjs"
   },
   "dependencies": {
     "@keystatic/core": "^0.6.9",

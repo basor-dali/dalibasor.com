@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MentionedIn } from '@/components/archive/MentionedIn';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { albumCountLabel } from '@/components/media/AlbumCard';
@@ -262,6 +263,8 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
           </EmptyState>
         </div>
       )}
+
+      <MentionedIn href={album.href} />
 
       {/* --- back out ------------------------------------------------------ */}
       <footer className="u-page mt-(--spacing-section)">

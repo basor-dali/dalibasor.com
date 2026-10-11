@@ -15,7 +15,7 @@ import {
 } from '@/lib/content';
 import { mediaAlt, mediaProvider, providerCanResize } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
-import { cx, formatPeriod, pluralize, truncate } from '@/lib/utils';
+import { cx, formatDayMonth, formatPeriod, pluralize, truncate } from '@/lib/utils';
 import type { MediaItem, ProjectSummary } from '@/types/content';
 
 /**
@@ -253,6 +253,35 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
               </li>
             ))}
           </ol>
+        </Rubric>
+      ) : null}
+
+      {/* --- notes -------------------------------------------------------------- */}
+      {record.notes.length > 0 ? (
+        <Rubric
+          id="year-notes"
+          title="Notes"
+          count={pluralize(record.notes.length, 'note')}
+          link={{ href: '/notes', label: 'All notes' }}
+        >
+          <ul className="border-line m-0 list-none border-b p-0">
+            {record.notes.map((note) => (
+              <li key={note.slug} className="border-line border-t">
+                <Link
+                  href={note.href}
+                  className="group/row grid grid-cols-1 items-baseline gap-x-6 gap-y-1 py-5 md:grid-cols-[7.5rem_minmax(0,1fr)]"
+                >
+                  <span className="u-label u-nums text-muted">
+                    {formatDayMonth(note.date)}
+                    <span className="sr-only">: </span>
+                  </span>
+                  <span className="u-serif text-ivory text-lg transition-colors duration-300 group-hover/row:text-white">
+                    {note.label}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Rubric>
       ) : null}
 

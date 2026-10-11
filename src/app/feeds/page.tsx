@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ArrowLink, Label, PageHeader } from '@/components/primitives';
-import { NOW_FEED, WRITING_FEED } from '@/lib/feeds/entries';
+import { NOTES_FEED, NOW_FEED, WRITING_FEED } from '@/lib/feeds/entries';
 import { absoluteUrl, pageMetadata } from '@/lib/metadata';
 import { site } from '@/lib/site';
 
@@ -15,7 +15,7 @@ import { site } from '@/lib/site';
 
 export const metadata: Metadata = pageMetadata({
   title: 'Feeds',
-  description: `Follow ${site.name}'s writing and Now entries in a feed reader. No newsletter, no account, nothing tracked.`,
+  description: `Follow ${site.name}'s writing, notes and Now entries in a feed reader. No newsletter, no account, nothing tracked.`,
   path: '/feeds',
 });
 
@@ -23,7 +23,12 @@ const FEEDS = [
   {
     channel: WRITING_FEED,
     name: 'Writing',
-    carries: 'Every essay and note, in full, as it is published.',
+    carries: 'Every essay, in full, as it is published.',
+  },
+  {
+    channel: NOTES_FEED,
+    name: 'Notes',
+    carries: 'The short entries — a sentence, a photograph, a link — each one whole.',
   },
   {
     channel: NOW_FEED,

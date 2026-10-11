@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MentionedIn } from '@/components/archive/MentionedIn';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { NowBody } from '@/components/now/NowBody';
@@ -75,6 +76,8 @@ export default async function NowPeriodPage({ params }: RouteParams) {
   return (
     <>
       <NowBody entry={entry} context="permalink" current={current} priority />
+
+      <MentionedIn href={entry.href} />
 
       <nav aria-label="Other Now entries" className="u-page mt-(--spacing-section)">
         <hr className="u-rule-strong" />

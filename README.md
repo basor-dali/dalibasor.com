@@ -43,6 +43,7 @@ Without `.env.local` the media layer falls back to the `local` provider and serv
 | `npm run media:backup`     | Download every photograph back out of the bucket      |
 | `npm run media:check`      | Validate every media manifest                         |
 | `npm run html:check`       | Audit the built HTML — headings, labels, ids, JSON-LD |
+| `npm run note -- "…"`      | Write a note, dated now — the quickest way to post    |
 | `npm run new:post`         | Scaffold a post                                       |
 | `npm run new:project`      | Scaffold a project                                    |
 | `npm run new:now`          | Scaffold this month's Now entry                       |
@@ -82,7 +83,8 @@ src/
     primitives/     the shared vocabulary — labels, section headers, year marks
     media/          image, video, grid, lightbox, albums
     mdx/            what an .mdx file is allowed to contain
-    home/ writing/ projects/ now/ about/ search/
+    home/ writing/ notes/ projects/ now/ about/ search/
+    archive/        year and place sections, "Mentioned in"
   lib/
     content/        reads content/ at build time
     media/          the CDN provider interface and implementations

@@ -4,6 +4,7 @@ import {
   getAllAlbums,
   getAllMediaItems,
   getArchiveYears,
+  getNotes,
   getNowEntries,
   getPlaces,
   getPosts,
@@ -168,6 +169,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: parseDate(post.updated ?? post.date),
         changeFrequency: 'yearly',
         priority: post.featured ? 0.8 : 0.7,
+      }),
+    );
+  }
+
+  /* --- notes ----------------------------------------------------------- */
+
+  const notes = getNotes().filter((note) => !note.noindex);
+  if (getNotes().length > 0) {
+    entries.push(
+      entry('/notes', {
+        lastModified: notes[0] ? parseDate(notes[0].date) : undefined,
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      }),
+    );
+  }
+  for (const note of notes) {
+    entries.push(
+      entry(note.href, {
+        lastModified: parseDate(note.date),
+        changeFrequency: 'yearly',
+        priority: 0.5,
       }),
     );
   }

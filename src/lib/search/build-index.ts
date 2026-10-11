@@ -4,6 +4,7 @@ import type { MediaItem, SearchDoc } from '@/types/content';
 import {
   STATUS_LABELS,
   getAllAlbums,
+  getAllNotesWithBodies,
   getAllNowWithBodies,
   getAllPages,
   getAllPostsWithBodies,
@@ -170,6 +171,28 @@ export function buildSearchIndex(): SearchDoc[] {
         // In an archive this long, the year is one of the likeliest queries.
         formatDate(post.date),
         post.tags.join(' '),
+      ]),
+    });
+  }
+
+  /* --- notes ----------------------------------------------------------- */
+
+  for (const note of getAllNotesWithBodies()) {
+    docs.push({
+      id: `note:${note.slug}`,
+      kind: 'note',
+      title: note.label,
+      href: note.href,
+      meta: joinMeta([formatDate(note.date), note.location]),
+      tags: note.tags,
+      year: note.year,
+      date: isoDate(note.date),
+      text: searchable(note.label, [
+        clip(note.plain),
+        note.location,
+        note.link,
+        formatDate(note.date),
+        note.tags.join(' '),
       ]),
     });
   }

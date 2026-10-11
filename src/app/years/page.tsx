@@ -30,6 +30,7 @@ function holds(record: YearRecord): string[] {
   const videos = record.photographs?.videoCount ?? 0;
   return [
     record.posts.length > 0 ? pluralize(record.posts.length, 'essay') : undefined,
+    record.notes.length > 0 ? pluralize(record.notes.length, 'note') : undefined,
     started > 0 ? pluralize(started, 'project', 'projects') : undefined,
     photos > 0 ? pluralize(photos, 'photograph') : undefined,
     videos > 0 ? pluralize(videos, 'video') : undefined,

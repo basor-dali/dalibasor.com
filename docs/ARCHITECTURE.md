@@ -223,6 +223,25 @@ is stripped before upload. A place is its spelling, slugged. `PlaceLink` links a
 its place only where the location stands on its own, never inside a card that is already a
 link.
 
+## Notes
+
+`content/notes/**` — short dated entries, loaded by `src/lib/content/notes.ts`. A note has a
+day (and optionally a time), an optional title, photograph (a manifest reference), link and
+place; the filename is its address, `/notes/<name>`. Notes join every other view of the
+archive rather than having one of their own: the year records, places, "on this day", search
+(a Notes group) and their own feed. `/notes` shows the latest 60 and sends older years to
+their year pages, so it stays one page. `npm run note` (`scripts/new-note.mjs`) writes one
+from a single command line, escaping `<`, `>`, `{` and `}` so typed text cannot break the MDX.
+
+## Mentioned in
+
+`src/lib/content/links.ts` reads every internal link out of the MDX source of essays,
+projects, notes and Now entries — markdown links, `href`s, links to the site's own domain
+written out in full, and `<Figure>`/`<Video>` placements — and inverts them. `MentionedIn`
+renders the result at the foot of essays, projects, notes, Now entries, albums and photograph
+pages, and renders nothing when nothing points there. The parsing is in `src/lib/links.ts`,
+which has no server imports so it can be tested directly.
+
 ## Motion
 
 There is no animation library in the dependency list. Everything that moves — the underline
@@ -263,3 +282,6 @@ and use it in that one component.
 | date a scan approximately             | `circa: true` in the manifest, or `media:import --circa 1998` |
 | keep one page out of search engines   | `noindex: true` in its frontmatter or manifest entry          |
 | let photographs into image search     | `src/lib/site.ts` (`IMAGES_IN_SEARCH`)                        |
+| write a note                          | `npm run note -- "…"`, or Keystatic → Notes                   |
+| change how notes are named            | `scripts/lib/notes.mjs`                                       |
+| change what counts as a mention       | `src/lib/links.ts`                                            |

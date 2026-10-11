@@ -37,6 +37,7 @@ const MAX_RESULTS = 60;
 
 const GROUPS: { label: string; kinds: Kind[] }[] = [
   { label: 'Writing', kinds: ['post'] },
+  { label: 'Notes', kinds: ['note'] },
   { label: 'Projects', kinds: ['project'] },
   { label: 'Photographs', kinds: ['album'] },
   { label: 'Years', kinds: ['year'] },

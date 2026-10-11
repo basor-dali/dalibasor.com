@@ -14,3 +14,5 @@ export * from './pages';
 export * from './years';
 export * from './on-this-day';
 export * from './places';
+export * from './notes';
+export * from './links';

@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getFeaturedPosts, getPosts, getTags, getWritingYears } from '@/lib/content';
+import {
+  getFeaturedPosts,
+  getNotes,
+  getPosts,
+  getTags,
+  getWritingYears,
+} from '@/lib/content';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import {
   EmptyState,
@@ -39,6 +45,7 @@ function spanLabel(years: number[]): string | undefined {
 export default function WritingIndexPage() {
   const posts = getPosts();
   const tags = getTags();
+  const notes = getNotes();
   const years = getWritingYears();
   const span = spanLabel(years);
 
@@ -68,6 +75,15 @@ export default function WritingIndexPage() {
               posts.length > 0 && pluralize(posts.length, 'entry', 'entries'),
               span,
               tags.length > 0 && pluralize(tags.length, 'subject'),
+              notes.length > 0 && (
+                <Link
+                  key="notes"
+                  href="/notes"
+                  className="u-link u-link-reveal hover:text-ivory"
+                >
+                  {pluralize(notes.length, 'note')}
+                </Link>
+              ),
             ]}
           />
         }

@@ -16,6 +16,7 @@ import {
   pageMetadata,
 } from '@/lib/metadata';
 import { site } from '@/lib/site';
+import { MentionedIn } from '@/components/archive/MentionedIn';
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { ArticleFooter } from '@/components/writing/ArticleFooter';
 import { ArticleHeader } from '@/components/writing/ArticleHeader';
@@ -152,6 +153,8 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
           </div>
         </div>
       </article>
+
+      <MentionedIn href={post.href} />
 
       <ArticleFooter post={post} previous={previous} next={next} related={related} />
     </>

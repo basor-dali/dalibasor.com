@@ -165,12 +165,75 @@ export default config({
   ui: {
     brand: { name: 'Dali Basor' },
     navigation: {
-      Words: ['writing', 'projects'],
+      Words: ['writing', 'notes', 'projects'],
       Life: ['now', 'about'],
     },
   },
 
   collections: {
+    /* --- notes ------------------------------------------------------------ */
+    notes: collection({
+      label: 'Notes',
+      // `**` so notes can be filed by year folder, as `2026/first-snow`.
+      path: 'content/notes/**',
+      slugField: 'title',
+      format: { contentField: 'body' },
+      entryLayout: 'content',
+      columns: ['date', 'title'],
+      parseSlugForSort: (slug) => slug,
+      schema: {
+        /* Most notes have no title, so the title is optional and the address
+           can be typed directly. The address is the filename and the URL. */
+        title: fields.slug({
+          name: {
+            label: 'Title (optional)',
+            description: 'Leave blank for most notes; the first words stand in for it.',
+            validation: { isRequired: false },
+          },
+          slug: {
+            label: 'Address',
+            description:
+              'Permanent: /notes/<this>. With no title, type one, e.g. 2026-10-11-first-snow.',
+          },
+        }),
+        date: fields.date({
+          label: 'Date',
+          validation: { isRequired: true },
+          defaultValue: { kind: 'today' },
+        }),
+        photo: fields.text({
+          label: 'Photograph',
+          description:
+            'Optional. The id of a photograph already in the archive, e.g. 2026-everyday-0007.',
+          validation: { isRequired: false },
+        }),
+        photoAlt: fields.text({
+          label: 'Photograph alt text',
+          description: 'Optional. Otherwise the photograph’s own alt text is used.',
+          validation: { isRequired: false },
+        }),
+        link: fields.url({
+          label: 'Link',
+          description: 'Optional. A page this note is about; shown as its domain.',
+          validation: { isRequired: false },
+        }),
+        location: fields.text({
+          label: 'Location',
+          description:
+            'Broad, e.g. Belgrade, Serbia. It files the note under that place.',
+          validation: { isRequired: false },
+        }),
+        tags: fields.array(fields.text({ label: 'Tag' }), {
+          label: 'Tags',
+          itemLabel: (props) => props.value,
+        }),
+        draft: draftField,
+        resurface: resurfaceField,
+        noindex: noindexField,
+        body,
+      },
+    }),
+
     /* --- writing --------------------------------------------------------- */
     writing: collection({
       label: 'Writing',

@@ -31,6 +31,12 @@ describe('toPlainText', () => {
     assert.equal(toPlainText('`a*b*c` and *em*'), 'a*b*c and em');
   });
 
+  it('reads an escaped character as the character', () => {
+    assert.equal(toPlainText('I \\<3 the \\{fixture\\}.'), 'I <3 the {fixture}.');
+    assert.equal(toPlainText('\\<b\\>not markup\\</b\\>'), '<b>not markup</b>');
+    assert.equal(toPlainText('`a\\b` stays as code'), 'a\\b stays as code');
+  });
+
   it('ends a heading with a stop so it cannot run into the next sentence', () => {
     assert.equal(
       toPlainText('## Working\n\nShipping firmware.\n\n## Building\n\nReMow, slowly.'),
