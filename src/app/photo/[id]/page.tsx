@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MentionedIn } from '@/components/archive/MentionedIn';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { MediaItem } from '@/types/content';
@@ -234,6 +235,8 @@ export default async function PhotoPage({ params }: { params: Promise<Params> })
           </nav>
         ) : null}
       </footer>
+
+      <MentionedIn href={`/photo/${item.id}`} />
     </article>
   );
 }

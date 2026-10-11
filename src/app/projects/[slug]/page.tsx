@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { MentionedIn } from '@/components/archive/MentionedIn';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MdxContent } from '@/components/mdx/MdxContent';
@@ -248,6 +249,8 @@ export default async function ProjectPage({ params }: PageProps) {
           <p className="u-label text-muted">By email</p>
         </div>
       </div>
+
+      <MentionedIn href={project.href} />
 
       {/* --- neighbours --------------------------------------------------- */}
       {previous || next ? (
