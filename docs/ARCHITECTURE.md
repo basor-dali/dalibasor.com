@@ -138,7 +138,12 @@ Server Components by default. `'use client'` appears in exactly the places that 
 | `WritingArchive` | in-memory filtering, kept in the URL                        |
 | `SearchClient`   | fetch-on-interaction and scoring                            |
 | `SearchFromPath` | reads the address the 404 page was reached at               |
+| `OnThisDay`      | picks out today, in the reader's timezone, after load       |
 | `error.tsx`      | React requires it                                           |
+
+Both dialogs — the mobile menu and the photo viewer — make everything outside them `inert`
+while open and keep Tab inside on every press (`src/lib/focus-trap.ts`), so neither a
+keyboard nor a screen reader's reading cursor can wander into the page behind.
 
 `SiteChrome` is a client component only to read the pathname, and the footer is passed
 into it as a rendered slot rather than imported — imported, it became client code and
@@ -200,6 +205,24 @@ That randomiser is seeded deterministically (build SHA + date) rather than using
 `Math.random()`, because a statically generated page and a later rebuild would otherwise
 disagree about what it showed.
 
+"On this day" is the one piece of time the build cannot know. `/on-this-day.json` lists
+everything with a real day attached (`src/lib/content/on-this-day.ts`), and the homepage
+picks out today in the reader's browser. Circa photographs and month-only dates never appear
+in it. A photograph whose date is a guess carries `circa: true` and is shown as "c. 1998" by
+`formatCaptured()` wherever a date appears.
+
+Every photograph also has a permanent page at `/photo/<id>`. Ids never change, even when an
+album is renamed or deleted, so that address outlives both. It is indexed only when the
+photograph has a caption.
+
+## Places
+
+`/places` is built from locations typed by hand — an essay's `location`, an album's, a
+photograph's, a Now entry's — by `src/lib/content/places.ts`. Nothing comes from GPS, which
+is stripped before upload. A place is its spelling, slugged. `PlaceLink` links a location to
+its place only where the location stands on its own, never inside a card that is already a
+link.
+
 ## Motion
 
 There is no animation library in the dependency list. Everything that moves — the underline
@@ -226,13 +249,15 @@ and use it in that one component.
 
 ## Where to change things
 
-| I want to…                          | Go to                                                         |
-| ----------------------------------- | ------------------------------------------------------------- |
-| change a colour or the type scale   | `src/app/globals.css` (`@theme`)                              |
-| change the fonts                    | `src/app/fonts.ts`                                            |
-| change navigation or social links   | `src/lib/site.ts`                                             |
-| add a component usable inside posts | `src/components/mdx/components.tsx`                           |
-| change how an image is sized        | `src/lib/media/provider.ts` (`SIZES`, `WIDTH_LADDERS`)        |
-| swap the media CDN                  | add a file to `src/lib/media/`, extend `index.ts`             |
-| add a frontmatter field             | `src/types/content.ts`, then its loader in `src/lib/content/` |
-| change the importer                 | `scripts/media-import.mjs`                                    |
+| I want to…                            | Go to                                                         |
+| ------------------------------------- | ------------------------------------------------------------- |
+| change a colour or the type scale     | `src/app/globals.css` (`@theme`)                              |
+| change the fonts                      | `src/app/fonts.ts`                                            |
+| change navigation or social links     | `src/lib/site.ts`                                             |
+| add a component usable inside posts   | `src/components/mdx/components.tsx`                           |
+| change how an image is sized          | `src/lib/media/provider.ts` (`SIZES`, `WIDTH_LADDERS`)        |
+| swap the media CDN                    | add a file to `src/lib/media/`, extend `index.ts`             |
+| add a frontmatter field               | `src/types/content.ts`, then its loader in `src/lib/content/` |
+| change the importer                   | `scripts/media-import.mjs`                                    |
+| change which crawlers are turned away | `src/lib/site.ts` (`AI_TRAINING_CRAWLERS`)                    |
+| date a scan approximately             | `circa: true` in the manifest, or `media:import --circa 1998` |
