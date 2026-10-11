@@ -1,11 +1,20 @@
 import type { Metadata } from 'next';
+import { Eras } from '@/components/about/Eras';
+import { StartHere } from '@/components/about/StartHere';
 import { Timeline } from '@/components/about/Timeline';
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { Placeholder } from '@/components/mdx/components';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverImage } from '@/components/media/MediaImage';
 import { MetaLine, SectionHeader } from '@/components/primitives';
-import { getAboutTimeline, getPage } from '@/lib/content';
+import {
+  getAboutEras,
+  getAboutTimeline,
+  getPage,
+  getPosts,
+  getProjects,
+  getRecordedYears,
+} from '@/lib/content';
 import { mediaProvider, providerCanResize } from '@/lib/media';
 import { jsonLdScript, pageMetadata, profilePageJsonLd } from '@/lib/metadata';
 import { site } from '@/lib/site';
@@ -39,6 +48,12 @@ export function generateMetadata(): Metadata {
 export default function AboutPage() {
   const page = getPage('about');
   const timeline = getAboutTimeline();
+  const eras = getAboutEras();
+  // What you have already chosen to put first, as long as it is written.
+  const startPosts = getPosts().filter((post) => post.featured && !post.placeholder);
+  const startProjects = getProjects().filter(
+    (project) => project.featured && !project.placeholder,
+  );
   const subtitle = page?.subtitle?.trim();
   const body = page?.body?.trim();
   const portrait = page?.coverImage?.trim();
@@ -146,6 +161,9 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      <StartHere posts={startPosts} projects={startProjects} />
+      <Eras eras={eras} years={getRecordedYears()} />
 
       {/* ---------------------------------------------------------------- */}
       {/* Timeline — only what the content file declares.                   */}

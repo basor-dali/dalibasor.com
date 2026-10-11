@@ -399,6 +399,38 @@ export default config({
           validation: { isRequired: false },
         }),
         ...coverFields,
+        eras: fields.array(
+          fields.object({
+            name: fields.text({
+              label: 'Name',
+              description: 'What you call that stretch of your life.',
+              validation: { isRequired: true },
+            }),
+            from: fields.integer({
+              label: 'From (year)',
+              validation: { isRequired: true },
+            }),
+            to: fields.integer({
+              label: 'To (year)',
+              description: 'Leave empty while it is still going.',
+              validation: { isRequired: false },
+            }),
+            note: fields.text({
+              label: 'Note',
+              multiline: true,
+              validation: { isRequired: false },
+            }),
+          }),
+          {
+            label: 'Eras',
+            description:
+              'Optional. The periods of your life, each linked to its years. Leave empty and the section does not appear.',
+            itemLabel: (props) =>
+              [props.fields.name.value, props.fields.from.value]
+                .filter(Boolean)
+                .join(' — '),
+          },
+        ),
         timeline: fields.array(
           fields.object({
             when: fields.text({

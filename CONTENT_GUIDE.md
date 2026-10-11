@@ -485,6 +485,25 @@ timeline:
 Entries render in the order you write them. Leave the array out entirely and the timeline
 disappears.
 
+### Eras
+
+The periods of your life, if you want them on the page — in your words, all optional:
+
+```yaml
+eras:
+  - { name: 'The Bosnia years', from: 1993, to: 2004, note: 'One line, or none.' }
+  - { name: 'Kansas', from: 2004 } # no `to` while it is still going
+```
+
+Each era shows its span and note, and under it every year inside it that has a page of its own
+links to that year. No eras, no section. Keystatic has an Eras list on the About page too.
+
+### Start here
+
+The About page ends its body with "Start here" — the essays and projects you have marked
+`featured: true`, the same flag that puts them first on the homepage. Only written ones count:
+a featured placeholder is left out, and with nothing left the section is not there.
+
 ---
 
 ## Tags
