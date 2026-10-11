@@ -12,3 +12,4 @@ export * from './media';
 export * from './archive';
 export * from './pages';
 export * from './years';
+export * from './on-this-day';

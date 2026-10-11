@@ -14,6 +14,7 @@ import {
 } from '@/lib/utils';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { CoverFrame, LinkCue } from './Hero';
+import { OnThisDay } from './OnThisDay';
 
 /**
  * From the archive.
@@ -84,6 +85,9 @@ export function FromTheArchive({ entry }: { entry?: ArchiveEntry }) {
             )}
           </div>
         </div>
+
+        {/* Today in other years, picked out in the reader's own browser. */}
+        <OnThisDay />
       </div>
     </section>
   );
