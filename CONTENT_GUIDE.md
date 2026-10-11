@@ -50,6 +50,7 @@ Your words. Exactly as you want them.
 | ------------- | -------- | ------------------------------------------------------------------------------------- |
 | `title`       | yes      | The headline                                                                          |
 | `date`        | yes      | `YYYY-MM-DD`. Drives ordering and the archive grouping                                |
+| `updated`     | no       | `YYYY-MM-DD` of a real revision after publishing. Shown as "Revised", sent to feeds   |
 | `slug`        | no       | Defaults to the filename. **Once published, never change it** — it is a permanent URL |
 | `subtitle`    | no       | A short editorial line under the title                                                |
 | `tags`        | no       | `[Life, Technology]`. Free-form; tag pages are generated automatically                |
@@ -61,6 +62,7 @@ Your words. Exactly as you want them.
 | `draft`       | no       | `true` hides it in production                                                         |
 | `excerpt`     | no       | Used in listings and metadata. **Optional on purpose** — do not force one             |
 | `placeholder` | no       | `true` marks the post as scaffolding you have not written yet                         |
+| `resurface`   | no       | `false` keeps it out of "From the archive" on the homepage                            |
 
 ### Writing style
 
@@ -153,7 +155,28 @@ links:
 | `draft`          | no       |                                                                 |
 
 **`abandoned` is a real status, not a failure.** The archive is meant to show the things that
-did not work. Mark them and leave them up.
+did not work. Mark them and leave them up. Each status's one-line meaning is shown on
+/projects and beside the status on the project's page — see `STATUS_DEFINITIONS` in
+`src/lib/content/projects.ts`.
+
+### The project log
+
+Write progress as `##` sections that start with a date, newest at the top:
+
+```mdx
+## 2026-03-14 — Wheel encoders
+
+The encoders drift. Swapped to magnetic ones and the drift went with them.
+
+## 2025-11-02: First full run
+
+## 2025-06
+```
+
+`YYYY-MM-DD` or `YYYY-MM`, then optionally a dash or colon and a title. Each one is an
+update: the project page shows how many there are and when the latest was, the index shows
+"Updated Mar 2026", and the year pages list the project under every year it was worked on.
+Any `##` without a date is an ordinary heading.
 
 Gallery entries:
 
@@ -287,6 +310,23 @@ developing too, unlike `draft:` on a post: the point of a draft is to look at it
 point of hiding a photograph is that it is not there. The admin reads the raw manifest, so
 that is where hidden things stay visible to you.
 
+### Keep something from being resurfaced
+
+"From the archive" on the homepage hands back something old — a photograph, an album, a
+post, a project, a Now entry. Over twenty years it will eventually land on a day you would
+rather not be reminded of. To keep a thing on the site but never have it picked:
+
+```yaml
+resurface: false
+```
+
+It works on a photograph or an album in `content/media/<year>.yml` (an album covers every
+photograph in it), and in the frontmatter of a post, a project or a Now entry — Keystatic
+has a "Can be resurfaced" checkbox for those. Nothing else changes: the item stays in its
+grid, its album, the search and the feeds.
+
+Placeholders and anything younger than six months are never resurfaced either.
+
 ### Delete an album or a year
 
 Both are in the admin tool, and both are deliberately awkward in one direction.
@@ -322,6 +362,37 @@ Re-running the importer preserves anything you have written by hand.
 
 **Locations are always manual.** GPS is stripped at import and never published. If you want a
 photo to say `Belgrade, Serbia`, type it.
+
+### Places
+
+Every location you write down makes a place at `/places`: where an essay was written
+(`location` in its frontmatter), an album's or a photograph's `location`, where a Now entry
+was written from. Each place gathers everything filed under it, across every year, and the
+location on an essay, an album, a photograph or a Now entry links to it.
+
+A place is its spelling. Write `Belgrade, Serbia` the same way every time, or `Belgrade` and
+`Belgrade, Serbia` will be two places. Placeholders and drafts do not count, and nothing is
+ever taken from GPS — a place is only as specific as you chose to make it.
+
+### A date nobody knows exactly
+
+A scanned print has no capture date — the file's own date is the day it was scanned. Write
+what is actually known, and say it is a guess:
+
+```yaml
+capturedAt: '1998' # or '1998-06'
+circa: true
+```
+
+The site shows `c. 1998` or `c. June 1998`: never a day, and never offered as "on this day".
+For a whole folder of scans at once:
+
+```bash
+npm run media:import -- --year 1998 --album family --dir ./scans/1998 --circa 1998
+```
+
+A date that only names a year or a month without `circa` is shown at that precision too —
+`June 1998`, not June 1.
 
 ### Feature a photograph
 
@@ -413,6 +484,25 @@ timeline:
 
 Entries render in the order you write them. Leave the array out entirely and the timeline
 disappears.
+
+### Eras
+
+The periods of your life, if you want them on the page — in your words, all optional:
+
+```yaml
+eras:
+  - { name: 'The Bosnia years', from: 1993, to: 2004, note: 'One line, or none.' }
+  - { name: 'Kansas', from: 2004 } # no `to` while it is still going
+```
+
+Each era shows its span and note, and under it every year inside it that has a page of its own
+links to that year. No eras, no section. Keystatic has an Eras list on the About page too.
+
+### Start here
+
+The About page ends its body with "Start here" — the essays and projects you have marked
+`featured: true`, the same flag that puts them first on the homepage. Only written ones count:
+a featured placeholder is left out, and with nothing left the section is not there.
 
 ---
 

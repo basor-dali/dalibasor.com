@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { absoluteUrl } from '@/lib/metadata';
-import { ALLOW_INDEXING } from '@/lib/site';
+import { AI_TRAINING_CRAWLERS, ALLOW_INDEXING } from '@/lib/site';
 
 /**
  * Indexing is opt-in.
@@ -25,8 +25,15 @@ export default function robots(): MetadataRoute.Robots {
     };
   }
 
+  // Search engines in; crawlers that train AI models out. See
+  // AI_TRAINING_CRAWLERS in lib/site.ts for where the line is drawn and why.
   return {
-    rules: [{ userAgent: '*', allow: '/' }],
+    rules: [
+      ...(AI_TRAINING_CRAWLERS.length > 0
+        ? [{ userAgent: [...AI_TRAINING_CRAWLERS], disallow: '/' }]
+        : []),
+      { userAgent: '*', allow: '/' },
+    ],
     sitemap: absoluteUrl('/sitemap.xml'),
   };
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { PostSummary } from '@/types/content';
 import { ArrowLink, Label, SectionHeader } from '@/components/primitives';
+import { replyHref } from '@/lib/site';
 import { cx, formatDate, isoDate } from '@/lib/utils';
 import { ArticlePreview } from './ArticlePreview';
 
@@ -10,6 +11,11 @@ import { ArticlePreview } from './ArticlePreview';
  * A colophon, the two entries either side of this one in time, and a few
  * things on the same subjects. Nothing to sign up for, nothing to share,
  * nothing to count. The archive is the reward.
+ *
+ * And two quiet ways to stay in touch with the person behind it: an email
+ * with the subject already filled in — no comments here, but a reply has
+ * always been possible, it just was not offered — and the feeds, for anyone
+ * who wants the next one. Neither tracks anything.
  */
 
 export type ArticleFooterProps = {
@@ -94,15 +100,35 @@ export function ArticleFooter({
           </time>
           {post.location ? <> in {post.location}</> : null}
         </p>
-        <div className="col-span-2 md:col-span-2 lg:col-span-4 lg:col-start-9 lg:text-right">
+        {/* The year this was written, as a place to go: everything else
+            from then — what was being built, the photographs, the Now
+            entries. */}
+        <div className="col-span-2 flex flex-wrap gap-x-8 gap-y-3 md:col-span-2 lg:col-span-5 lg:col-start-8 lg:justify-end print:hidden">
+          <ArrowLink href={`/years/${post.year}`}>More from {post.year}</ArrowLink>
           <ArrowLink href="/writing">The full archive</ArrowLink>
         </div>
+      </div>
+
+      {/* --- answer, follow -------------------------------------------------- */}
+      <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 print:hidden">
+        <a
+          href={replyHref(`Re: ${post.title}`)}
+          className="u-label border-line-strong text-ivory hover:border-ember border px-4 py-3 transition-colors duration-300 hover:text-white"
+        >
+          Reply by email
+        </a>
+        <p className="u-label text-muted">
+          Follow by{' '}
+          <Link href="/feeds" className="u-link u-link-reveal hover:text-ivory">
+            RSS or JSON Feed
+          </Link>
+        </p>
       </div>
 
       {/* --- either side in time ------------------------------------------- */}
       <nav
         aria-label="Nearby entries"
-        className="border-line mt-(--spacing-section-sm) grid border-t md:grid-cols-2"
+        className="border-line mt-(--spacing-section-sm) grid border-t md:grid-cols-2 print:hidden"
       >
         <Neighbour
           post={previous}
@@ -120,7 +146,7 @@ export function ArticleFooter({
 
       {/* --- same subjects ------------------------------------------------- */}
       {related.length > 0 ? (
-        <section className="mt-(--spacing-section)">
+        <section className="mt-(--spacing-section) print:hidden">
           <SectionHeader eyebrow="Related" title="Nearby in the archive" />
           <ol className="mt-14 grid list-none grid-cols-1 gap-x-(--spacing-gutter) gap-y-12 p-0 md:grid-cols-3">
             {related.slice(0, 3).map((entry, index) => (

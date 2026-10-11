@@ -129,15 +129,26 @@ face detection and no automatic tagging of people, by choice.
 
 Server Components by default. `'use client'` appears in exactly the places that need it:
 
-| Component        | Why it is a client component              |
-| ---------------- | ----------------------------------------- |
-| `Navigation`     | scroll state, mobile menu, focus trapping |
-| `MediaLightbox`  | keyboard, swipe, portal, history          |
-| `MediaGrid`      | progressive reveal, opening the lightbox  |
-| `MediaVideo`     | play state                                |
-| `WritingArchive` | in-memory filtering                       |
-| `SearchClient`   | fetch-on-interaction and scoring          |
-| `error.tsx`      | React requires it                         |
+| Component        | Why it is a client component                                |
+| ---------------- | ----------------------------------------------------------- |
+| `Navigation`     | scroll state, mobile menu, focus trapping, the `/` shortcut |
+| `MediaLightbox`  | keyboard, swipe, portal, the history entry Back closes      |
+| `MediaGrid`      | progressive reveal, opening the lightbox                    |
+| `MediaVideo`     | play state                                                  |
+| `WritingArchive` | in-memory filtering, kept in the URL                        |
+| `SearchClient`   | fetch-on-interaction and scoring                            |
+| `SearchFromPath` | reads the address the 404 page was reached at               |
+| `OnThisDay`      | picks out today, in the reader's timezone, after load       |
+| `error.tsx`      | React requires it                                           |
+
+Both dialogs — the mobile menu and the photo viewer — make everything outside them `inert`
+while open and keep Tab inside on every press (`src/lib/focus-trap.ts`), so neither a
+keyboard nor a screen reader's reading cursor can wander into the page behind.
+
+`SiteChrome` is a client component only to read the pathname, and the footer is passed
+into it as a rendered slot rather than imported — imported, it became client code and
+recomputed the copyright year in the browser, which disagreed with the static HTML every
+January. `scripts/test/chrome.test.mjs` pins that.
 
 The image fade-in is a notable exception: rather than per-image React state, one capture-phase
 `load` listener inlined in `<head>` tags images as they decode, and CSS does the rest. On a page
@@ -177,13 +188,40 @@ Years are not metadata here, they are the organising principle:
 
 - writing is grouped by year in the archive
 - the media archive is `content/media/<year>.yml`, one file per year
-- `getTimeline()` reports what exists in every year across all content types
+- every year with anything in it has a page at `/years/<year>`, built by `getYearRecords()`
+  in `src/lib/content/years.ts`: the writing, the projects that started, ended or carried on,
+  the photographs and albums, and the Now entries, in the order the year went. Nothing is
+  stored for it — it is a second view of the same files — and `/years` lists them all with
+  the gaps left in
+- `getTimeline()` reads the year records, so every mark on the homepage timeline is a door
+  to its year rather than only to its photographs
+- every dated thing links to its year: the end of an essay, a project's period, a Now
+  entry, a photo year, the year in "From the archive"
 - `pickArchiveEntry()` weights **older** material higher, because the point of "From the
-  archive" is being shown something you had forgotten
+  archive" is being shown something you had forgotten. Nothing younger than six months,
+  no placeholder, and nothing marked `resurface: false` is ever picked
 
 That randomiser is seeded deterministically (build SHA + date) rather than using
 `Math.random()`, because a statically generated page and a later rebuild would otherwise
 disagree about what it showed.
+
+"On this day" is the one piece of time the build cannot know. `/on-this-day.json` lists
+everything with a real day attached (`src/lib/content/on-this-day.ts`), and the homepage
+picks out today in the reader's browser. Circa photographs and month-only dates never appear
+in it. A photograph whose date is a guess carries `circa: true` and is shown as "c. 1998" by
+`formatCaptured()` wherever a date appears.
+
+Every photograph also has a permanent page at `/photo/<id>`. Ids never change, even when an
+album is renamed or deleted, so that address outlives both. It is indexed only when the
+photograph has a caption.
+
+## Places
+
+`/places` is built from locations typed by hand — an essay's `location`, an album's, a
+photograph's, a Now entry's — by `src/lib/content/places.ts`. Nothing comes from GPS, which
+is stripped before upload. A place is its spelling, slugged. `PlaceLink` links a location to
+its place only where the location stands on its own, never inside a card that is already a
+link.
 
 ## Motion
 
@@ -211,13 +249,15 @@ and use it in that one component.
 
 ## Where to change things
 
-| I want to…                          | Go to                                                         |
-| ----------------------------------- | ------------------------------------------------------------- |
-| change a colour or the type scale   | `src/app/globals.css` (`@theme`)                              |
-| change the fonts                    | `src/app/fonts.ts`                                            |
-| change navigation or social links   | `src/lib/site.ts`                                             |
-| add a component usable inside posts | `src/components/mdx/components.tsx`                           |
-| change how an image is sized        | `src/lib/media/provider.ts` (`SIZES`, `WIDTH_LADDERS`)        |
-| swap the media CDN                  | add a file to `src/lib/media/`, extend `index.ts`             |
-| add a frontmatter field             | `src/types/content.ts`, then its loader in `src/lib/content/` |
-| change the importer                 | `scripts/media-import.mjs`                                    |
+| I want to…                            | Go to                                                         |
+| ------------------------------------- | ------------------------------------------------------------- |
+| change a colour or the type scale     | `src/app/globals.css` (`@theme`)                              |
+| change the fonts                      | `src/app/fonts.ts`                                            |
+| change navigation or social links     | `src/lib/site.ts`                                             |
+| add a component usable inside posts   | `src/components/mdx/components.tsx`                           |
+| change how an image is sized          | `src/lib/media/provider.ts` (`SIZES`, `WIDTH_LADDERS`)        |
+| swap the media CDN                    | add a file to `src/lib/media/`, extend `index.ts`             |
+| add a frontmatter field               | `src/types/content.ts`, then its loader in `src/lib/content/` |
+| change the importer                   | `scripts/media-import.mjs`                                    |
+| change which crawlers are turned away | `src/lib/site.ts` (`AI_TRAINING_CRAWLERS`)                    |
+| date a scan approximately             | `circa: true` in the manifest, or `media:import --circa 1998` |

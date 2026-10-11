@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { MediaItem } from '@/types/content';
+import { inertOutside, trapTab } from '@/lib/focus-trap';
 import { formatDuration, mediaAlt, responsiveImage } from '@/lib/media';
-import { cx, formatDate } from '@/lib/utils';
+import { cx, formatCaptured } from '@/lib/utils';
 import { MediaVideo } from './MediaVideo';
 
 /**
@@ -14,7 +15,11 @@ import { MediaVideo } from './MediaVideo';
  *   1. The photograph owns the screen. Chrome hides itself after a moment.
  *   2. Everything works from the keyboard, and focus is trapped while open.
  *   3. Neighbours are preloaded so arrowing through an album never stalls.
- *   4. The URL carries the photo id, so any frame can be linked to directly.
+ *   4. The URL carries the photo id, so any frame can be linked to directly,
+ *      and Back closes the viewer rather than leaving the page (the provider
+ *      in MediaLightbox.tsx keeps the history entry).
+ *   5. Every gesture has a button. Swiping is a shortcut on a phone, never
+ *      the only way to the next photograph (WCAG 2.5.1).
  *
  * Split out from MediaLightbox so it can be fetched on demand — see the note
  * on the lazy import there. Mounted at most once per page, by
@@ -74,8 +79,15 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
   useEffect(() => {
     restoreFocusRef.current = document.activeElement as HTMLElement | null;
     const node = dialogRef.current;
+    // The page behind can't be reached or read while the viewer is open.
+    const restoreInert = inertOutside(node);
     node?.focus();
-    return () => restoreFocusRef.current?.focus?.();
+    return () => {
+      // Inert off first: the photograph that opened the viewer is in the page
+      // behind, and focusing an inert element silently does nothing.
+      restoreInert();
+      restoreFocusRef.current?.focus?.();
+    };
   }, []);
 
   /* --- scroll lock ------------------------------------------------------ */
@@ -93,18 +105,9 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
     };
   }, []);
 
-  /* --- deep link -------------------------------------------------------- */
-  useEffect(() => {
-    if (!item) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set('photo', item.id);
-    window.history.replaceState(null, '', url.toString());
-    return () => {
-      const cleanup = new URL(window.location.href);
-      cleanup.searchParams.delete('photo');
-      window.history.replaceState(null, '', cleanup.toString());
-    };
-  }, [item]);
+  // The address bar is the provider's job, not this component's: it owns the
+  // one history entry the viewer lives in, so Back can close it. See
+  // MediaLightbox.tsx.
 
   const go = useCallback(
     (delta: number) => {
@@ -140,33 +143,12 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
           event.preventDefault();
           onIndexChange(count - 1);
           break;
-        case 'Tab': {
-          // Trap focus inside the dialog.
-          // Filtered on what is actually tabbable, not on tag name. The
-          // backdrop is a <button tabindex="-1"> and the prev/next buttons are
-          // display:none below sm — counting either made "first" wrong, so
-          // shift+Tab from the real first control escaped into the page behind.
-          const focusable = Array.from(
-            dialogRef.current?.querySelectorAll<HTMLElement>('button, a[href], video') ??
-              [],
-          ).filter(
-            (el) =>
-              !el.hasAttribute('disabled') &&
-              el.tabIndex >= 0 &&
-              el.getClientRects().length > 0,
-          );
-          if (focusable.length === 0) break;
-          const first = focusable[0]!;
-          const last = focusable[focusable.length - 1]!;
-          if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-          } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-          }
+        case 'Tab':
+          // Trap focus inside the dialog. Filtered on what is actually
+          // tabbable, not on tag name: the backdrop is a <button tabindex="-1">,
+          // and counting it once let shift+Tab escape into the page behind.
+          trapTab(event, dialogRef.current);
           break;
-        }
         default:
           break;
       }
@@ -270,7 +252,9 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
         })
       : null;
 
-  const captured = item.capturedAt ? formatDate(item.capturedAt) : undefined;
+  const captured = item.capturedAt
+    ? formatCaptured(item.capturedAt, item.circa)
+    : undefined;
   const metaBits = [captured, item.location, label].filter(Boolean) as string[];
 
   return createPortal(
@@ -387,34 +371,42 @@ function Lightbox({ items, index, label, onIndexChange, onClose }: LightboxProps
           </>
         ) : null}
 
-        {/* caption */}
-        {(item.caption || metaBits.length > 0) && (
-          <figcaption className="from-ground-deep/85 pointer-events-auto absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
-            <div className="u-page">
-              {item.caption ? (
-                <p className="text-ivory max-w-2xl text-sm sm:text-base">
-                  {item.caption}
-                </p>
-              ) : null}
-              {metaBits.length > 0 ? (
-                <p className="u-label text-muted mt-2">
-                  {metaBits.map((bit, i) => (
-                    <span key={bit}>
-                      {i > 0 ? <span className="text-line-strong mx-2">·</span> : null}
-                      {bit}
-                    </span>
-                  ))}
-                  {item.type === 'video' && item.duration ? (
-                    <span>
-                      <span className="text-line-strong mx-2">·</span>
-                      {formatDuration(item.duration)}
-                    </span>
-                  ) : null}
-                </p>
-              ) : null}
-            </div>
-          </figcaption>
-        )}
+        {/* caption, and the frame's own page */}
+        <figcaption className="from-ground-deep/85 pointer-events-auto absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
+          <div className="u-page">
+            {item.caption ? (
+              <p className="text-ivory max-w-2xl text-sm sm:text-base">{item.caption}</p>
+            ) : null}
+            {metaBits.length > 0 ? (
+              <p className="u-label text-muted mt-2">
+                {metaBits.map((bit, i) => (
+                  <span key={bit}>
+                    {i > 0 ? <span className="text-line-strong mx-2">·</span> : null}
+                    {bit}
+                  </span>
+                ))}
+                {item.type === 'video' && item.duration ? (
+                  <span>
+                    <span className="text-line-strong mx-2">·</span>
+                    {formatDuration(item.duration)}
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
+            {/* The address to send someone for this one frame: its link
+                  unfurls with the photograph, not the album's cover. A plain
+                  link, not a client-side one — the viewer lives above the
+                  page, and a client-side navigation would leave it open over
+                  the next one. Back returns here, viewer open on this frame. */}
+            <a
+              href={`/photo/${item.id}`}
+              className="u-label u-link u-link-reveal text-muted hover:text-ivory mt-3 inline-block transition-colors"
+            >
+              Open this {item.type === 'video' ? 'video' : 'photograph'}&rsquo;s page{' '}
+              <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </figcaption>
       </div>
     </div>,
     document.body,
@@ -427,8 +419,14 @@ function NavButton({ side, onClick }: { side: 'left' | 'right'; onClick: () => v
       type="button"
       onClick={onClick}
       aria-label={side === 'left' ? 'Previous photograph' : 'Next photograph'}
+      // Visible at every width. Below `sm` these were display:none, which left
+      // a swipe as the only way to the next photograph on a phone — a
+      // path-based gesture with no single-tap alternative (WCAG 2.5.1). On a
+      // phone the photograph runs to the edges, so the arrow gets a dark
+      // backing to stay legible over a bright frame; the chrome still fades
+      // out with everything else.
       className={cx(
-        'text-muted hover:text-ivory pointer-events-auto absolute top-1/2 hidden -translate-y-1/2 p-6 transition-colors sm:block',
+        'text-ivory sm:text-muted hover:text-ivory bg-ground-deep/45 pointer-events-auto absolute top-1/2 block -translate-y-1/2 p-3 transition-colors sm:bg-transparent sm:p-6',
         side === 'left' ? 'left-0' : 'right-0',
       )}
     >

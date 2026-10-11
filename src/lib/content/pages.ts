@@ -71,6 +71,41 @@ export function getAllPages(): StandalonePage[] {
 
 /* --- About's optional timeline -------------------------------------------- */
 
+/**
+ * A period of a life, in your own words: "Belgrade", "The Kansas years".
+ * Optional — the About page shows eras only when the file names some.
+ */
+export type AboutEra = {
+  name: string;
+  from: number;
+  /** Omitted while it is still going. */
+  to?: number;
+  note?: string;
+};
+
+/** The eras `content/pages/about.mdx` declares, oldest first. */
+export function getAboutEras(): AboutEra[] {
+  const raw = getPage('about')?.data.eras;
+  if (!Array.isArray(raw)) return [];
+  const year = (value: unknown) => {
+    const n = Number(value);
+    return Number.isInteger(n) && n >= 1000 && n <= 9999 ? n : undefined;
+  };
+  return raw
+    .filter((entry): entry is Record<string, unknown> =>
+      Boolean(entry && typeof entry === 'object'),
+    )
+    .flatMap((entry): AboutEra[] => {
+      const name = String(entry.name ?? '').trim();
+      const from = year(entry.from);
+      if (!name || from === undefined) return [];
+      const to = year(entry.to);
+      const note = entry.note ? String(entry.note).trim() : '';
+      return [{ name, from, ...(to !== undefined ? { to } : {}), ...(note ? { note } : {}) }];
+    })
+    .sort((a, b) => a.from - b.from);
+}
+
 export type TimelineEntry = {
   /** `1993`, `2011`, `2019 — 2024`. Free text; it is a label, not a date. */
   when: string;

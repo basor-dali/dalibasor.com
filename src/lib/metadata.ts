@@ -41,12 +41,21 @@ export function absoluteUrl(path: string): string {
  */
 type AlternateTypes = NonNullable<NonNullable<Metadata['alternates']>['types']>;
 
-/** Fresh each call: Next takes ownership of what it is handed. */
-function feedTypes(): AlternateTypes {
+/**
+ * Fresh each call: Next takes ownership of what it is handed.
+ *
+ * Writing first, because a reader that only takes one feed takes the first.
+ * The Now feed is second: the one page that changes every month.
+ */
+export function feedTypes(): AlternateTypes {
   return {
-    'application/rss+xml': [{ url: '/writing/rss.xml', title: `${site.name} — Writing` }],
+    'application/rss+xml': [
+      { url: '/writing/rss.xml', title: `${site.name} — Writing` },
+      { url: '/now/rss.xml', title: `${site.name} — Now` },
+    ],
     'application/feed+json': [
       { url: '/writing/feed.json', title: `${site.name} — Writing` },
+      { url: '/now/feed.json', title: `${site.name} — Now` },
     ],
   };
 }
@@ -105,15 +114,48 @@ export function pageMetadata(input: PageMetaInput): Metadata {
    Minimal and honest. Enough for a search engine to understand that an
    article is an article; nothing that pretends this is a publication. */
 
-export function personJsonLd() {
+export function personJsonLd(options: { image?: string } = {}) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
+    '@id': `${site.url}/#person`,
     name: site.author.name,
     url: site.url,
     email: `mailto:${site.author.email}`,
     homeLocation: { '@type': 'Place', name: site.location },
     sameAs: site.social.map((entry) => entry.href),
+    ...(options.image ? { image: absoluteUrl(options.image) } : {}),
+  };
+}
+
+/**
+ * The site's name, for search results. Google reads WebSite markup on the home
+ * page for the name it shows above a result, and that is all it is used for
+ * now — the sitelinks search box it once powered was retired in 2024, so no
+ * SearchAction is declared.
+ */
+export function websiteJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.url,
+    inLanguage: site.language,
+    publisher: { '@id': `${site.url}/#person` },
+  };
+}
+
+/**
+ * /about as a profile page — the one Google treats as the page about a person.
+ * Its main entity is the same Person the layout declares, by @id.
+ */
+export function profilePageJsonLd(input: { image?: string; dateModified?: string }) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url: absoluteUrl('/about'),
+    ...(input.dateModified ? { dateModified: input.dateModified } : {}),
+    mainEntity: personJsonLd({ image: input.image }),
   };
 }
 
@@ -122,9 +164,19 @@ export function articleJsonLd(input: {
   description?: string;
   path: string;
   datePublished: string;
+  /** When it was last meaningfully revised; omitted when never. */
+  dateModified?: string;
   image?: string;
   tags?: string[];
 }) {
+  // The author is the person the About page is about — Google's guidance is
+  // for author.url to point at the page that identifies them.
+  const author = {
+    '@type': 'Person',
+    name: site.author.name,
+    url: absoluteUrl('/about'),
+  };
+
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -132,10 +184,11 @@ export function articleJsonLd(input: {
     description: input.description,
     url: absoluteUrl(input.path),
     datePublished: input.datePublished,
+    dateModified: input.dateModified ?? input.datePublished,
     keywords: input.tags?.join(', '),
     image: input.image ? absoluteUrl(input.image) : undefined,
-    author: { '@type': 'Person', name: site.author.name, url: site.url },
-    publisher: { '@type': 'Person', name: site.author.name, url: site.url },
+    author,
+    publisher: author,
     mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(input.path) },
     inLanguage: site.language,
   };

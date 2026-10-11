@@ -32,14 +32,22 @@ const loadAll = once((): Post[] => {
     const slug = data.slug?.trim() || slugify(basename);
     const plain = toPlainText(body);
     const tags = normalizeTags(data.tags);
+    const date = toDateString(data.date);
+    // Only a revision after publication is an update. An `updated` on or
+    // before the date is a slip, and showing it would claim the piece changed
+    // before it existed.
+    const updated = data.updated ? toDateString(data.updated) : undefined;
+    const revised =
+      updated && parseDate(updated).getTime() > parseDate(date).getTime() ? updated : undefined;
 
     return {
       slug,
       href: `/writing/${slug}`,
       title: data.title,
       subtitle: data.subtitle,
-      date: toDateString(data.date),
-      year: yearOf(toDateString(data.date)),
+      date,
+      updated: revised,
+      year: yearOf(date),
       tags,
       coverImage: data.coverImage,
       coverAlt: data.coverAlt,
@@ -50,6 +58,8 @@ const loadAll = once((): Post[] => {
       draft: Boolean(data.draft),
       excerpt: data.excerpt,
       placeholder: Boolean(data.placeholder),
+      // Opt-out, so every existing file means "yes" without saying so.
+      resurface: data.resurface !== false,
       body,
       plain,
       readingMinutes: readingMinutes(plain),

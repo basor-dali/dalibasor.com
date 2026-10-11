@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { inertOutside, trapTab } from '@/lib/focus-trap';
+import { requestSearchFocus } from '@/lib/search/intent';
 import { primaryNav, site } from '@/lib/site';
 import { cx } from '@/lib/utils';
 
@@ -46,6 +48,7 @@ export function Navigation() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const scrolled = useSyncExternalStore(
@@ -64,6 +67,10 @@ export function Navigation() {
   }
 
   /* --- menu behaviour ---------------------------------------------------- */
+  // Set when the menu is closed with Close or Escape, so focus goes back to
+  // the Menu button. Not when a link closes it: the next page has the focus.
+  const returnFocusRef = useRef(false);
+
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -73,44 +80,81 @@ export function Navigation() {
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
+        returnFocusRef.current = true;
         setMenuOpen(false);
-        menuButtonRef.current?.focus();
         return;
       }
-      if (event.key !== 'Tab') return;
-
-      const focusable =
-        panelRef.current?.querySelectorAll<HTMLElement>('a[href], button');
-      if (!focusable || focusable.length === 0) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      trapTab(event, panelRef.current);
     }
 
     document.addEventListener('keydown', onKeyDown);
-    // Move focus into the panel so a screen reader lands inside the menu.
-    // The Close control is first, which is the right landing spot for a dialog.
-    panelRef.current?.querySelector<HTMLElement>('button, a[href]')?.focus();
+    const menuButton = menuButtonRef.current;
+    // The page behind the overlay can't be reached or read while it is open.
+    const restoreInert = inertOutside(panelRef.current);
+    // Move focus into the panel so a screen reader lands inside the menu, on
+    // the Close control — the right landing spot for a dialog. By ref rather
+    // than "the first focusable": the wordmark link now comes first.
+    closeButtonRef.current?.focus();
 
     return () => {
+      // Inert off first: the Menu button is behind the overlay, and focusing
+      // an inert element silently does nothing.
+      restoreInert();
       body.style.overflow = previous;
       document.removeEventListener('keydown', onKeyDown);
+      if (returnFocusRef.current) {
+        returnFocusRef.current = false;
+        menuButton?.focus();
+      }
     };
   }, [menuOpen]);
 
+  /* --- `/` to search ----------------------------------------------------
+     The search was only ever linked from the footer. It now has a place in
+     the bar, and the keyboard convention most sites with a search share:
+     `/` from anywhere goes to the field, already focused. Never while typing
+     in a field, never with a modifier held, and never while a dialog — the
+     menu or the photo viewer — has the page. */
+  const router = useRouter();
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== '/' || event.defaultPrevented) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+      ) {
+        return;
+      }
+      if (menuOpen || document.querySelector('[role="dialog"][aria-modal="true"]'))
+        return;
+
+      event.preventDefault();
+      const field = document.querySelector<HTMLInputElement>('input[type="search"]');
+      if (window.location.pathname === '/search' && field) {
+        field.focus();
+        field.select();
+        return;
+      }
+      requestSearchFocus();
+      router.push('/search');
+    }
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen, router]);
+
   const isHome = pathname === '/';
+  const searchActive = pathname === '/search';
 
   return (
     <>
       <header
         className={cx(
-          'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500',
+          'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500 print:hidden',
           scrolled && !menuOpen
             ? 'border-line bg-ground/85 border-b backdrop-blur-md'
             : 'border-b border-transparent',
@@ -131,7 +175,7 @@ export function Navigation() {
 
           {/* --- desktop --- */}
           <nav aria-label="Primary" className="hidden md:block">
-            <ul className="flex list-none items-center gap-7 p-0 lg:gap-9">
+            <ul className="flex list-none items-center gap-5 p-0 lg:gap-8 xl:gap-9">
               {primaryNav.map((item) => {
                 const active =
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -150,6 +194,27 @@ export function Navigation() {
                   </li>
                 );
               })}
+              {/* Set apart from the sections by a hairline: it is a tool, not
+                  a place. The key hint shows where there is room for it. */}
+              <li className="border-line-strong border-l pl-5 lg:pl-8 xl:pl-9">
+                <Link
+                  href="/search"
+                  aria-current={searchActive ? 'page' : undefined}
+                  aria-keyshortcuts="/"
+                  className={cx(
+                    'u-label u-link u-link-reveal -m-2 inline-flex items-baseline gap-2 p-2 transition-colors duration-300',
+                    searchActive ? 'text-ivory' : 'text-muted hover:text-ivory',
+                  )}
+                >
+                  Search
+                  <kbd
+                    aria-hidden="true"
+                    className="border-line-strong text-muted hidden border px-1.5 font-mono text-[0.625rem] leading-[1.4] lg:inline-block"
+                  >
+                    /
+                  </kbd>
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -157,12 +222,12 @@ export function Navigation() {
           <button
             ref={menuButtonRef}
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => setMenuOpen(true)}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             className="u-label text-ivory -m-3 p-3 md:hidden"
           >
-            {menuOpen ? 'Close' : 'Menu'}
+            Menu
           </button>
         </div>
       </header>
@@ -175,24 +240,37 @@ export function Navigation() {
         aria-modal={menuOpen ? true : undefined}
         aria-label="Site menu"
         hidden={!menuOpen}
-        className="bg-ground fixed inset-0 z-40 flex flex-col md:hidden"
+        // Above the bar, not below it. At z-40 under the bar's z-50 the bar
+        // stayed on top — transparent, because the scrolled treatment is
+        // suppressed while the menu is open — so its trigger, relabelled
+        // "Close", was drawn straight over this panel's own "Close ✕": two
+        // labels on top of each other at the corner of every phone. The panel
+        // now covers the bar and carries its own copy of the bar's top row.
+        className="bg-ground fixed inset-0 z-[60] flex flex-col md:hidden"
         style={menuOpen ? { animation: 'fade-in 0.3s var(--ease-out-quart)' } : undefined}
       >
-        {/* A close control inside the dialog.
-            The trigger that opened this sits in the bar behind it, covered by
-            the panel — so an aria-modal dialog offered no way out except the
-            Escape key, which is not discoverable and not available on a touch
-            screen. First child, so it is also the first thing the focus trap
-            and a screen-reader swipe reach. */}
+        {/* The bar's own row, repeated inside the dialog: the wordmark where
+            it always is, and the one way out. An aria-modal dialog needs its
+            close control inside it — Escape is not discoverable and does not
+            exist on a touch screen. */}
         <div
-          className="u-page flex shrink-0 items-center justify-end"
+          className="u-page flex shrink-0 items-center justify-between gap-6"
           style={{ height: 'var(--nav-height)' }}
         >
+          <Link
+            href="/"
+            onClick={() => setMenuOpen(false)}
+            className="-m-2 shrink-0 p-2"
+            aria-current={isHome ? 'page' : undefined}
+          >
+            <span className="u-label-lg text-ivory block font-medium">{site.name}</span>
+          </Link>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={() => {
+              returnFocusRef.current = true;
               setMenuOpen(false);
-              menuButtonRef.current?.focus();
             }}
             className="u-label text-ivory -m-3 p-3"
           >
@@ -221,6 +299,10 @@ export function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  // The menu closes itself when the pathname changes, which a
+                  // link to the page you are already on never does — tapping
+                  // "Writing" on /writing left the menu standing open.
+                  onClick={() => setMenuOpen(false)}
                   aria-current={active ? 'page' : undefined}
                   className="group border-line block border-b py-5"
                   style={
@@ -256,6 +338,14 @@ export function Navigation() {
         </nav>
 
         <div className="u-pad flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 pb-10">
+          <Link
+            href="/search"
+            onClick={() => setMenuOpen(false)}
+            aria-current={searchActive ? 'page' : undefined}
+            className="u-label u-link u-link-reveal text-ivory"
+          >
+            Search
+          </Link>
           {site.social.map((social) => (
             <a
               key={social.label}

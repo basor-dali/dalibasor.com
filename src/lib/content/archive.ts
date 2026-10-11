@@ -2,12 +2,13 @@ import 'server-only';
 
 import type { ArchiveEntry } from '@/types/content';
 import { site } from '@/lib/site';
-import { hashString, yearOf } from '@/lib/utils';
+import { hashString, parseDate, yearOf } from '@/lib/utils';
 import { once } from './fs';
-import { getAllAlbums, getArchiveYears, getFeaturedMedia, getYear } from './media';
-import { getNowEntries } from './now';
+import { getAllAlbums, getFeaturedMedia, getYear } from './media';
+import { getCurrentNow, getNowEntries } from './now';
 import { getPosts } from './writing';
 import { getProjects } from './projects';
+import { getYearRecords } from './years';
 
 /**
  * "From the archive".
@@ -18,38 +19,74 @@ import { getProjects } from './projects';
  * — the whole appeal is being shown something you had forgotten.
  */
 
-/** Everything old enough to be worth resurfacing. */
+/**
+ * What may be resurfaced, and what never is.
+ * --------------------------------------------------------------------------
+ * The homepage asked for everything with a minimum age of zero, so on a young
+ * site the "found object" was whatever happened to exist — on the day this was
+ * written, this month's Now entry, shown again directly under "Currently",
+ * which was showing it already. Scaffolding was just as eligible, so a
+ * placeholder could be presented as a memory.
+ *
+ * So, in order:
+ *   - nothing younger than MIN_AGE_MONTHS. Six months is the shortest gap at
+ *     which being shown something reads as remembering rather than repeating.
+ *   - no placeholders, and not the Now entry that is live right now.
+ *   - nothing marked `resurface: false` — on a post, a project, a Now entry,
+ *     an album (which covers every photograph in it) or a single photograph.
+ *     A deterministic pick running for twenty years will eventually land on a
+ *     bad anniversary; this is the way to say "keep it, but don't hand it
+ *     back to me". Nothing about the item changes anywhere else on the site.
+ *
+ * Until something qualifies, the section says so in plain words.
+ */
+export const RESURFACE = { MIN_AGE_MONTHS: 6 } as const;
+
+/** Everything old enough, and allowed, to be resurfaced. */
 export function getArchiveEntries(options: { minAgeMonths?: number } = {}): ArchiveEntry[] {
   const minAgeMonths = options.minAgeMonths ?? 0;
   const cutoff = Date.now() - minAgeMonths * 30 * 24 * 60 * 60 * 1000;
+  const live = getCurrentNow()?.period;
 
   const entries: ArchiveEntry[] = [];
 
   for (const post of getPosts()) {
+    if (post.placeholder || !post.resurface) continue;
     entries.push({ kind: 'post', date: post.date, year: post.year, post });
   }
 
   for (const project of getProjects()) {
+    if (project.placeholder || !project.resurface) continue;
     const date = project.endDate ?? project.startDate;
     entries.push({ kind: 'project', date, year: yearOf(date), project });
   }
 
+  const quietAlbums = new Set<string>();
   for (const album of getAllAlbums()) {
+    if (album.resurface === false) {
+      quietAlbums.add(`${album.year}/${album.slug}`);
+      continue;
+    }
     const date = album.date ?? `${album.year}-06-15`;
     entries.push({ kind: 'album', date, year: album.year, album });
   }
 
   for (const item of getFeaturedMedia(60)) {
+    if (item.resurface === false) continue;
+    if (item.album && quietAlbums.has(`${item.year}/${item.album}`)) continue;
     const date = item.capturedAt ?? `${item.year}-06-15`;
     entries.push({ kind: 'photo', date, year: item.year, item });
   }
 
   for (const now of getNowEntries()) {
+    if (now.placeholder || !now.resurface || now.period === live) continue;
     entries.push({ kind: 'now', date: now.date, year: now.year, now });
   }
 
+  // Compared as parsed dates. `new Date()` reads a naive EXIF timestamp in the
+  // host's timezone; parseDate pins it, like every other date on the site.
   return entries
-    .filter((entry) => new Date(entry.date).getTime() <= cutoff)
+    .filter((entry) => parseDate(entry.date).getTime() <= cutoff)
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
@@ -65,7 +102,7 @@ export function getArchiveEntries(options: { minAgeMonths?: number } = {}): Arch
  * than one from last month, which is the entire point of the feature.
  */
 export function pickArchiveEntry(seed: string): ArchiveEntry | undefined {
-  const entries = getArchiveEntries();
+  const entries = getArchiveEntries({ minAgeMonths: RESURFACE.MIN_AGE_MONTHS });
   if (entries.length === 0) return undefined;
   if (entries.length === 1) return entries[0];
 
@@ -107,45 +144,44 @@ export type TimelineYear = {
   photos: number;
   videos: number;
   albums: number;
+  /** Things that happened that year — see YearRecord.total. */
   total: number;
-  /** Where a year page exists to link to. */
+  /** The year's own page, when it has one. */
   href?: string;
 };
 
+/**
+ * One mark per year, from the year records.
+ *
+ * Each mark used to link to the year's photographs and nothing else, so a
+ * year of writing with no photographs was a dead mark, and a year whose
+ * manifest existed but was empty — 2025, on the day this changed — was a link
+ * to a page that said "Nothing filed yet". Marks now link to the year itself,
+ * where the photographs are one section among the rest.
+ *
+ * The count also stopped adding albums on top of the photographs inside them.
+ */
 export const getTimeline = once((): TimelineYear[] => {
-  const posts = getPosts();
-  const projects = getProjects();
-  const mediaYears = new Set(getArchiveYears());
-
-  const years = new Set<number>([
-    ...posts.map((post) => post.year),
-    ...projects.map((project) => yearOf(project.startDate)),
-    ...mediaYears,
-    ...getNowEntries().map((entry) => entry.year),
-  ]);
+  const records = new Map(getYearRecords().map((record) => [record.year, record]));
 
   // Always show the declared start of the archive, even before it has content.
-  years.add(site.archiveStartYear);
+  const years = new Set<number>([...records.keys(), site.archiveStartYear]);
 
   return [...years]
     .sort((a, b) => b - a)
     .map((year) => {
+      const record = records.get(year);
       const media = getYear(year);
-      const yearPosts = posts.filter((post) => post.year === year).length;
-      const yearProjects = projects.filter(
-        (project) => yearOf(project.startDate) === year,
-      ).length;
 
       return {
         year,
-        posts: yearPosts,
-        projects: yearProjects,
+        posts: record?.posts.length ?? 0,
+        projects: record?.projects.started.length ?? 0,
         photos: media?.photoCount ?? 0,
         videos: media?.videoCount ?? 0,
         albums: media?.albums.length ?? 0,
-        total:
-          yearPosts + yearProjects + (media?.totalCount ?? 0) + (media?.albums.length ?? 0),
-        href: media ? media.href : undefined,
+        total: record?.total ?? 0,
+        href: record?.href,
       };
     });
 });

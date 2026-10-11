@@ -19,8 +19,12 @@ import { LinkCue } from './Hero';
 const LEAD_SIZES = '(min-width: 64rem) 22vw, (min-width: 48rem) 26vw, 30vw';
 
 export function ArchivePreview({ years }: { years: YearSummary[] }) {
-  const lead = years[0];
-  const rest = years.slice(1, 5);
+  // Only years that hold something. A year's manifest can exist before a
+  // single photograph is in it, and leading with one drew the newest year at
+  // colossal size over three frames labelled "Photograph pending".
+  const filed = years.filter((year) => year.totalCount > 0);
+  const lead = filed[0];
+  const rest = filed.slice(1, 5);
 
   return (
     <section className="py-(--spacing-section)" aria-labelledby="home-archive">
@@ -66,6 +70,10 @@ function LeadYear({ year }: { year: YearSummary }) {
   const images = year.preview.filter((item) => item.type === 'image').slice(0, 3);
   const cells: (MediaItem | undefined)[] = [images[0], images[1], images[2]];
 
+  // The link is named by what it shows — "2026, 39 photographs · 1 album" and
+  // the note — not an aria-label that replaced it. The photographs are
+  // previews of the year, not its name, and "Open 2026" only repeats it, so
+  // both are left out of what a screen reader announces.
   return (
     <article className="u-page mt-14 sm:mt-20">
       <Link href={year.href} className="group block">
@@ -76,7 +84,10 @@ function LeadYear({ year }: { year: YearSummary }) {
 
         {/* pushed right and pulled up so the photographs sit across the
             numeral's lower half rather than beside it */}
-        <div className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4">
+        <div
+          aria-hidden="true"
+          className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4"
+        >
           {cells.map((item, index) =>
             item ? (
               <MediaImage
@@ -99,12 +110,16 @@ function LeadYear({ year }: { year: YearSummary }) {
         </div>
 
         <div className="border-line mt-7 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t pt-5">
-          <p className="u-label text-muted">{countLine(year)}</p>
-          <LinkCue>Open {year.year}</LinkCue>
+          <p className="u-label text-muted">
+            <span className="sr-only">, </span>
+            {countLine(year)}
+          </p>
+          <LinkCue decorative>Open {year.year}</LinkCue>
         </div>
 
         {year.note ? (
           <p className="u-serif text-soft mt-7 max-w-(--container-text) text-xl">
+            <span className="sr-only">. </span>
             {year.note}
           </p>
         ) : null}
@@ -127,11 +142,13 @@ function YearRow({ year }: { year: YearSummary }) {
     >
       <span className="u-display u-nums text-ivory text-2xl transition-colors duration-300 group-hover:text-white">
         {year.year}
+        <span className="sr-only">,</span>
       </span>
 
       <span className="u-label text-muted min-w-0 truncate">{countLine(year)}</span>
 
-      <span className="flex items-center gap-4">
+      {/* The thumbnail and "Open" are the eye's; the year and count are the name. */}
+      <span aria-hidden="true" className="flex items-center gap-4">
         {cover && cover.type === 'image' ? (
           <MediaImage
             item={cover}
@@ -160,24 +177,22 @@ function YearRow({ year }: { year: YearSummary }) {
 
 /* ==========================================================================
    Empty — still a composition
-   ========================================================================== */
+   ==========================================================================
+   The year the archive is declared to start, set at colossal size in the
+   dimmest line colour, and one plain sentence. It used to carry three empty
+   frames as well — which, with the hero, the lead essay and the first
+   project, made six "pending" plates on a homepage with nothing missing from
+   it but time. */
 
 function ArchiveEmpty() {
   return (
     <div className="u-page mt-14 sm:mt-20">
-      <YearMark year={site.archiveStartYear} className="text-line" />
-      <div className="relative z-10 -mt-[min(4vw,2rem)] grid grid-cols-3 gap-2 sm:-mt-[min(6vw,4rem)] sm:gap-3 md:-mt-[min(8vw,7rem)] md:ml-[16%] lg:-mt-[min(9vw,11rem)] lg:ml-[28%] lg:gap-4">
-        {[0, 1, 2].map((index) => (
-          <EmptyFrame
-            key={index}
-            ratio="4 / 5"
-            label="Photograph pending"
-            tone={index === 1 ? 'surface-3' : 'surface-2'}
-          />
-        ))}
-      </div>
+      <YearMark year={site.archiveStartYear} className="text-line" aria-hidden="true" />
       <div className="border-line mt-7 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3 border-t pt-5">
-        <p className="u-label text-muted">The archive starts here</p>
+        <p className="u-label text-muted">
+          No photographs filed yet <span aria-hidden="true">·</span> the archive starts in{' '}
+          {site.archiveStartYear}
+        </p>
         <ArrowLink href="/photos">Photos + Video</ArrowLink>
       </div>
     </div>

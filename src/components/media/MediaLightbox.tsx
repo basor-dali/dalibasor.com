@@ -69,20 +69,114 @@ export function useLightbox(): LightboxContextValue {
   return value;
 }
 
+/* --------------------------------------------------------------------------
+   The viewer and the Back button
+   --------------------------------------------------------------------------
+   On a phone, Back is how you leave a full-screen photograph — the system
+   gesture, the hardware button, the browser's own arrow. The viewer used to
+   live entirely in replaceState, so Back skipped straight past it and off the
+   album, which is the one thing nobody pressing it meant.
+
+   So opening the viewer pushes one history entry, marked as ours, and Back
+   simply pops it. Moving between photographs replaces that same entry, so
+   twenty photographs later Back still means "close", not "previous photo".
+   Closing from inside the viewer (Close, Escape, a swipe down, the backdrop)
+   goes back too, so the entry never lingers to be landed on later.
+
+   Next patches pushState and copies its own router state into the entry, so a
+   pop to the album URL restores the page that is already on screen: no fetch,
+   no remount. Only the viewer's own state changes. */
+
+/** Marks a history entry as the viewer's. Holds the photo id on screen. */
+const HISTORY_KEY = 'lightbox';
+
+function photoUrl(id: string | null): string {
+  const url = new URL(window.location.href);
+  if (id) url.searchParams.set('photo', id);
+  else url.searchParams.delete('photo');
+  return url.toString();
+}
+
+function viewerEntryIsCurrent(): boolean {
+  return Boolean((window.history.state as Record<string, unknown> | null)?.[HISTORY_KEY]);
+}
+
 export function LightboxProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [index, setIndex] = useState(0);
   const [label, setLabel] = useState<string | undefined>();
   const [isOpen, setIsOpen] = useState(false);
+  /* Set between asking the browser to go back and hearing that it has. A
+     second Close in that gap — a double click is enough — would otherwise go
+     back twice, and the second step leaves the album altogether. */
+  const closing = useRef(false);
 
   const open = useCallback((next: MediaItem[], at: number, contextLabel?: string) => {
+    const item = next[at];
+    if (!item) return;
+
     setItems(next);
     setIndex(at);
     setLabel(contextLabel);
     setIsOpen(true);
+    closing.current = false;
+
+    if (!viewerEntryIsCurrent()) {
+      // Arriving on a shared ?photo= link, the landing entry already names a
+      // photograph. Clean it first, so Back from the viewer lands on the
+      // album itself rather than on a URL that reopens what you just closed.
+      if (new URLSearchParams(window.location.search).has('photo')) {
+        window.history.replaceState(null, '', photoUrl(null));
+      }
+      window.history.pushState({ [HISTORY_KEY]: item.id }, '', photoUrl(item.id));
+    }
   }, []);
 
-  const close = useCallback(() => setIsOpen(false), []);
+  const close = useCallback(() => {
+    if (closing.current) return;
+    if (viewerEntryIsCurrent()) {
+      closing.current = true;
+      window.history.back(); // the popstate below does the closing
+      return;
+    }
+    window.history.replaceState(null, '', photoUrl(null));
+    setIsOpen(false);
+  }, []);
+
+  /* Back (or Forward) through the viewer's entry. */
+  useEffect(() => {
+    function onPopState() {
+      closing.current = false;
+      const state = window.history.state as Record<string, unknown> | null;
+      const id = state?.[HISTORY_KEY];
+
+      if (typeof id !== 'string') {
+        setIsOpen(false);
+        return;
+      }
+      // Forward into the entry just left: reopen on the same photograph, as
+      // long as it belongs to the collection this page last opened.
+      const at = items.findIndex((item) => item.id === id);
+      if (at !== -1) {
+        setIndex(at);
+        setIsOpen(true);
+      }
+    }
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [items]);
+
+  /* Keep the address on the photograph that is on screen, in the viewer's one
+     entry — so any frame can be copied out of the address bar and shared. */
+  useEffect(() => {
+    if (!isOpen || !viewerEntryIsCurrent()) return;
+    const item = items[index];
+    if (!item) return;
+    const state = window.history.state as Record<string, unknown> | null;
+    if (state?.[HISTORY_KEY] === item.id) return;
+    window.history.replaceState({ [HISTORY_KEY]: item.id }, '', photoUrl(item.id));
+  }, [isOpen, items, index]);
 
   const value = useMemo(() => ({ open }), [open]);
 

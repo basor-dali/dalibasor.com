@@ -1,8 +1,10 @@
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { Placeholder } from '@/components/mdx/components';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
+import { PlaceLink } from '@/components/places/PlaceLink';
 import { CoverImage } from '@/components/media/MediaImage';
 import { ArrowLink, MetaLine } from '@/components/primitives';
+import { replyHref } from '@/lib/site';
 import { formatDate, formatPeriod, isoDate, parseDate, pluralize } from '@/lib/utils';
 import type { NowEntry, NowSummary } from '@/types/content';
 
@@ -97,7 +99,9 @@ export function NowBody({
             <MetaLine
               className="mt-8"
               items={[
-                entry.location,
+                entry.location ? (
+                  <PlaceLink key="place" location={entry.location} />
+                ) : null,
                 hasExactDate ? (
                   <time dateTime={isoDate(entry.date)}>
                     Written {formatDate(entry.date)}
@@ -156,9 +160,15 @@ export function NowBody({
               <div className="flex flex-wrap gap-x-6 gap-y-2 lg:block lg:space-y-2">
                 <p className="u-label text-muted">{formatPeriod(entry.period)}</p>
                 {entry.location ? (
-                  <p className="u-label text-muted">{entry.location}</p>
+                  <p className="u-label text-muted">
+                    <PlaceLink location={entry.location} />
+                  </p>
                 ) : null}
               </div>
+              {/* The rest of that year, beyond this one month of it. */}
+              <ArrowLink href={`/years/${entry.year}`} className="mt-5 inline-block">
+                All of {entry.year}
+              </ArrowLink>
             </div>
           </div>
 
@@ -172,6 +182,19 @@ export function NowBody({
                 <Placeholder />
               )}
             </div>
+
+            {/* A Now entry is the closest thing here to a letter; it can be
+                answered like one. Not on scaffolding — nothing to answer. */}
+            {hasBody && !entry.placeholder ? (
+              <p className="mt-12">
+                <a
+                  href={replyHref(`Re: ${entry.title}`)}
+                  className="u-label u-link u-link-reveal text-muted hover:text-ivory"
+                >
+                  Reply by email
+                </a>
+              </p>
+            ) : null}
           </div>
         </div>
       </div>

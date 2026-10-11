@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { frameRatio } from '@/components/media/AlbumCard';
 import { EmptyFrame } from '@/components/media/EmptyFrame';
 import { MediaImage } from '@/components/media/MediaImage';
-import { EmptyState, Label, YearMark } from '@/components/primitives';
+import { EmptyState, Label, PageHeader, YearMark } from '@/components/primitives';
 import {
   getArchiveSpan,
   getArchiveTotals,
@@ -71,6 +71,13 @@ export default function PhotosPage() {
   const olderMaterial =
     span.from < totals.firstYear && getTimeline().some((entry) => entry.total > 0);
 
+  // A year can be declared — its manifest created — before anything is in it.
+  // Those used to get the same full-page composition as a year with three
+  // hundred photographs: a colossal numeral over an empty frame. They are
+  // listed quietly instead, and an archive with nothing in it at all gets one
+  // plain opener rather than a span of years and a row of zeros.
+  if (!hasMedia) return <NothingFiledYet declared={years.map((year) => year.year)} />;
+
   return (
     <div className="pb-(--spacing-section)">
       {/* --- the span ---------------------------------------------------- */}
@@ -137,22 +144,82 @@ export default function PhotosPage() {
         <section className="u-page mt-(--spacing-section)">
           <h2 className="sr-only">Years</h2>
           <ol className="list-none p-0">
-            {years.map((summary, index) => (
-              <li
-                key={summary.year}
-                className="border-line border-t py-(--spacing-section-sm) last:pb-0"
-              >
-                <YearBlock
-                  summary={summary}
-                  index={index}
-                  priority={index === 0 && hasMedia}
-                />
-              </li>
-            ))}
+            {years.map((summary, index) =>
+              summary.totalCount > 0 ? (
+                <li
+                  key={summary.year}
+                  className="border-line border-t py-(--spacing-section-sm) last:pb-0"
+                >
+                  <YearBlock
+                    summary={summary}
+                    index={index}
+                    priority={index === 0 && hasMedia}
+                  />
+                </li>
+              ) : (
+                <li key={summary.year} className="border-line border-t">
+                  <EmptyYearRow year={summary.year} />
+                </li>
+              ),
+            )}
           </ol>
         </section>
       )}
     </div>
+  );
+}
+
+/* ==========================================================================
+   Nothing filed
+   ========================================================================== */
+
+function NothingFiledYet({ declared }: { declared: number[] }) {
+  return (
+    <div className="pb-(--spacing-section)">
+      <PageHeader
+        eyebrow="The archive"
+        title="Photos + Video"
+        lede="Photographs and video, filed a year at a time. Each year gets its own page as its photographs arrive."
+      />
+
+      <div className="u-page">
+        <EmptyState title="Nothing filed yet">
+          <p>
+            Each year lives in one file under{' '}
+            <span className="text-ivory font-mono">content/media</span>, and the first
+            photograph imported into one opens it here.
+          </p>
+        </EmptyState>
+
+        {declared.length > 0 ? (
+          <div className="mt-(--spacing-section-sm)">
+            <Label as="p">Years declared, still empty</Label>
+            <ul className="border-line mt-5 list-none border-b p-0">
+              {declared.map((year) => (
+                <li key={year} className="border-line border-t">
+                  <EmptyYearRow year={year} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** A declared year with nothing in it: one quiet line, still a real link. */
+function EmptyYearRow({ year }: { year: number }) {
+  return (
+    <Link
+      href={`/photos/${year}`}
+      className="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 py-5"
+    >
+      <span className="u-display u-nums text-soft group-hover:text-ivory text-2xl transition-colors duration-300">
+        {year}
+      </span>
+      <span className="u-label text-muted">Nothing filed yet</span>
+    </Link>
   );
 }
 
@@ -223,15 +290,14 @@ function YearBlock({
     ? truncate(summary.note.replace(/\s+/g, ' ').trim(), 150)
     : undefined;
 
+  // Named by what it shows — the year, the counts, the note — rather than an
+  // aria-label that replaced them. The photographs are previews of the year
+  // and "Open 2019" repeats it, so neither is announced.
   return (
-    <Link
-      href={summary.href}
-      className="group block"
-      aria-label={`${year} — ${countLine.replace(/\s+·\s+/g, ', ')}`}
-    >
+    <Link href={summary.href} className="group block">
       {variant === 0 ? (
         <>
-          <div className="u-grid items-end">
+          <div aria-hidden="true" className="u-grid items-end">
             <figure className="relative col-span-2 m-0 md:col-span-6 lg:col-span-8 lg:col-start-5 lg:row-start-1">
               {lead ? (
                 <MediaImage
@@ -288,7 +354,10 @@ function YearBlock({
           </h3>
 
           {lead ? (
-            <figure className="col-span-2 m-0 md:col-span-4 lg:col-span-5 lg:col-start-6 lg:row-start-1">
+            <figure
+              aria-hidden="true"
+              className="col-span-2 m-0 md:col-span-4 lg:col-span-5 lg:col-start-6 lg:row-start-1"
+            >
               <MediaImage
                 item={lead}
                 ladder="feature"
@@ -301,7 +370,10 @@ function YearBlock({
           ) : null}
 
           {second ? (
-            <figure className="m-0 hidden md:col-span-2 md:block lg:col-span-2 lg:col-start-11 lg:row-start-1">
+            <figure
+              aria-hidden="true"
+              className="m-0 hidden md:col-span-2 md:block lg:col-span-2 lg:col-start-11 lg:row-start-1"
+            >
               <MediaImage
                 item={second}
                 ladder="thumb"
@@ -324,7 +396,7 @@ function YearBlock({
             />
           </h3>
 
-          <div className="u-grid mt-10 items-end">
+          <div aria-hidden="true" className="u-grid mt-10 items-end">
             <ContactFrame
               item={frames[0]}
               className="col-span-2 md:col-span-6 lg:col-span-5"
@@ -350,14 +422,23 @@ function YearBlock({
 
       {/* --- the line under every year ---------------------------------- */}
       <div className="mt-9 flex flex-wrap items-baseline justify-between gap-x-10 gap-y-4">
-        <p className="u-label text-muted">{countLine}</p>
-        <span className="u-label text-muted group-hover:text-ivory transition-colors duration-300">
+        <p className="u-label text-muted">
+          <span className="sr-only">, </span>
+          {countLine}
+        </p>
+        <span
+          aria-hidden="true"
+          className="u-label text-muted group-hover:text-ivory transition-colors duration-300"
+        >
           Open {year} <span aria-hidden="true">&rarr;</span>
         </span>
       </div>
 
       {note ? (
-        <p className="u-serif text-muted mt-7 max-w-(--container-text) text-lg">{note}</p>
+        <p className="u-serif text-muted mt-7 max-w-(--container-text) text-lg">
+          <span className="sr-only">. </span>
+          {note}
+        </p>
       ) : null}
     </Link>
   );

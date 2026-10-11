@@ -108,6 +108,11 @@ albums, dimensions — and the bucket holds the files.
    Until then `robots.txt` says `Disallow: /` and every page carries a `noindex` tag, so the
    site can be live and unfinished without ending up in search results.
 
+   Once it is on, search engines are let in and the crawlers that collect pages to train AI
+   models are still asked to stay out. That list is `AI_TRAINING_CRAWLERS` in `src/lib/site.ts`,
+   with the reasoning beside it; empty it to allow training, and review it once a year, because
+   new crawlers appear.
+
 Anything still marked `placeholder: true` stays `noindex` and stays out of the sitemap and both
 feeds even after indexing is switched on, so you can publish the site before every page is
 written. A placeholder starts being advertised the moment you remove that flag.

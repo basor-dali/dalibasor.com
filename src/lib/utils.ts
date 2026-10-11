@@ -158,6 +158,43 @@ export function formatShortMonthYear(value: string): string {
   return `${MONTHS[d.getUTCMonth()]!.slice(0, 3).toUpperCase()} ${d.getUTCFullYear()}`;
 }
 
+/**
+ * When a photograph was taken, at the precision it is actually known.
+ *
+ * EXIF gives a full timestamp. A scanned family print gives at best a year
+ * someone remembers, and `circa` marks that kind: it is shown as "c. 1998" or
+ * "c. June 1998" — never with a day nobody knows, and always with its year,
+ * because the year may be the guess. A date that merely names a year or a
+ * month is shown at that precision too, rather than as the first of it.
+ *
+ * `style` keeps each call site's existing form: `full` (June 14, 2019),
+ * `dayMonth` (June 14 — the year is on screen), `short` (JUN 2019, for mono
+ * labels).
+ */
+export function formatCaptured(
+  value: string,
+  circa = false,
+  style: 'full' | 'dayMonth' | 'short' = 'full',
+): string {
+  const raw = String(value).trim();
+  const yearOnly = /^\d{4}$/.test(raw);
+  const monthOnly = /^\d{4}-\d{2}$/.test(raw);
+
+  if (circa) {
+    if (yearOnly) return `c. ${raw}`;
+    return `c. ${style === 'short' ? formatShortMonthYear(raw) : formatMonthYear(raw)}`;
+  }
+  if (yearOnly) return raw;
+  if (monthOnly) {
+    if (style === 'short') return formatShortMonthYear(raw);
+    return style === 'dayMonth'
+      ? MONTHS[parseDate(raw).getUTCMonth()]!
+      : formatMonthYear(raw);
+  }
+  if (style === 'short') return formatShortMonthYear(raw);
+  return style === 'dayMonth' ? formatDayMonth(raw) : formatDate(raw);
+}
+
 /** `2026-09-07` — the machine-readable form for <time datetime>. */
 export function isoDate(value: string): string {
   return parseDate(value).toISOString().slice(0, 10);
@@ -183,6 +220,17 @@ export function formatPeriod(period: string): string {
 
 /** Strips MDX/markdown syntax down to something searchable and countable. */
 export function toPlainText(mdx: string): string {
+  // Inline code keeps its words and loses only the backticks. It used to be
+  // deleted outright, which tore holes in sentences wherever plain text is
+  // shown: "add `content/now/2026-10.mdx` next month" reached the homepage,
+  // the meta description and the feed as "add  next month".
+  //
+  // The spans are lifted out and put back at the end, because the emphasis
+  // pass below strips underscores and asterisks — and inside code those are
+  // the content: `duty_cycle` would come out as "dutycycle".
+  const code: string[] = [];
+  const keep = (text: string) => `\u0000${code.push(text) - 1}\u0000`;
+
   return (
     mdx
       // MDX expression comments first. Without this the component reference that
@@ -190,15 +238,22 @@ export function toPlainText(mdx: string): string {
       // feed description as "{/ Components you can use here: , /}".
       .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
       .replace(/```[\s\S]*?```/g, ' ')
-      .replace(/`[^`]*`/g, ' ')
+      .replace(/`([^`]*)`/g, (_match, text: string) => keep(text))
       .replace(/<[^>]+>/g, ' ')
       .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+      // A heading ends a thought. Flattened without a stop it ran into the
+      // paragraph under it — a Now entry read "Working Shipping firmware for
+      // a sensor" — so it gets a full stop unless it already has punctuation.
+      .replace(/^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/gm, (_match, text: string) =>
+        text && !/[.!?:…]$/.test(text) ? `${text}.` : text,
+      )
       .replace(/^\s{0,3}>\s?/gm, '')
       .replace(/[*_~]{1,3}/g, '')
       .replace(/^\s*[-+*]\s+/gm, '')
       .replace(/\|/g, ' ')
+      // Put the code spans back, now that nothing else will touch them.
+      .replace(/\u0000(\d+)\u0000/g, (_match, index: string) => code[Number(index)] ?? '')
       .replace(/\s+/g, ' ')
       .trim()
   );

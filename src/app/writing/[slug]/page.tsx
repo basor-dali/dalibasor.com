@@ -1,13 +1,21 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { Post } from '@/types/content';
-import { getPost, getPostNeighbours, getPostSlugs, getRelatedPosts } from '@/lib/content';
 import {
+  getPost,
+  getPostNeighbours,
+  getPostSlugs,
+  getProjectsForPost,
+  getRelatedPosts,
+} from '@/lib/content';
+import {
+  absoluteUrl,
   articleJsonLd,
   breadcrumbJsonLd,
   jsonLdScript,
   pageMetadata,
 } from '@/lib/metadata';
+import { site } from '@/lib/site';
 import { MdxContent } from '@/components/mdx/MdxContent';
 import { ArticleFooter } from '@/components/writing/ArticleFooter';
 import { ArticleHeader } from '@/components/writing/ArticleHeader';
@@ -62,6 +70,7 @@ export async function generateMetadata({
     image: `${post.href}/opengraph-image`,
     type: 'article',
     publishedTime: isoDateTime(post.date),
+    modifiedTime: post.updated ? isoDateTime(post.updated) : undefined,
     tags: post.tags,
     /* Scaffolding is not indexable. Everything is noindex today because
        NEXT_PUBLIC_ALLOW_INDEXING is unset, which makes this look redundant —
@@ -94,6 +103,7 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
 
   const { previous, next } = getPostNeighbours(slug);
   const related = getRelatedPosts(slug, 3);
+  const partOf = getProjectsForPost(slug);
 
   return (
     <>
@@ -105,6 +115,7 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
             description: descriptionFor(post),
             path: post.href,
             datePublished: isoDateTime(post.date),
+            dateModified: post.updated ? isoDateTime(post.updated) : undefined,
             image: coverUrl(post.coverImage),
             tags: post.tags,
           }),
@@ -121,14 +132,18 @@ export default async function ArticlePage({ params }: { params: Promise<RoutePar
         )}
       />
 
-      <article>
-        <ArticleHeader post={post} />
+      {/* An h-entry, so feed tools and IndieWeb readers can find the title,
+          the date, the author and the text without guessing. */}
+      <article className="h-entry">
+        <data className="u-url" value={absoluteUrl(post.href)} />
+        <data className="p-author" value={site.author.name} />
+        <ArticleHeader post={post} projects={partOf} />
 
         <div className="u-page pt-(--spacing-section-sm) pb-(--spacing-section)">
           <div className="u-measure">
             {post.placeholder ? <PlaceholderNotice /> : null}
             {post.body.trim() ? (
-              <div className="prose">
+              <div className="prose e-content">
                 <MdxContent source={post.body} />
               </div>
             ) : post.placeholder ? null : (

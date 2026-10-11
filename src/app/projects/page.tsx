@@ -12,6 +12,7 @@ import {
   getFeaturedProjects,
   getProjects,
   getProjectsGroupedByStatus,
+  STATUS_DEFINITIONS,
   STATUS_LABELS,
   STATUS_ORDER,
 } from '@/lib/content';
@@ -200,7 +201,38 @@ export default function ProjectsPage() {
           )}
         </section>
       ) : null}
+
+      {total > 0 ? <StatusLegend /> : null}
     </>
+  );
+}
+
+/* --- what the words mean ---------------------------------------------------- */
+
+/**
+ * The status vocabulary, defined once where the statuses are used. "Abandoned"
+ * especially: on this site it is a record that something was tried, and the
+ * definition is what stops it reading as a confession.
+ */
+function StatusLegend() {
+  return (
+    <section className="u-page pb-(--spacing-section)" aria-labelledby="project-statuses">
+      <hr className="u-rule mb-8" />
+      <h2 id="project-statuses" className="u-label text-muted">
+        What the statuses mean
+      </h2>
+      <dl className="mt-6 grid gap-x-(--spacing-gutter) gap-y-5 sm:grid-cols-2 lg:grid-cols-5">
+        {STATUS_ORDER.map((status) => (
+          <div key={status} className="border-line border-t pt-4">
+            <dt className="u-label-lg text-ivory flex items-center gap-2.5">
+              <StatusDot status={status} />
+              {STATUS_LABELS[status]}
+            </dt>
+            <dd className="text-muted mt-2 ml-0 text-sm">{STATUS_DEFINITIONS[status]}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 

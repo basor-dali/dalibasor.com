@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import type { LadderName } from '@/lib/media';
 import type { MediaItem } from '@/types/content';
 import { formatDuration, mediaAlt, responsiveImage, responsiveVideo } from '@/lib/media';
-import { cx, formatDayMonth } from '@/lib/utils';
+import { cx, formatCaptured } from '@/lib/utils';
 import { useDeepLinkedPhoto, useLightbox } from './MediaLightbox';
 import { Picture } from './Picture';
 
@@ -408,7 +408,9 @@ function EssayFrame({
 }
 
 function FrameCaption({ item, compact }: { item: MediaItem; compact: boolean }) {
-  const stamp = item.capturedAt ? formatDayMonth(item.capturedAt) : undefined;
+  const stamp = item.capturedAt
+    ? formatCaptured(item.capturedAt, item.circa, 'dayMonth')
+    : undefined;
   const duration = item.type === 'video' ? formatDuration(item.duration) : undefined;
   const bits = [item.location, stamp, duration].filter(Boolean) as string[];
 

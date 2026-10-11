@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SearchFromPath } from '@/components/search/SearchFromPath';
 import { ordinalLabel } from '@/lib/utils';
 
 /**
@@ -19,7 +20,8 @@ const DESTINATIONS = [
   { href: '/', label: 'Home', note: 'The front page' },
   { href: '/writing', label: 'Writing', note: 'Essays and notes' },
   { href: '/projects', label: 'Projects', note: 'Built, finished, abandoned' },
-  { href: '/photos', label: 'Photos + Video', note: 'The archive, year by year' },
+  { href: '/photos', label: 'Photos + Video', note: 'Photographs, year by year' },
+  { href: '/years', label: 'Years', note: 'Everything, by the year' },
 ];
 
 export default function NotFound() {
@@ -46,11 +48,12 @@ export default function NotFound() {
             Either it never existed, or it did and the address moved. Both happen.
             Everything that is here is behind one of these.
           </p>
+          <SearchFromPath className="u-label text-muted hover:text-ivory mt-8 inline-block transition-colors duration-300" />
         </div>
       </div>
 
       <nav aria-label="Where to go instead" className="mt-(--spacing-section-sm)">
-        <ul className="m-0 grid list-none gap-x-(--spacing-gutter) gap-y-0 p-0 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="m-0 grid list-none gap-x-(--spacing-gutter) gap-y-0 p-0 sm:grid-cols-2 lg:grid-cols-5">
           {DESTINATIONS.map((destination, index) => (
             <li key={destination.href} className="border-line border-t">
               <Link href={destination.href} className="group/dest block py-6">

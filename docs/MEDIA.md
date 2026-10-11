@@ -96,6 +96,7 @@ Useful flags:
 --no-original        # skip the full-resolution copy, saving roughly half the storage
 --dry-run            # everything except uploading and writing
 --concurrency 8      # default 4
+--circa 1998         # scans: date them "c. 1998" instead of the day they were scanned
 ```
 
 Or drag files into `/admin/media`, which runs exactly the same pipeline.

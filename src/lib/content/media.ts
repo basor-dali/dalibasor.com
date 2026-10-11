@@ -156,8 +156,17 @@ function normalizeItem(
     );
   }
 
+  // A hand-written `capturedAt: 1998` is a number to YAML. Everything that
+  // reads the date expects a string, so it becomes one here, once.
+  const capturedAt =
+    rest.capturedAt === undefined || rest.capturedAt === null || rest.capturedAt === ''
+      ? undefined
+      : String(rest.capturedAt);
+
   return {
     ...rest,
+    capturedAt,
+    circa: rest.circa === true ? true : undefined,
     id: rest.id || `${year}-${album ?? 'everyday'}-${String(index + 1).padStart(4, '0')}`,
     type: rest.type === 'video' ? 'video' : 'image',
     year,
@@ -363,6 +372,24 @@ export function getAllAlbums(): ResolvedAlbum[] {
   return getArchiveYears().flatMap((year) => getAlbums(year));
 }
 
+/**
+ * The albums either side of one in time, across years — so an album leads to
+ * the next without a trip back to the index, the way an essay leads to the
+ * next essay. Years run in order; within a year, the year page's own order
+ * (by date, then title).
+ */
+export function getAlbumNeighbours(
+  year: number,
+  slug: string,
+): { older?: ResolvedAlbum; newer?: ResolvedAlbum } {
+  const ordered = [...getArchiveYears()]
+    .sort((a, b) => a - b)
+    .flatMap((each) => getAlbums(each));
+  const index = ordered.findIndex((album) => album.year === year && album.slug === slug);
+  if (index === -1) return {};
+  return { older: ordered[index - 1], newer: ordered[index + 1] };
+}
+
 /** `[{ year, album }]` for `generateStaticParams`. */
 export function getAlbumParams(): { year: string; album: string }[] {
   return getAllAlbums().map((album) => ({
@@ -376,6 +403,59 @@ export function getAllMediaItems(): MediaItem[] {
     const resolved = resolveAll().get(year)!;
     return [...resolved.everyday, ...resolved.albums.flatMap((album) => album.items)];
   });
+}
+
+/** A photograph or video, where it lives, and its place in that sequence. */
+export type MediaPlacement = {
+  item: MediaItem;
+  /** Undefined for the year's everyday photographs. */
+  album?: ResolvedAlbum;
+  /** The sequence it belongs to: its album's items, or the year's everyday. */
+  sequence: MediaItem[];
+  index: number;
+  previous?: MediaItem;
+  next?: MediaItem;
+};
+
+/**
+ * Every visible photograph and video, keyed by its permanent id.
+ *
+ * Ids never change — not when an album is renamed or deleted and its
+ * photographs move to the year's everyday — which is why a photograph's own
+ * page is addressed by id alone. Hidden items and hidden albums are already
+ * gone by this point, so they have no page.
+ */
+const placements = once((): Map<string, MediaPlacement> => {
+  const out = new Map<string, MediaPlacement>();
+  for (const year of getArchiveYears()) {
+    const resolved = resolveAll().get(year)!;
+    const sequences: [ResolvedAlbum | undefined, MediaItem[]][] = [
+      [undefined, resolved.everyday],
+      ...resolved.albums.map((album): [ResolvedAlbum, MediaItem[]] => [album, album.items]),
+    ];
+    for (const [album, sequence] of sequences) {
+      sequence.forEach((item, index) => {
+        out.set(item.id, {
+          item,
+          album,
+          sequence,
+          index,
+          previous: sequence[index - 1],
+          next: sequence[index + 1],
+        });
+      });
+    }
+  }
+  return out;
+});
+
+export function getMediaPlacement(id: string): MediaPlacement | undefined {
+  return placements().get(id);
+}
+
+/** Every id that has a page of its own, for generateStaticParams. */
+export function getMediaIds(): string[] {
+  return [...placements().keys()];
 }
 
 export function getFeaturedMedia(

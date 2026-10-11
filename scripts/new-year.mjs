@@ -92,7 +92,9 @@ const contents = `# ${year} — photographs and video
 #   album        an album slug, or omit for the year's everyday photographs.
 #   publicId     the media CDN identifier.
 #   width/height pixels. Required — they reserve the space so nothing jumps.
-#   capturedAt   optional ISO timestamp from EXIF.
+#   capturedAt   optional ISO timestamp from EXIF — or, for a scan, as much
+#                as is known: 1998 or 1998-06.
+#   circa        optional. true when the date is a guess. Shown as "c. 1998".
 #   caption      optional. Yours to write.
 #   alt          optional. What the photograph shows, for screen readers.
 #   location     optional and BROAD, e.g. "Belgrade, Serbia". Typed by hand.

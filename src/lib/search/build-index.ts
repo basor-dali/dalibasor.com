@@ -8,7 +8,9 @@ import {
   getAllPages,
   getAllPostsWithBodies,
   getAllProjectsWithBodies,
-  getYearSummaries,
+  getPlaces,
+  getYearRecords,
+  placeCounts,
 } from '@/lib/content';
 import {
   formatDate,
@@ -64,7 +66,14 @@ function searchable(
   const pieces = [title, ...parts]
     .map((part) => (typeof part === 'number' ? String(part) : part))
     .filter((part): part is string => Boolean(part && part.trim()));
-  return collapse(pieces.join(' · ')).toLowerCase();
+  // Apostrophes out, so "im" and "dont" find "I'm" and "don't" — which is how
+  // people type, and how every slug on the site is already written.
+  return foldApostrophes(collapse(pieces.join(' · ')).toLowerCase());
+}
+
+/** The same fold the client applies to titles and queries. */
+function foldApostrophes(value: string): string {
+  return value.replace(/['’‘`]/g, '');
 }
 
 function titleize(slug: string): string {
@@ -225,30 +234,65 @@ export function buildSearchIndex(): SearchDoc[] {
 
   /* --- years ----------------------------------------------------------- */
 
-  for (const year of getYearSummaries()) {
-    const yearAlbums = albums.filter((album) => album.year === year.year);
+  /* A year is a page of its own now — everything dated to it — so searching
+     "2019" lands there rather than on the photographs alone, and a year with
+     writing and no photographs can be found at all. Its text is the titles
+     of what it holds, so a search for an essay's title also turns up the
+     year it belongs to, ranked below the essay itself. */
+  for (const record of getYearRecords()) {
+    const yearAlbums = record.photographs?.albums ?? [];
+    const places = [
+      ...new Set(
+        [
+          ...yearAlbums.map((album) => album.location),
+          ...record.posts.map((post) => post.location),
+          ...record.now.map((entry) => entry.location),
+        ].filter((location): location is string => Boolean(location)),
+      ),
+    ];
 
     docs.push({
-      id: `year:${year.year}`,
+      id: `year:${record.year}`,
       kind: 'year',
-      title: String(year.year),
-      href: year.href,
+      title: String(record.year),
+      href: record.href,
       meta: joinMeta([
-        frameCount(year.photoCount, year.videoCount),
-        year.albumCount > 0 ? pluralize(year.albumCount, 'album') : undefined,
+        record.posts.length > 0 ? pluralize(record.posts.length, 'essay') : undefined,
+        record.projects.started.length > 0
+          ? pluralize(record.projects.started.length, 'project')
+          : undefined,
+        frameCount(
+          record.photographs?.photoCount ?? 0,
+          record.photographs?.videoCount ?? 0,
+        ),
       ]),
-      year: year.year,
-      date: `${year.year}-12-31`,
-      text: searchable(String(year.year), [
-        year.note,
+      year: record.year,
+      date: `${record.year}-12-31`,
+      text: searchable(String(record.year), [
+        record.note,
+        record.posts.map((post) => post.title).join(' · '),
+        record.projects.started.map((project) => project.title).join(' · '),
         yearAlbums.map((album) => album.title).join(' · '),
-        [
-          ...new Set(
-            yearAlbums
-              .map((album) => album.location)
-              .filter((location): location is string => Boolean(location)),
-          ),
-        ].join(' · '),
+        places.join(' · '),
+      ]),
+    });
+  }
+
+  /* --- places ---------------------------------------------------------- */
+
+  /* Searching "Belgrade" should find Belgrade itself, not only the essays and
+     albums that mention it. Typed by hand, never from GPS. */
+  for (const place of getPlaces()) {
+    docs.push({
+      id: `place:${place.slug}`,
+      kind: 'place',
+      title: place.name,
+      href: place.href,
+      meta: joinMeta(placeCounts(place)),
+      text: searchable(place.name, [
+        place.years.join(' '),
+        place.posts.map((post) => post.title).join(' · '),
+        place.albums.map((album) => album.title).join(' · '),
       ]),
     });
   }
@@ -285,6 +329,35 @@ export function buildSearchIndex(): SearchDoc[] {
       href: pageHref(page.slug),
       meta: page.subtitle ? collapse(page.subtitle) : undefined,
       text: searchable(title, [page.subtitle, clip(page.plain)]),
+    });
+  }
+
+  /* --- pages with no content file --------------------------------------- */
+
+  /* Pages that are code rather than content, findable by the words someone
+     would look for them with. */
+  for (const page of [
+    {
+      slug: 'feeds',
+      title: 'Feeds',
+      meta: 'RSS and JSON Feed',
+      words: 'feeds rss json feed subscribe follow reader newsletter writing now',
+    },
+    {
+      slug: 'colophon',
+      title: 'Colophon',
+      meta: 'How this site is made',
+      words:
+        'colophon privacy cookies analytics tracking typefaces fonts built with gps location photographs about this site',
+    },
+  ]) {
+    docs.push({
+      id: `page:${page.slug}`,
+      kind: 'page',
+      title: page.title,
+      href: `/${page.slug}`,
+      meta: page.meta,
+      text: searchable(page.title, [page.meta, page.words]),
     });
   }
 

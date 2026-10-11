@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { Footer } from '@/components/chrome/Footer';
 import { SiteChrome } from '@/components/chrome/SiteChrome';
 import { LightboxProvider } from '@/components/media/MediaLightbox';
 import { getArchiveSpan } from '@/lib/content';
-import { jsonLdScript, personJsonLd } from '@/lib/metadata';
+import { feedTypes, jsonLdScript, personJsonLd } from '@/lib/metadata';
 import { ALLOW_INDEXING, site } from '@/lib/site';
 import { fontVariables } from './fonts';
 import './globals.css';
@@ -19,14 +20,7 @@ export const metadata: Metadata = {
   creator: site.author.name,
   alternates: {
     canonical: '/',
-    types: {
-      'application/rss+xml': [
-        { url: '/writing/rss.xml', title: `${site.name} — Writing` },
-      ],
-      'application/feed+json': [
-        { url: '/writing/feed.json', title: `${site.name} — Writing` },
-      ],
-    },
+    types: feedTypes(),
   },
   openGraph: {
     type: 'website',
@@ -55,10 +49,18 @@ export const viewport: Viewport = {
  * A single capture-phase listener that marks images as loaded so CSS can fade
  * them in. Inlined in <head> so it is running before the first image decodes,
  * and gated behind a class so photographs are simply visible if it never runs.
+ *
+ * On `document`, never on `window`. The DOM spec stops a `load` event fired at
+ * an element at the document — the window is deliberately left out of its
+ * path, capture phase included — so a listener on window never hears a single
+ * photograph arrive. That version shipped: every image that finished after
+ * DOMContentLoaded (every lazy one, and on a real network the hero too) sat at
+ * opacity 0 forever behind its blurred placeholder. Verified in Chromium and
+ * WebKit; pinned in scripts/test/reveal.test.mjs.
  */
 const IMAGE_REVEAL = `
 document.documentElement.classList.add('js-media');
-addEventListener('load',function(e){
+document.addEventListener('load',function(e){
   var t=e.target;
   if(t&&t.tagName==='IMG')t.dataset.loaded='1';
 },true);
@@ -95,7 +97,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const mediaOrigin = mediaOriginFor();
 
   return (
-    <html lang={site.language} className={fontVariables} suppressHydrationWarning>
+    // data-scroll-behavior: globals.css sets `scroll-behavior: smooth` for
+    // in-page anchors, and since Next 16 the router only suspends it during a
+    // route change when this attribute says so. Without it every navigation
+    // animated the new page up from wherever the old one was scrolled to —
+    // measured at 44 frames of scrolling after a footer link.
+    <html
+      lang={site.language}
+      className={fontVariables}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: IMAGE_REVEAL }} />
         {/* Warm the host photographs actually come from. This pointed at
@@ -107,7 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <LightboxProvider>
-          <SiteChrome span={span}>{children}</SiteChrome>
+          <SiteChrome footer={<Footer span={span} />}>{children}</SiteChrome>
         </LightboxProvider>
 
         <script

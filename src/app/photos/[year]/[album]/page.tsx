@@ -3,18 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { albumCountLabel } from '@/components/media/AlbumCard';
 import { PhotoEssay } from '@/components/media/PhotoEssay';
+import { PlaceLink } from '@/components/places/PlaceLink';
 import { ArrowLink, EmptyState, Label } from '@/components/primitives';
-import { getAlbum, getAlbumParams, getAlbums } from '@/lib/content';
-import { mediaProvider, providerCanResize } from '@/lib/media';
+import { getAlbum, getAlbumNeighbours, getAlbumParams, getAlbums } from '@/lib/content';
+import { shareImageUrl } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
-import {
-  cx,
-  formatDate,
-  formatDayMonth,
-  formatMonthYear,
-  isoDate,
-  ordinalLabel,
-} from '@/lib/utils';
+import { cx, formatCaptured, formatMonthYear, ordinalLabel } from '@/lib/utils';
 import type { MediaItem, ResolvedAlbum } from '@/types/content';
 
 /**
@@ -44,35 +38,32 @@ function findAlbum(params: Params): ResolvedAlbum | undefined {
   return getAlbum(year, params.album);
 }
 
-function ogImage(item: MediaItem | undefined): string | undefined {
-  if (!item || item.type !== 'image') return undefined;
-  // A photograph is the better share image, but only when a CDN is actually
-  // configured. On the local provider the URL points into /public/media, where
-  // nothing exists, and every unfurl would carry a dead image. Returning
-  // undefined falls back to the site card, which always resolves.
-  if (!providerCanResize()) return undefined;
-  return mediaProvider().imageUrl(item.publicId, {
-    width: 1200,
-    height: 630,
-    fit: 'fill',
-  });
-}
-
-/** The span the photographs were actually taken over, when EXIF knows. */
+/**
+ * The span the photographs were actually taken over, when it is known — at
+ * the precision it is known, so an album of scans reads "c. 1998".
+ */
 function capturedRange(album: ResolvedAlbum): string | undefined {
-  const dates = album.items
-    .map((item) => item.capturedAt)
-    .filter((value): value is string => Boolean(value))
-    .sort();
+  const dated = album.items
+    .filter((item): item is MediaItem & { capturedAt: string } =>
+      Boolean(item.capturedAt),
+    )
+    .sort((a, b) => a.capturedAt.localeCompare(b.capturedAt));
 
-  const first = dates[0];
-  const last = dates[dates.length - 1];
+  const first = dated[0];
+  const last = dated[dated.length - 1];
 
   if (!first || !last) {
     return album.date ? formatMonthYear(album.date) : undefined;
   }
-  if (isoDate(first) === isoDate(last)) return formatDate(first);
-  return `${formatDayMonth(first)} — ${formatDate(last)}`;
+  const one = formatCaptured(first.capturedAt, first.circa);
+  if (one === formatCaptured(last.capturedAt, last.circa)) return one;
+  // Exact dates keep the old "June 14 — August 2, 2019"; a guess at either
+  // end is written out in full, year and all, because the year may be it.
+  const start =
+    first.circa || /^\d{4}(-\d{2})?$/.test(first.capturedAt.trim())
+      ? one
+      : formatCaptured(first.capturedAt, false, 'dayMonth');
+  return `${start} — ${formatCaptured(last.capturedAt, last.circa)}`;
 }
 
 export async function generateMetadata({
@@ -97,8 +88,54 @@ export async function generateMetadata({
       ? album.note.replace(/\s+/g, ' ').trim().slice(0, 200)
       : `${albumCountLabel(album.photoCount, album.videoCount)} from ${album.year}.`,
     path: album.href,
-    image: ogImage(album.coverItem) ?? '/opengraph-image',
+    image: shareImageUrl(album.coverItem) ?? '/opengraph-image',
   });
+}
+
+/** One side of "either side in time" — the same shape as an essay's. */
+function AlbumNeighbour({
+  album,
+  direction,
+  fallback,
+  className,
+}: {
+  album?: ResolvedAlbum;
+  direction: 'Older' | 'Newer';
+  fallback: string;
+  className?: string;
+}) {
+  const align = direction === 'Newer' ? 'md:text-right' : undefined;
+
+  return (
+    <div className={cx('group relative py-9', className)}>
+      <Label className={cx('block', align)}>{direction}</Label>
+      {album ? (
+        <>
+          <p
+            className={cx(
+              'u-display text-ivory mt-5 text-xl transition-colors duration-300 group-hover:text-white',
+              align,
+            )}
+          >
+            <Link
+              href={album.href}
+              className="after:absolute after:inset-0 after:content-['']"
+            >
+              {album.title}
+            </Link>
+          </p>
+          <p className={cx('u-label u-nums text-muted mt-4', align)}>
+            {[
+              String(album.year),
+              albumCountLabel(album.photoCount, album.videoCount),
+            ].join('  ·  ')}
+          </p>
+        </>
+      ) : (
+        <p className={cx('u-serif text-muted mt-5 text-xl', align)}>{fallback}</p>
+      )}
+    </div>
+  );
 }
 
 export default async function AlbumPage({ params }: { params: Promise<Params> }) {
@@ -110,6 +147,7 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
   const siblings = getAlbums(album.year);
   const position = siblings.findIndex((entry) => entry.slug === album.slug);
   const others = siblings.filter((entry) => entry.slug !== album.slug);
+  const { older, newer } = getAlbumNeighbours(album.year, album.slug);
 
   const countLabel = albumCountLabel(album.photoCount, album.videoCount);
   const dateLabel = capturedRange(album);
@@ -128,6 +166,7 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(
           breadcrumbJsonLd([
+            { name: 'Home', path: '/' },
             { name: 'Photos + Video', path: '/photos' },
             { name: String(album.year), path: `/photos/${album.year}` },
             { name: album.title, path: album.href },
@@ -167,7 +206,9 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
             <ul className="list-none space-y-2.5 p-0">
               <li className="u-label text-muted">{countLabel}</li>
               {album.location ? (
-                <li className="u-label text-muted">{album.location}</li>
+                <li className="u-label text-muted">
+                  <PlaceLink location={album.location} />
+                </li>
               ) : null}
               {dateLabel ? <li className="u-label text-muted">{dateLabel}</li> : null}
             </ul>
@@ -237,6 +278,28 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
           </Link>
           <ArrowLink href="/photos">The whole archive</ArrowLink>
         </div>
+
+        {/* Either side in time, across years — the album's equivalent of an
+            essay's older and newer. Only when there is somewhere to go. */}
+        {older || newer ? (
+          <nav
+            aria-label="Albums either side in time"
+            className="border-line mt-16 grid border-t sm:mt-24 md:grid-cols-2"
+          >
+            <AlbumNeighbour
+              album={older}
+              direction="Older"
+              fallback="The first album in the archive."
+              className="border-line border-b md:border-r md:border-b-0 md:pr-(--spacing-gutter)"
+            />
+            <AlbumNeighbour
+              album={newer}
+              direction="Newer"
+              fallback="The most recent album."
+              className="md:pl-(--spacing-gutter)"
+            />
+          </nav>
+        ) : null}
 
         {others.length > 0 ? (
           <nav aria-label={`Other albums from ${album.year}`} className="mt-16 sm:mt-24">

@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import type { TimelineYear } from '@/lib/content';
-import { Label } from '@/components/primitives';
+import { ArrowLink, Label } from '@/components/primitives';
 import { cx } from '@/lib/utils';
 
 /**
  * The timeline strip.
  *
  * `2016 ——— 2020 ——— 2024 ——— 2026`. Only years the archive actually knows
- * about appear, so the gaps are real gaps. Years with a photo archive are
- * links; years that only hold writing or projects are marks on the line.
+ * about appear, so the gaps are real gaps. Every year with something in it is
+ * a link to its own page — writing, projects, photographs and Now together —
+ * and the declared start of the archive is a mark on the line until it has
+ * something too.
  *
  * It scrolls horizontally inside itself on small screens and never pushes the
  * page sideways.
@@ -29,9 +31,15 @@ export function TimelineStrip({ years }: { years: TimelineYear[] }) {
         <Label as="h2">
           <span id="home-timeline">Timeline</span>
         </Label>
-        <p className="u-label u-nums text-muted">
-          {first.year} <span aria-hidden="true">—</span> {last.year}
-        </p>
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3">
+          <p className="u-label u-nums text-muted">
+            {first.year}
+            <span aria-hidden="true"> — </span>
+            <span className="sr-only"> to </span>
+            {last.year}
+          </p>
+          <ArrowLink href="/years">Every year</ArrowLink>
+        </div>
       </div>
 
       <nav aria-label="Archive timeline" className="mt-10 overflow-x-auto pb-3 sm:mt-12">
@@ -59,6 +67,9 @@ export function TimelineStrip({ years }: { years: TimelineYear[] }) {
 function YearNode({ year, isLatest }: { year: TimelineYear; isLatest: boolean }) {
   const hasContent = year.total > 0;
 
+  // The link's name is its own visible text plus the word the layout leaves
+  // out — "2025, 1 entry" — not an aria-label that replaced it. A voice
+  // command for what is on screen ("click 2025") has to find it in the name.
   const inner = (
     <>
       <span
@@ -76,22 +87,31 @@ function YearNode({ year, isLatest }: { year: TimelineYear; isLatest: boolean })
         )}
       >
         {year.year}
-      </span>
+        <span className="sr-only">,</span>
+      </span>{' '}
       <span className="u-label u-nums text-muted mt-1.5 block">
-        {hasContent ? year.total : <span aria-hidden="true">—</span>}
+        {hasContent ? (
+          <>
+            {year.total}
+            <span className="sr-only"> {year.total === 1 ? 'entry' : 'entries'}</span>
+          </>
+        ) : (
+          <span aria-hidden="true">—</span>
+        )}
       </span>
     </>
   );
 
-  const classes = 'flex w-16 shrink-0 flex-col items-center px-1 text-center sm:w-20';
+  // `relative` keeps the screen-reader words positioned inside the strip. The
+  // strip scrolls sideways on its own; an absolutely positioned span whose
+  // containing block lies outside it escapes that clipping and widens the
+  // whole page — on a phone, to 1,100px.
+  const classes =
+    'relative flex w-16 shrink-0 flex-col items-center px-1 text-center sm:w-20';
 
   if (year.href) {
     return (
-      <Link
-        href={year.href}
-        className={cx('group', classes)}
-        aria-label={`${year.year} — ${year.total} entries`}
-      >
+      <Link href={year.href} className={cx('group', classes)}>
         {inner}
       </Link>
     );

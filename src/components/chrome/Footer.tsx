@@ -8,13 +8,21 @@ import { primaryNav, site } from '@/lib/site';
 
 export function Footer({ span }: { span?: { from: number; to: number } }) {
   return (
-    <footer className="border-line mt-(--spacing-section) border-t">
+    <footer className="border-line mt-(--spacing-section) border-t print:hidden">
       <div className="u-page py-14 sm:py-20">
-        <div className="grid gap-12 md:grid-cols-12">
+        {/* An h-card: the site's owner, in the microformat IndieWeb tools and
+            Mastodon-style verification read. Invisible on screen; the name,
+            place, address and accounts below are the same ones shown. */}
+        <div className="h-card grid gap-12 md:grid-cols-12">
+          {/* `hidden`, because an empty element is still a grid item: this one
+              took the first of the twelve columns, pushed the name a column
+              right and "Elsewhere" onto a row of its own. Parsers read the
+              markup, not the CSS, so it still counts. */}
+          <data className="u-url u-uid hidden" value={site.url} />
           {/* --- identity --- */}
           <div className="md:col-span-5">
-            <p className="u-display text-ivory text-2xl">{site.name}</p>
-            <p className="u-label text-muted mt-3">{site.location}</p>
+            <p className="p-name u-display text-ivory text-2xl">{site.name}</p>
+            <p className="p-locality u-label text-muted mt-3">{site.location}</p>
             {span ? (
               <p className="u-label text-muted mt-8">
                 {/* "to" belongs between the years, not after them — the old
@@ -62,7 +70,7 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
                     href={social.href}
                     target="_blank"
                     rel="me noreferrer"
-                    className="u-link u-link-reveal text-soft text-sm hover:text-white"
+                    className="u-url u-link u-link-reveal text-soft text-sm hover:text-white"
                   >
                     {social.label}
                     <span className="u-label text-muted ml-2">{social.handle}</span>
@@ -72,27 +80,36 @@ export function Footer({ span }: { span?: { from: number; to: number } }) {
               <li>
                 <a
                   href={`mailto:${site.author.email}`}
-                  className="u-link u-link-reveal text-soft text-sm hover:text-white"
+                  className="u-email u-link u-link-reveal text-soft text-sm hover:text-white"
                 >
                   Email
                 </a>
               </li>
               <li>
-                <a
-                  href="/writing/rss.xml"
+                <Link
+                  href="/feeds"
                   className="u-link u-link-reveal text-soft text-sm hover:text-white"
                 >
-                  RSS
-                </a>
+                  Feeds
+                </Link>
+                <span className="u-label text-muted ml-2">RSS · JSON</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-line mt-16 flex flex-col gap-3 border-t pt-8 sm:flex-row sm:items-baseline sm:justify-between">
+        <div className="border-line mt-16 flex flex-col gap-3 border-t pt-8 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
           <p className="u-label text-muted">
             © {site.archiveStartYear}–{new Date().getUTCFullYear()} {site.name}
           </p>
+          {/* The promises the site keeps, stated where people look for them.
+              Practised and never said, they counted for nothing. */}
+          <Link
+            href="/colophon"
+            className="u-label u-link u-link-reveal text-muted hover:text-ivory"
+          >
+            No cookies, no analytics
+          </Link>
           <p className="u-label text-muted">Built and maintained by me.</p>
         </div>
       </div>

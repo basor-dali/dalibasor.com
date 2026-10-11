@@ -11,3 +11,6 @@ export * from './now';
 export * from './media';
 export * from './archive';
 export * from './pages';
+export * from './years';
+export * from './on-this-day';
+export * from './places';

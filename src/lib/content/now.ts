@@ -41,6 +41,7 @@ const loadAll = once((): NowEntry[] => {
       coverItem: findMediaByRef(data?.coverImage),
       draft: Boolean(data?.draft),
       placeholder: Boolean(data?.placeholder),
+      resurface: data?.resurface !== false,
       body,
       plain: toPlainText(body),
       sourcePath,
@@ -112,4 +113,43 @@ export function getNowNeighbours(period: string): {
 
 export function getAllNowWithBodies(): NowEntry[] {
   return visible(loadAll());
+}
+
+/* --- sections ------------------------------------------------------------- */
+
+export type NowSection = {
+  /** The `##` heading as written: "Working", "Building", "Reading". */
+  heading: string;
+  /** The first paragraph under it, as plain text. */
+  text: string;
+};
+
+/**
+ * An entry's own `##` sections, each with the opening of what is under it.
+ *
+ * A Now entry is a handful of short headed sections, and flattening one into
+ * a paragraph loses the one thing that makes it scannable: the homepage used
+ * to read "Working Shipping firmware for a sensor… Building ReMow, slowly…".
+ * With the sections kept apart, a preview can set each heading as a label
+ * beside its line.
+ *
+ * Only the first paragraph of each section — a preview, not the entry. A
+ * section with nothing under it yet is left out rather than shown empty.
+ */
+export function nowSections(entry: Pick<NowEntry, 'body'>): NowSection[] {
+  const parts = entry.body.split(/^##[ \t]+(.+)$/m);
+  const sections: NowSection[] = [];
+
+  // split() with a capture group alternates: [before, heading, body, heading, body…]
+  for (let i = 1; i < parts.length; i += 2) {
+    const heading = toPlainText(parts[i] ?? '').replace(/\.$/, '');
+    const firstParagraph = (parts[i + 1] ?? '')
+      .trim()
+      .split(/\n\s*\n/)
+      .find((block) => toPlainText(block).length > 0);
+    const text = firstParagraph ? toPlainText(firstParagraph) : '';
+    if (heading && text) sections.push({ heading, text });
+  }
+
+  return sections;
 }

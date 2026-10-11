@@ -55,6 +55,16 @@ const draftField = fields.checkbox({
   defaultValue: false,
 });
 
+/* Declared so an entry saved here keeps it: Keystatic writes the fields its
+   schema knows, and a hand-written `resurface: false` would not survive a save
+   from this form otherwise. */
+const resurfaceField = fields.checkbox({
+  label: 'Can be resurfaced',
+  description:
+    'Untick to keep this out of "From the archive" on the homepage. It stays on the site exactly as it is.',
+  defaultValue: true,
+});
+
 /* ==========================================================================
    MDX components
    ==========================================================================
@@ -178,6 +188,12 @@ export default config({
           validation: { isRequired: true },
           defaultValue: { kind: 'today' },
         }),
+        updated: fields.date({
+          label: 'Revised',
+          description:
+            'Only for a real revision after publishing, not a typo fixed. Shown under the date and sent to feed readers.',
+          validation: { isRequired: false },
+        }),
         subtitle: fields.text({
           label: 'Subtitle',
           description: 'Optional editorial line under the title.',
@@ -217,6 +233,7 @@ export default config({
         }),
         draft: draftField,
         placeholder: placeholderField,
+        resurface: resurfaceField,
         body,
       },
     }),
@@ -321,6 +338,7 @@ export default config({
         }),
         draft: draftField,
         placeholder: placeholderField,
+        resurface: resurfaceField,
         body,
       },
     }),
@@ -361,6 +379,7 @@ export default config({
         ...coverFields,
         draft: draftField,
         placeholder: placeholderField,
+        resurface: resurfaceField,
         body,
       },
     }),
@@ -380,6 +399,38 @@ export default config({
           validation: { isRequired: false },
         }),
         ...coverFields,
+        eras: fields.array(
+          fields.object({
+            name: fields.text({
+              label: 'Name',
+              description: 'What you call that stretch of your life.',
+              validation: { isRequired: true },
+            }),
+            from: fields.integer({
+              label: 'From (year)',
+              validation: { isRequired: true },
+            }),
+            to: fields.integer({
+              label: 'To (year)',
+              description: 'Leave empty while it is still going.',
+              validation: { isRequired: false },
+            }),
+            note: fields.text({
+              label: 'Note',
+              multiline: true,
+              validation: { isRequired: false },
+            }),
+          }),
+          {
+            label: 'Eras',
+            description:
+              'Optional. The periods of your life, each linked to its years. Leave empty and the section does not appear.',
+            itemLabel: (props) =>
+              [props.fields.name.value, props.fields.from.value]
+                .filter(Boolean)
+                .join(' — '),
+          },
+        ),
         timeline: fields.array(
           fields.object({
             when: fields.text({

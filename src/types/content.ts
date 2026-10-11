@@ -30,6 +30,12 @@ export type MediaRef = {
 export type WritingFrontmatter = {
   title: string;
   date: DateString;
+  /**
+   * When the piece was last meaningfully revised. Optional, and only for real
+   * changes — a typo fixed is not an update. Shown under the date, and given
+   * to search engines and feed readers as the modified date.
+   */
+  updated?: DateString;
   slug?: string;
   /** A short editorial subtitle. Optional — most posts will not have one. */
   subtitle?: string;
@@ -46,6 +52,8 @@ export type WritingFrontmatter = {
   excerpt?: string;
   /** Marks placeholder scaffolding so it can be found and replaced. */
   placeholder?: boolean;
+  /** `false` keeps this out of "From the archive". See RESURFACE in archive.ts. */
+  resurface?: boolean;
 };
 
 export type CoverShape = 'wide' | 'tall' | 'square';
@@ -57,6 +65,8 @@ export type Post = {
   title: string;
   subtitle?: string;
   date: DateString;
+  /** Last meaningful revision, when it is later than `date`. */
+  updated?: DateString;
   year: number;
   tags: string[];
   coverImage?: string;
@@ -75,6 +85,8 @@ export type Post = {
   draft: boolean;
   excerpt?: string;
   placeholder: boolean;
+  /** False when the author asked for this never to be resurfaced. */
+  resurface: boolean;
   /** Raw MDX body, compiled at render time. */
   body: string;
   /** Plain text, used for search indexing and reading time only. */
@@ -124,6 +136,8 @@ export type ProjectFrontmatter = {
   draft?: boolean;
   order?: number;
   placeholder?: boolean;
+  /** `false` keeps this out of "From the archive". */
+  resurface?: boolean;
 };
 
 export type ProjectMediaInput = {
@@ -172,12 +186,20 @@ export type Project = {
   draft: boolean;
   order: number;
   placeholder: boolean;
+  resurface: boolean;
+  /** Dated `##` sections in the body, newest first. See parseUpdates. */
+  updates: ProjectUpdate[];
+  /** Just their dates, newest first — what listings and year pages need. */
+  updateDates: DateString[];
   body: string;
   plain: string;
   sourcePath: string;
 };
 
-export type ProjectSummary = Omit<Project, 'body' | 'plain' | 'sourcePath' | 'gallery'>;
+export type ProjectSummary = Omit<
+  Project,
+  'body' | 'plain' | 'sourcePath' | 'gallery' | 'updates'
+>;
 
 /* ==========================================================================
    Now
@@ -195,6 +217,8 @@ export type NowFrontmatter = {
   coverAlt?: string;
   draft?: boolean;
   placeholder?: boolean;
+  /** `false` keeps this out of "From the archive". */
+  resurface?: boolean;
 };
 
 export type NowEntry = {
@@ -216,6 +240,7 @@ export type NowEntry = {
   coverItem?: MediaItem;
   draft: boolean;
   placeholder: boolean;
+  resurface: boolean;
   body: string;
   plain: string;
   sourcePath: string;
@@ -240,8 +265,17 @@ export type MediaItem = {
   width: number;
   height: number;
   orientation: MediaOrientation;
-  /** Local ISO capture time from EXIF, when it could be read. */
+  /**
+   * Local ISO capture time from EXIF, when it could be read — or, with
+   * `circa`, as much of the date as anyone knows: `1998` or `1998-06`.
+   */
   capturedAt?: DateString;
+  /**
+   * The date is a guess: a scanned print, a photograph older than anyone's
+   * EXIF. Shown as "c. 1998" or "c. June 1998", never with a day, and never
+   * offered as "on this day".
+   */
+  circa?: boolean;
   caption?: string;
   /** Alt text. Falls back to caption, then to a generic description. */
   alt?: string;
@@ -271,6 +305,11 @@ export type MediaItem = {
    * to be deleted to stop being on the internet.
    */
   hidden?: boolean;
+  /**
+   * `false` keeps this photograph on the site but out of "From the archive".
+   * For the frame you want kept and do not want handed back to you unasked.
+   */
+  resurface?: boolean;
 };
 
 /**
@@ -324,6 +363,8 @@ export type Album = {
    * idea as `draft` on a post: a way to put something aside without losing it.
    */
   hidden?: boolean;
+  /** `false` keeps the album, and every photograph in it, out of resurfacing. */
+  resurface?: boolean;
 };
 
 export type YearManifest = {
@@ -387,7 +428,7 @@ export type ArchiveEntry =
 
 export type SearchDoc = {
   id: string;
-  kind: 'post' | 'project' | 'album' | 'year' | 'now' | 'page';
+  kind: 'post' | 'project' | 'album' | 'year' | 'place' | 'now' | 'page';
   title: string;
   href: string;
   /** Small line under the result: date, status, count. */

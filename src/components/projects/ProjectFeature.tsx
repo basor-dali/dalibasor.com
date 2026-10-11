@@ -103,10 +103,14 @@ export function ProjectFeature({
 
         {/* On wide screens this panel is notched two columns into the
             photograph. Solid ground behind it, so it stays legible over
-            anything. */}
+            anything — and positioned, so it is actually in front. The frame
+            beneath it is `position: relative`, and a positioned box paints
+            above an unpositioned one whatever the source order says, so
+            without `relative z-10` the photograph covered the title it was
+            meant to sit under: "Field Sensor Mesh" read "nsor Mesh". */}
         <div
           className={cx(
-            'lg:bg-ground col-span-2 md:col-span-6 lg:col-span-6 lg:row-start-1 lg:self-end lg:pt-7',
+            'lg:bg-ground col-span-2 md:col-span-6 lg:relative lg:z-10 lg:col-span-6 lg:row-start-1 lg:self-end lg:pt-7',
             imageFirst ? 'lg:col-start-7 lg:pl-7' : 'lg:col-start-1 lg:pr-7',
           )}
         >

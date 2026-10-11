@@ -2,12 +2,15 @@ import type { MetadataRoute } from 'next';
 import type { MediaItem } from '@/types/content';
 import {
   getAllAlbums,
+  getAllMediaItems,
   getArchiveYears,
   getNowEntries,
+  getPlaces,
   getPosts,
   getProjects,
   getTags,
   getYear,
+  getYearRecords,
 } from '@/lib/content';
 import { absoluteUrl } from '@/lib/metadata';
 import { parseDate } from '@/lib/utils';
@@ -91,7 +94,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const captureOf = (year: (typeof resolvedYears)[number]) =>
     lastCapture([...year.everyday, ...year.albums.flatMap((album) => album.items)]);
 
-  const newestPost = latest(posts.map((post) => post.date));
+  const newestPost = latest(posts.map((post) => post.updated ?? post.date));
   const newestProject = latest(
     projects.map((project) => project.endDate ?? project.startDate),
   );
@@ -128,6 +131,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     }),
+    entry('/years', {
+      lastModified: siteUpdated,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    }),
     entry('/now', {
       lastModified: newestNow,
       changeFrequency: 'monthly',
@@ -141,6 +149,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.3,
     }),
+    entry('/feeds', {
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    }),
+    entry('/colophon', {
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    }),
   ];
 
   /* --- writing --------------------------------------------------------- */
@@ -148,7 +164,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const post of posts) {
     entries.push(
       entry(post.href, {
-        lastModified: parseDate(post.date),
+        lastModified: parseDate(post.updated ?? post.date),
         changeFrequency: 'yearly',
         priority: post.featured ? 0.8 : 0.7,
       }),
@@ -182,7 +198,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const year of years) {
     const resolved = getYear(year);
-    if (!resolved) continue;
+    // A declared year with nothing in it is a page, but there is nothing on it
+    // worth a crawl.
+    if (!resolved || resolved.totalCount === 0) continue;
 
     const allItems = [
       ...resolved.everyday,
@@ -208,6 +226,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     );
   }
 
+  /* A photograph's own page, when it has a caption — the same line its robots
+     tag draws. Without words it is a frame in an album, and the album is the
+     page to crawl. */
+  for (const item of getAllMediaItems()) {
+    if (!item.caption) continue;
+    entries.push(
+      entry(`/photo/${item.id}`, {
+        lastModified:
+          item.capturedAt && !item.circa ? parseDate(item.capturedAt) : undefined,
+        changeFrequency: 'yearly',
+        priority: 0.4,
+      }),
+    );
+  }
+
+  /* --- places ---------------------------------------------------------- */
+
+  const places = getPlaces();
+  if (places.length > 0) {
+    entries.push(entry('/places', { changeFrequency: 'monthly', priority: 0.5 }));
+    for (const place of places) {
+      entries.push(entry(place.href, { changeFrequency: 'yearly', priority: 0.4 }));
+    }
+  }
+
   /* --- now ------------------------------------------------------------- */
 
   for (const now of nowEntries) {
@@ -216,6 +259,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: parseDate(now.date),
         changeFrequency: 'yearly',
         priority: 0.4,
+      }),
+    );
+  }
+
+  /* --- years ------------------------------------------------------------- */
+
+  /* Only years with something written in them — a year made of placeholders
+     is a page, but not one worth crawling yet. The newest date in a year is
+     when its page last changed. */
+  for (const record of getYearRecords()) {
+    if (record.written === 0) continue;
+    entries.push(
+      entry(record.href, {
+        lastModified: latest([
+          ...record.posts.filter((post) => !post.placeholder).map((post) => post.date),
+          ...record.now.filter((now) => !now.placeholder).map((now) => now.date),
+          ...record.projects.started.map((project) => project.startDate),
+          ...record.projects.ended.map((project) => project.endDate),
+        ]),
+        changeFrequency: 'yearly',
+        priority: 0.6,
       }),
     );
   }
