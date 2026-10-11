@@ -100,7 +100,7 @@ export default async function PlacePage({ params }: { params: Promise<Params> })
           <ol className="m-0 list-none p-0">
             {place.posts.map((post) => (
               <li key={post.slug}>
-                <ArticlePreview post={post} variant="row" headingLevel={3} />
+                <ArticlePreview post={post} variant="row" headingLevel={3} showYear />
               </li>
             ))}
           </ol>

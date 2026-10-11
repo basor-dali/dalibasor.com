@@ -126,7 +126,15 @@ function RowPreview({
         className="bg-ember-deep absolute inset-x-0 -top-px h-px origin-left scale-x-0 transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100 motion-reduce:transition-none"
       />
 
-      <div className="grid grid-cols-1 gap-x-6 gap-y-2 py-6 sm:py-7 md:grid-cols-[7.5rem_minmax(0,1fr)_4.5rem] md:items-baseline">
+      <div
+        className={cx(
+          'grid grid-cols-1 gap-x-6 gap-y-2 py-6 sm:py-7 md:items-baseline',
+          // A full date needs the room for "September 30, 2026" on one line.
+          showYear
+            ? 'md:grid-cols-[10rem_minmax(0,1fr)_4.5rem]'
+            : 'md:grid-cols-[7.5rem_minmax(0,1fr)_4.5rem]',
+        )}
+      >
         <time
           dateTime={isoDate(post.date)}
           className="u-label u-nums text-muted group-hover:text-ember transition-colors duration-300"
