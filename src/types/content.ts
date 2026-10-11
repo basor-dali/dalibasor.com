@@ -428,7 +428,7 @@ export type ArchiveEntry =
 
 export type SearchDoc = {
   id: string;
-  kind: 'post' | 'project' | 'album' | 'year' | 'now' | 'page';
+  kind: 'post' | 'project' | 'album' | 'year' | 'place' | 'now' | 'page';
   title: string;
   href: string;
   /** Small line under the result: date, status, count. */

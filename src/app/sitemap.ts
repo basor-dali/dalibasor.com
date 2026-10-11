@@ -5,6 +5,7 @@ import {
   getAllMediaItems,
   getArchiveYears,
   getNowEntries,
+  getPlaces,
   getPosts,
   getProjects,
   getTags,
@@ -238,6 +239,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
         priority: 0.4,
       }),
     );
+  }
+
+  /* --- places ---------------------------------------------------------- */
+
+  const places = getPlaces();
+  if (places.length > 0) {
+    entries.push(entry('/places', { changeFrequency: 'monthly', priority: 0.5 }));
+    for (const place of places) {
+      entries.push(entry(place.href, { changeFrequency: 'yearly', priority: 0.4 }));
+    }
   }
 
   /* --- now ------------------------------------------------------------- */

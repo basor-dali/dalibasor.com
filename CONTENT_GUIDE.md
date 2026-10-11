@@ -363,6 +363,17 @@ Re-running the importer preserves anything you have written by hand.
 **Locations are always manual.** GPS is stripped at import and never published. If you want a
 photo to say `Belgrade, Serbia`, type it.
 
+### Places
+
+Every location you write down makes a place at `/places`: where an essay was written
+(`location` in its frontmatter), an album's or a photograph's `location`, where a Now entry
+was written from. Each place gathers everything filed under it, across every year, and the
+location on an essay, an album, a photograph or a Now entry links to it.
+
+A place is its spelling. Write `Belgrade, Serbia` the same way every time, or `Belgrade` and
+`Belgrade, Serbia` will be two places. Placeholders and drafts do not count, and nothing is
+ever taken from GPS — a place is only as specific as you chose to make it.
+
 ### A date nobody knows exactly
 
 A scanned print has no capture date — the file's own date is the day it was scanned. Write

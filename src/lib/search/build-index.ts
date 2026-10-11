@@ -8,7 +8,9 @@ import {
   getAllPages,
   getAllPostsWithBodies,
   getAllProjectsWithBodies,
+  getPlaces,
   getYearRecords,
+  placeCounts,
 } from '@/lib/content';
 import {
   formatDate,
@@ -272,6 +274,25 @@ export function buildSearchIndex(): SearchDoc[] {
         record.projects.started.map((project) => project.title).join(' · '),
         yearAlbums.map((album) => album.title).join(' · '),
         places.join(' · '),
+      ]),
+    });
+  }
+
+  /* --- places ---------------------------------------------------------- */
+
+  /* Searching "Belgrade" should find Belgrade itself, not only the essays and
+     albums that mention it. Typed by hand, never from GPS. */
+  for (const place of getPlaces()) {
+    docs.push({
+      id: `place:${place.slug}`,
+      kind: 'place',
+      title: place.name,
+      href: place.href,
+      meta: joinMeta(placeCounts(place)),
+      text: searchable(place.name, [
+        place.years.join(' '),
+        place.posts.map((post) => post.title).join(' · '),
+        place.albums.map((album) => album.title).join(' · '),
       ]),
     });
   }

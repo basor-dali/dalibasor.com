@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { CoverShape, Post, ProjectSummary } from '@/types/content';
 import { CoverImage } from '@/components/media/MediaImage';
+import { PlaceLink } from '@/components/places/PlaceLink';
 import { Label, TagList } from '@/components/primitives';
 import { cx, formatDate, isoDate, pluralize, slugify } from '@/lib/utils';
 
@@ -107,7 +108,14 @@ export function ArticleHeader({
               </time>
             </Fact>
           ) : null}
-          {post.location ? <Fact term="Written in">{post.location}</Fact> : null}
+          {post.location ? (
+            <Fact term="Written in">
+              <PlaceLink
+                location={post.location}
+                className="text-ivory hover:text-white"
+              />
+            </Fact>
+          ) : null}
           <Fact term="Reading">{pluralize(post.readingMinutes, 'minute')}</Fact>
           {projects.length > 0 ? (
             // Read backwards from the project's own list of related writing,

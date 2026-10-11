@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { MediaItem } from '@/types/content';
 import { MediaImage } from '@/components/media/MediaImage';
 import { MediaVideo } from '@/components/media/MediaVideo';
+import { PlaceLink } from '@/components/places/PlaceLink';
 import { ArrowLink, Label, MetaLine } from '@/components/primitives';
 import { getMediaIds, getMediaPlacement, type MediaPlacement } from '@/lib/content';
 import { mediaAlt, shareImageUrl } from '@/lib/media';
@@ -166,7 +167,13 @@ export default async function PhotoPage({ params }: { params: Promise<Params> })
         >
           {title}
         </h1>
-        <MetaLine className="mt-5" items={[captured, item.location]} />
+        <MetaLine
+          className="mt-5"
+          items={[
+            captured,
+            item.location ? <PlaceLink key="place" location={item.location} /> : null,
+          ]}
+        />
       </header>
 
       {/* As large as the screen allows and never cropped: the width is capped

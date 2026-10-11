@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { albumCountLabel } from '@/components/media/AlbumCard';
 import { PhotoEssay } from '@/components/media/PhotoEssay';
+import { PlaceLink } from '@/components/places/PlaceLink';
 import { ArrowLink, EmptyState, Label } from '@/components/primitives';
 import { getAlbum, getAlbumNeighbours, getAlbumParams, getAlbums } from '@/lib/content';
 import { shareImageUrl } from '@/lib/media';
@@ -205,7 +206,9 @@ export default async function AlbumPage({ params }: { params: Promise<Params> })
             <ul className="list-none space-y-2.5 p-0">
               <li className="u-label text-muted">{countLabel}</li>
               {album.location ? (
-                <li className="u-label text-muted">{album.location}</li>
+                <li className="u-label text-muted">
+                  <PlaceLink location={album.location} />
+                </li>
               ) : null}
               {dateLabel ? <li className="u-label text-muted">{dateLabel}</li> : null}
             </ul>

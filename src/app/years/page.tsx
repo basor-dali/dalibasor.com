@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { EmptyState, MetaLine, PageHeader } from '@/components/primitives';
-import { getYearRecords, type YearRecord } from '@/lib/content';
+import { ArrowLink, EmptyState, MetaLine, PageHeader } from '@/components/primitives';
+import { getPlaces, getYearRecords, type YearRecord } from '@/lib/content';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
 import { site } from '@/lib/site';
 import { pluralize } from '@/lib/utils';
@@ -55,6 +55,8 @@ type Row =
 
 export default function YearsPage() {
   const records = getYearRecords();
+  // The other way across the archive, once there is somewhere in it.
+  const hasPlaces = getPlaces().length > 0;
 
   // Interleave the gaps: newest first, so a gap sits between a year and the
   // next older one.
@@ -102,7 +104,13 @@ export default function YearsPage() {
             />
           ) : null
         }
-      />
+      >
+        {hasPlaces ? (
+          <ArrowLink href="/places" className="mt-8 inline-block">
+            Every place
+          </ArrowLink>
+        ) : null}
+      </PageHeader>
 
       <section className="u-page pb-(--spacing-section)" aria-label="Years">
         {records.length === 0 ? (

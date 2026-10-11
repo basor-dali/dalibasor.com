@@ -40,6 +40,7 @@ const GROUPS: { label: string; kinds: Kind[] }[] = [
   { label: 'Projects', kinds: ['project'] },
   { label: 'Photographs', kinds: ['album'] },
   { label: 'Years', kinds: ['year'] },
+  { label: 'Places', kinds: ['place'] },
   { label: 'Now', kinds: ['now'] },
   { label: 'Pages', kinds: ['page'] },
 ];

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type { ReactNode } from 'react';
 import { albumCountLabel } from '@/components/media/AlbumCard';
 import { MediaImage } from '@/components/media/MediaImage';
 import { YearSelector } from '@/components/media/YearSelector';
-import { ArrowLink, Label, MetaLine, StatusDot, YearMark } from '@/components/primitives';
+import { Label, MetaLine, StatusDot, YearMark } from '@/components/primitives';
 import { ArticlePreview } from '@/components/writing/ArticlePreview';
+import { Rubric } from '@/components/archive/Rubric';
 import {
   getRecordedYears,
   getYearRecord,
@@ -317,44 +317,6 @@ export default async function YearPage({ params }: { params: Promise<Params> }) 
 /* ==========================================================================
    Pieces
    ========================================================================== */
-
-/**
- * One section of the year: a sticky rubric on the left with the section's
- * name, its count and the way out to the full list; the rows on the right.
- */
-function Rubric({
-  id,
-  title,
-  count,
-  link,
-  children,
-}: {
-  id: string;
-  title: string;
-  count: string;
-  link: { href: string; label: string };
-  children: ReactNode;
-}) {
-  return (
-    <section className="u-page mt-(--spacing-section)" aria-labelledby={id}>
-      <hr className="u-rule-strong" />
-      <div className="u-grid pt-8">
-        <div className="col-span-2 md:col-span-6 lg:sticky lg:top-[calc(var(--nav-height)+2.5rem)] lg:col-span-3 lg:self-start">
-          <h2 id={id} className="u-display text-2xl text-white">
-            {title}
-          </h2>
-          <p className="u-label text-muted mt-3">{count}</p>
-          <ArrowLink href={link.href} className="mt-6 inline-block">
-            {link.label}
-          </ArrowLink>
-        </div>
-        <div className="col-span-2 mt-8 min-w-0 md:col-span-6 lg:col-span-9 lg:mt-0">
-          {children}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /**
  * A strip of the year's photographs. Each opens in the viewer, in its own
