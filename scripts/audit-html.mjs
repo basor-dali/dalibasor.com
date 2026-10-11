@@ -210,7 +210,15 @@ function checkPage(file, report) {
   for (const match of doc.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
     const [, tag, inner] = match;
     const href = attr(tag, 'href');
-    const name = attr(tag, 'aria-label') || visibleText(inner) || attr(tag, 'title');
+    // An image inside a link names it by its alt text, as a screen reader
+    // reads it: a photograph that is the whole link is announced by what it
+    // shows. Not a decorative one (alt="") or one hidden with aria-hidden.
+    const imageNames = [...inner.matchAll(/<img\b[^>]*>/gi)]
+      .filter((m) => !/aria-hidden="true"/i.test(m[0]))
+      .map((m) => (attr(m[0], 'alt') ?? '').trim())
+      .join(' ')
+      .trim();
+    const name = attr(tag, 'aria-label') || visibleText(inner) || imageNames || attr(tag, 'title');
 
     // A duplicate link that only widens a click target — the photograph beside
     // a title that already carries the real link — is correctly taken out of

@@ -55,10 +55,16 @@ export async function generateMetadata({
   const where = placement.album
     ? `${placement.album.title}, ${item.year}`
     : whereOf(placement);
+  const frame = `${index + 1} of ${sequence.length}`;
+  // Two frames in one album can share a caption; their titles must not, or
+  // search engines see the same page twice. Only then does the number join in.
+  const repeated =
+    Boolean(item.caption) &&
+    sequence.filter((other) => other.caption === item.caption).length > 1;
   return pageMetadata({
     title: item.caption
-      ? `${item.caption} — ${where}`
-      : `${kindOf(item)} ${index + 1} of ${sequence.length} — ${where}`,
+      ? `${item.caption} — ${where}${repeated ? `, ${frame}` : ''}`
+      : `${kindOf(item)} ${frame} — ${where}`,
     description: mediaAlt(item),
     path: `/photo/${item.id}`,
     image: shareImageUrl(item) ?? '/opengraph-image',
