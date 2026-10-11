@@ -143,6 +143,8 @@ describe('who robots.txt turns away once indexing is on', () => {
   });
 
   it('keeps the switches that stop training without leaving search', () => {
+    // An empty list is the documented way to allow training, not a slip.
+    if (AI_TRAINING_CRAWLERS.length === 0) return;
     for (const token of [
       'Google-Extended',
       'Applebot-Extended',
@@ -150,7 +152,10 @@ describe('who robots.txt turns away once indexing is on', () => {
       'ClaudeBot',
       'CCBot',
     ]) {
-      assert.ok(AI_TRAINING_CRAWLERS.includes(token), `${token} is missing`);
+      assert.ok(
+        AI_TRAINING_CRAWLERS.includes(token),
+        `${token} is missing; if that is deliberate, take it out of this test too`,
+      );
     }
   });
 });

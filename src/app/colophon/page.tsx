@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { PageHeader } from '@/components/primitives';
 import { mediaProvider } from '@/lib/media';
 import { pageMetadata } from '@/lib/metadata';
+import { AI_TRAINING_CRAWLERS } from '@/lib/site';
 import { formatDate } from '@/lib/utils';
 
 /**
@@ -55,11 +56,16 @@ export default function ColophonPage() {
       value:
         'Plain MDX and YAML files in a Git repository — readable in any text editor, with nothing in a database.',
     },
-    {
-      label: 'AI training',
-      value:
-        'robots.txt asks the crawlers that collect pages for training AI models to stay away from the writing and the photographs. Search engines, AI search and pages a person asks an assistant to open are allowed.',
-    },
+    // Read from the list robots.txt is built from: empty it, and the claim goes.
+    ...(AI_TRAINING_CRAWLERS.length > 0
+      ? [
+          {
+            label: 'AI training',
+            value:
+              'robots.txt asks the crawlers that collect pages for training AI models to stay away from the writing and the photographs. Search engines, AI search and pages a person asks an assistant to open are allowed.',
+          },
+        ]
+      : []),
     {
       label: 'Built with',
       value:
