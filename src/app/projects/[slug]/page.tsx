@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
        public, and without this line it would take every unwritten placeholder
        with it, handing search engines notes-to-self as the first thing they
        ever saw at these URLs. */
-    noIndex: project.placeholder,
+    noIndex: project.placeholder || project.noindex,
   });
 }
 

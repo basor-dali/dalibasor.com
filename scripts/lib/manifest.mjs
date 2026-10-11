@@ -290,7 +290,7 @@ export function findAlbumNode(doc, slug) {
  */
 export function addAlbum(
   doc,
-  { slug, title, subtitle, date, location, cover, note, featured, hidden } = {},
+  { slug, title, subtitle, date, location, cover, note, featured, hidden, noindex } = {},
 ) {
   if (!slug) throw new Error('addAlbum needs a slug.');
   if (findAlbumNode(doc, slug)) return false;
@@ -308,6 +308,7 @@ export function addAlbum(
   // the same rule the item writer follows.
   if (featured === true) value.featured = true;
   if (hidden === true) value.hidden = true;
+  if (noindex === true) value.noindex = true;
 
   const node = doc.createNode(value);
   if (!date) {
@@ -327,6 +328,7 @@ export const EDITABLE_ALBUM_FIELDS = [
   'cover',
   'featured',
   'hidden',
+  'noindex',
 ];
 
 /**
@@ -430,6 +432,7 @@ const ITEM_KEY_ORDER = [
   'location',
   'featured',
   'hidden',
+  'noindex',
   'lqip',
   'color',
   'duration',

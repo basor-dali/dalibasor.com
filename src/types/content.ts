@@ -54,6 +54,8 @@ export type WritingFrontmatter = {
   placeholder?: boolean;
   /** `false` keeps this out of "From the archive". See RESURFACE in archive.ts. */
   resurface?: boolean;
+  /** `true` keeps this off search engines and out of the sitemap. It stays on the site. */
+  noindex?: boolean;
 };
 
 export type CoverShape = 'wide' | 'tall' | 'square';
@@ -87,6 +89,7 @@ export type Post = {
   placeholder: boolean;
   /** False when the author asked for this never to be resurfaced. */
   resurface: boolean;
+  noindex: boolean;
   /** Raw MDX body, compiled at render time. */
   body: string;
   /** Plain text, used for search indexing and reading time only. */
@@ -138,6 +141,8 @@ export type ProjectFrontmatter = {
   placeholder?: boolean;
   /** `false` keeps this out of "From the archive". */
   resurface?: boolean;
+  /** `true` keeps this off search engines and out of the sitemap. It stays on the site. */
+  noindex?: boolean;
 };
 
 export type ProjectMediaInput = {
@@ -187,6 +192,7 @@ export type Project = {
   order: number;
   placeholder: boolean;
   resurface: boolean;
+  noindex: boolean;
   /** Dated `##` sections in the body, newest first. See parseUpdates. */
   updates: ProjectUpdate[];
   /** Just their dates, newest first — what listings and year pages need. */
@@ -219,6 +225,8 @@ export type NowFrontmatter = {
   placeholder?: boolean;
   /** `false` keeps this out of "From the archive". */
   resurface?: boolean;
+  /** `true` keeps this off search engines and out of the sitemap. It stays on the site. */
+  noindex?: boolean;
 };
 
 export type NowEntry = {
@@ -241,6 +249,7 @@ export type NowEntry = {
   draft: boolean;
   placeholder: boolean;
   resurface: boolean;
+  noindex: boolean;
   body: string;
   plain: string;
   sourcePath: string;
@@ -310,6 +319,8 @@ export type MediaItem = {
    * For the frame you want kept and do not want handed back to you unasked.
    */
   resurface?: boolean;
+  /** `true` keeps this off search engines and out of the sitemap. It stays on the site. */
+  noindex?: boolean;
 };
 
 /**
@@ -365,6 +376,8 @@ export type Album = {
   hidden?: boolean;
   /** `false` keeps the album, and every photograph in it, out of resurfacing. */
   resurface?: boolean;
+  /** `true` keeps this off search engines and out of the sitemap. It stays on the site. */
+  noindex?: boolean;
 };
 
 export type YearManifest = {

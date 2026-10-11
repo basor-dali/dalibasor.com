@@ -31,6 +31,8 @@ export function generateMetadata(): Metadata {
     /* There is no /now/opengraph-image route, so use the site card rather than
        pointing every share at a 404. */
     image: '/opengraph-image',
+    // /now is the current entry under another address; it keeps that entry's choice.
+    noIndex: entry?.noindex === true,
   });
 }
 

@@ -375,6 +375,10 @@ function checkManifest(file, report) {
     if (item.circa !== undefined && typeof item.circa !== 'boolean') {
       report.error(where, `\`circa: ${item.circa}\` must be true or false.`);
     }
+    /* Anything but a real true is read as false, and the page goes to search engines. */
+    if (item.noindex !== undefined && typeof item.noindex !== 'boolean') {
+      report.error(where, `\`noindex: ${item.noindex}\` must be true or false.`);
+    }
     if (item.circa === true && !item.capturedAt) {
       report.warn(
         where,
@@ -421,6 +425,12 @@ function checkManifest(file, report) {
   }
 
   for (const album of albums) {
+    if (album?.noindex !== undefined && typeof album.noindex !== 'boolean') {
+      report.error(
+        `${label} → ${album.slug}`,
+        `\`noindex: ${album.noindex}\` must be true or false.`,
+      );
+    }
     if (album?.cover && !knownRefs.has(album.cover)) {
       report.warn(
         `${label} → ${album.slug}`,

@@ -1008,3 +1008,45 @@ describe('manifest round trip', () => {
     }
   });
 });
+
+describe('kept out of search engines', () => {
+  /* noindex keeps a page on the site and off search engines. The writers keep
+     fixed lists of fields, so it has to be on them, or the admin's "off search"
+     box would save and then quietly come undone. */
+  it('keeps noindex on an album, and lets an edit take it off again', () => {
+    const doc = createManifestDoc(2019);
+    addAlbum(doc, { slug: 'family', title: 'Family', noindex: true });
+    assert.equal(
+      YAML.parse(doc.toString()).albums[0].noindex,
+      true,
+      'noindex was dropped',
+    );
+
+    updateAlbum(doc, 'family', { title: 'Family, 2019' });
+    assert.equal(
+      YAML.parse(doc.toString()).albums[0].noindex,
+      true,
+      'an edit to another field undid it',
+    );
+
+    updateAlbum(doc, 'family', { noindex: false });
+    assert.equal(YAML.parse(doc.toString()).albums[0].noindex, undefined);
+  });
+
+  it('keeps noindex on a photograph', () => {
+    const doc = createManifestDoc(2019);
+    addItem(doc, {
+      id: '2019-everyday-0001',
+      type: 'image',
+      publicId: 'd/2019/everyday/a',
+      width: 10,
+      height: 10,
+      noindex: true,
+    });
+    assert.equal(
+      YAML.parse(doc.toString()).items[0].noindex,
+      true,
+      'noindex was dropped',
+    );
+  });
+});

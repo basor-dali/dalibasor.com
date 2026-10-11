@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ALLOW_INDEXING, site } from './site';
+import { ALLOW_INDEXING, IMAGES_IN_SEARCH, site } from './site';
 
 /**
  * One helper for every page's metadata. Canonical URLs, OpenGraph and Twitter
@@ -76,10 +76,14 @@ export function pageMetadata(input: PageMetaInput): Metadata {
     // Always emit a value. Passing `undefined` here does not inherit the
     // layout's setting — it overrides it with nothing, which is how every page
     // ended up with no robots tag at all while robots.txt said Disallow.
-    robots:
-      input.noIndex || !ALLOW_INDEXING
+    // noimageindex rides on both: an image can be indexed from a page that
+    // itself is not. See IMAGES_IN_SEARCH in lib/site.ts.
+    robots: {
+      ...(input.noIndex || !ALLOW_INDEXING
         ? { index: false, follow: false, nocache: true }
-        : { index: true, follow: true },
+        : { index: true, follow: true }),
+      ...(IMAGES_IN_SEARCH ? {} : { noimageindex: true }),
+    },
     openGraph: {
       title: input.title,
       description,

@@ -70,7 +70,7 @@ export async function generateMetadata({
     image: shareImageUrl(item) ?? '/opengraph-image',
     // A frame with words of yours is worth finding on its own. One without is
     // a frame in an album, and the album is the page that should be found.
-    noIndex: !item.caption,
+    noIndex: !item.caption || item.noindex === true,
   });
 }
 

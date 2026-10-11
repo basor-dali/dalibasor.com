@@ -65,6 +65,15 @@ const resurfaceField = fields.checkbox({
   defaultValue: true,
 });
 
+/* Off search engines, on the site. Not privacy: the page is still public to
+   anyone with the link. For that, use draft (or hidden, for photographs). */
+const noindexField = fields.checkbox({
+  label: 'Keep out of search engines',
+  description:
+    'Tick to keep this page out of Google and the sitemap. It stays on the site and in its lists, and anyone with the link can still open it.',
+  defaultValue: false,
+});
+
 /* ==========================================================================
    MDX components
    ==========================================================================
@@ -234,6 +243,7 @@ export default config({
         draft: draftField,
         placeholder: placeholderField,
         resurface: resurfaceField,
+        noindex: noindexField,
         body,
       },
     }),
@@ -339,6 +349,7 @@ export default config({
         draft: draftField,
         placeholder: placeholderField,
         resurface: resurfaceField,
+        noindex: noindexField,
         body,
       },
     }),
@@ -380,6 +391,7 @@ export default config({
         draft: draftField,
         placeholder: placeholderField,
         resurface: resurfaceField,
+        noindex: noindexField,
         body,
       },
     }),

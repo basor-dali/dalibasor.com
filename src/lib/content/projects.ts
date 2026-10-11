@@ -153,6 +153,7 @@ const loadAll = once((): Project[] => {
       order: typeof data.order === 'number' ? data.order : 0,
       placeholder: Boolean(data.placeholder),
       resurface: data.resurface !== false,
+      noindex: data.noindex === true,
       updates,
       updateDates: updates.map((update) => update.date),
       body,

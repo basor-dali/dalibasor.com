@@ -89,6 +89,7 @@ export async function generateMetadata({
       : `${albumCountLabel(album.photoCount, album.videoCount)} from ${album.year}.`,
     path: album.href,
     image: shareImageUrl(album.coverItem) ?? '/opengraph-image',
+    noIndex: album.noindex === true,
   });
 }
 
