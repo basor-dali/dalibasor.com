@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { launchChecklist } from '@/lib/admin/checklist';
 import { adminAvailable } from '@/lib/admin/guard';
 
-/** The two admin tools. Development only. */
+/** The admin tools. Development only. */
 
 export const dynamic = 'force-dynamic';
 
@@ -14,8 +14,14 @@ export const metadata = {
 
 const TOOLS = [
   {
+    // Straight to an empty note: the most frequent thing, one click from here.
+    href: '/keystatic/collection/notes/create',
+    title: 'Write a note',
+    body: 'A sentence, a photograph, a link. Give it an address, write, save — then commit and push.',
+  },
+  {
     href: '/keystatic',
-    title: 'Writing, projects and Now',
+    title: 'Writing, notes, projects and Now',
     body: 'Edit the words. Saves straight into content/ as MDX — same files, nicer form.',
   },
   {
