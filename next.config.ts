@@ -13,8 +13,14 @@ const nextConfig: NextConfig = {
 
   // Media is delivered by a CDN with our own srcset, so Next's image optimizer
   // is deliberately bypassed. See src/lib/media/provider.ts.
+  //
+  // Bypassed, and switched off. Nothing uses next/image, yet allowing
+  // res.cloudinary.com left /_next/image fetching and resizing any image on
+  // any Cloudinary account on request — a free proxy on this site's quota, and
+  // the surface of CVE-2026-94483 (SSRF in image optimization). With nothing
+  // allowed and optimization off, there is nothing to fetch.
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: 'res.cloudinary.com' }],
+    unoptimized: true,
   },
 
   async headers() {
