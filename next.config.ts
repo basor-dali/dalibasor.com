@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { IMAGES_IN_SEARCH } from './src/lib/site';
 
 /**
  * The parts of a Content-Security-Policy that cannot break anything here.
@@ -62,6 +63,17 @@ const nextConfig: NextConfig = {
             : []),
         ],
       },
+      // Photographs served from this site itself (the local provider). The
+      // page-level noimageindex covers images found through a page; this
+      // covers a crawler that reaches the file directly.
+      ...(IMAGES_IN_SEARCH
+        ? []
+        : [
+            {
+              source: '/media/:path*',
+              headers: [{ key: 'X-Robots-Tag', value: 'noindex' }],
+            },
+          ]),
       {
         source: '/fonts/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],

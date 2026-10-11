@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { PageHeader } from '@/components/primitives';
 import { mediaProvider } from '@/lib/media';
 import { pageMetadata } from '@/lib/metadata';
-import { AI_TRAINING_CRAWLERS } from '@/lib/site';
+import { AI_TRAINING_CRAWLERS, IMAGES_IN_SEARCH } from '@/lib/site';
 import { formatDate } from '@/lib/utils';
 
 /**
@@ -48,8 +48,11 @@ export default function ColophonPage() {
     },
     {
       label: 'Photographs',
-      value:
-        'Location and camera serial numbers are removed before a photograph is uploaded. Places are written by hand, and kept broad. No faces are detected, recognised or tagged.',
+      value: `Location and camera serial numbers are removed before a photograph is uploaded. Places are written by hand, and kept broad. No faces are detected, recognised or tagged.${
+        IMAGES_IN_SEARCH
+          ? ''
+          : ' Search engines are asked to leave the photographs out of image search; they are found through their albums.'
+      }`,
     },
     {
       label: 'Words',

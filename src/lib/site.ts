@@ -103,6 +103,18 @@ export const AI_TRAINING_CRAWLERS = [
   'laion-huggingface-processor',
 ] as const;
 
+/**
+ * Whether search engines may show the photographs themselves in image search.
+ *
+ * Off: a family archive's photographs should be found through their album,
+ * in context, not one by one in Google Images next to strangers' pictures.
+ * The pages stay findable; every page asks search engines not to index the
+ * images on it (`noimageindex`), and photographs served from this site carry
+ * `X-Robots-Tag: noindex`. Photographs on the media CDN need the same header
+ * set there — docs/DEPLOY.md, step 4. Set to true to let them in.
+ */
+export const IMAGES_IN_SEARCH = false;
+
 export type NavItem = {
   label: string;
   href: string;
