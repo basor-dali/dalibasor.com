@@ -258,6 +258,58 @@ export type NowEntry = {
 export type NowSummary = Omit<NowEntry, 'body' | 'plain' | 'sourcePath'>;
 
 /* ==========================================================================
+   Notes
+   ==========================================================================
+   The small, frequent things: a sentence, a photograph, a link worth keeping.
+   An essay is something you sit down to write; a note is something you
+   would otherwise not have written down at all. */
+
+export type NoteFrontmatter = {
+  /** `2026-10-11`, or `2026-10-11 14:30` when the time matters. */
+  date: string;
+  /** Optional. Most notes have none. */
+  title?: string;
+  /** A media reference, as `coverImage` takes: an item id or a public id. */
+  photo?: string;
+  /** Overrides the photograph's own alt text for this note. */
+  photoAlt?: string;
+  /** A link the note is about. Shown as its domain. */
+  link?: string;
+  location?: string;
+  tags?: string[];
+  draft?: boolean;
+  resurface?: boolean;
+  noindex?: boolean;
+};
+
+export type Note = {
+  slug: string;
+  href: string;
+  title?: string;
+  date: DateString;
+  /** `14:30`, when the frontmatter gave one. Shown, never used to sort across days. */
+  time?: string;
+  year: number;
+  photo?: string;
+  photoAlt?: string;
+  /** Manifest entry for `photo`, when it is one of the archive's. */
+  photoItem?: MediaItem;
+  link?: string;
+  location?: string;
+  tags: string[];
+  draft: boolean;
+  resurface: boolean;
+  noindex: boolean;
+  /** What a list or a feed calls it when it has no title: its opening words. */
+  label: string;
+  body: string;
+  plain: string;
+  sourcePath: string;
+};
+
+export type NoteSummary = Omit<Note, 'plain' | 'sourcePath'>;
+
+/* ==========================================================================
    Media archive
    ========================================================================== */
 
@@ -441,7 +493,7 @@ export type ArchiveEntry =
 
 export type SearchDoc = {
   id: string;
-  kind: 'post' | 'project' | 'album' | 'year' | 'place' | 'now' | 'page';
+  kind: 'post' | 'note' | 'project' | 'album' | 'year' | 'place' | 'now' | 'page';
   title: string;
   href: string;
   /** Small line under the result: date, status, count. */

@@ -40,6 +40,7 @@ function daysApart(a: string, b: string): number {
 
 function kindOf(entry: OnThisDayEntry): string {
   if (entry.kind === 'essay') return 'Essay';
+  if (entry.kind === 'note') return 'Note';
   if (entry.kind === 'log') return 'Project log';
   return pluralize(entry.count ?? 1, 'photograph');
 }

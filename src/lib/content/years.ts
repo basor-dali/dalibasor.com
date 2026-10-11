@@ -2,6 +2,7 @@ import 'server-only';
 
 import type {
   MediaItem,
+  NoteSummary,
   NowSummary,
   PostSummary,
   ProjectSummary,
@@ -11,6 +12,7 @@ import { site } from '@/lib/site';
 import { parseDate, yearOf } from '@/lib/utils';
 import { once } from './fs';
 import { getAlbums, getYear, getYearSummaries } from './media';
+import { getNotes } from './notes';
 import { getNowEntries } from './now';
 import { getProjects } from './projects';
 import { getPosts } from './writing';
@@ -63,6 +65,8 @@ export type YearRecord = {
   posts: PostSummary[];
   projects: YearProjects;
   now: NowSummary[];
+  /** The short entries, oldest first like everything else on a year page. */
+  notes: NoteSummary[];
   photographs?: {
     href: string;
     photoCount: number;
@@ -89,6 +93,7 @@ const loadRecords = once((): Map<number, YearRecord> => {
   const posts = getPosts();
   const projects = getProjects();
   const now = getNowEntries();
+  const notes = getNotes();
   const summaries = new Map(getYearSummaries().map((summary) => [summary.year, summary]));
 
   const years = new Set<number>([
@@ -98,6 +103,7 @@ const loadRecords = once((): Map<number, YearRecord> => {
     // A year in which a project was only worked on is still a year of it.
     ...projects.flatMap((project) => project.updateDates.map((date) => yearOf(date))),
     ...now.map((entry) => entry.year),
+    ...notes.map((note) => note.year),
     ...[...summaries.values()].filter((s) => s.totalCount > 0).map((s) => s.year),
   ]);
 
@@ -141,6 +147,12 @@ const loadRecords = once((): Map<number, YearRecord> => {
       .filter((entry) => entry.year === year)
       .sort((a, b) => a.period.localeCompare(b.period));
 
+    const yearNotes = notes
+      .filter((note) => note.year === year)
+      .sort(
+        (a, b) => a.date.localeCompare(b.date) || (a.time ?? '').localeCompare(b.time ?? ''),
+      );
+
     const summary = summaries.get(year);
     const resolved = getYear(year);
     const photographs =
@@ -162,6 +174,7 @@ const loadRecords = once((): Map<number, YearRecord> => {
       posts: yearPosts,
       projects: { started, ended, ongoing, updates },
       now: yearNow,
+      notes: yearNotes,
       photographs,
       total:
         yearPosts.length +
@@ -169,11 +182,13 @@ const loadRecords = once((): Map<number, YearRecord> => {
         ended.length +
         updateCount +
         yearNow.length +
+        yearNotes.length +
         (photographs ? photographs.photoCount + photographs.videoCount : 0),
       written:
         [...yearPosts, ...started, ...ended, ...yearNow].filter((item) => !item.placeholder)
           .length +
         updateCount +
+        yearNotes.length +
         (photographs ? photographs.photoCount + photographs.videoCount : 0),
     });
   }

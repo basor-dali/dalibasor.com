@@ -45,16 +45,18 @@ type AlternateTypes = NonNullable<NonNullable<Metadata['alternates']>['types']>;
  * Fresh each call: Next takes ownership of what it is handed.
  *
  * Writing first, because a reader that only takes one feed takes the first.
- * The Now feed is second: the one page that changes every month.
+ * Notes next, the most frequent; then Now, the one page that changes monthly.
  */
 export function feedTypes(): AlternateTypes {
   return {
     'application/rss+xml': [
       { url: '/writing/rss.xml', title: `${site.name} — Writing` },
+      { url: '/notes/rss.xml', title: `${site.name} — Notes` },
       { url: '/now/rss.xml', title: `${site.name} — Now` },
     ],
     'application/feed+json': [
       { url: '/writing/feed.json', title: `${site.name} — Writing` },
+      { url: '/notes/feed.json', title: `${site.name} — Notes` },
       { url: '/now/feed.json', title: `${site.name} — Now` },
     ],
   };

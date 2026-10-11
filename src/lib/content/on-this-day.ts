@@ -1,4 +1,5 @@
 import { getAllAlbums, getAllMediaItems } from './media';
+import { getNotes } from './notes';
 import { getProjects } from './projects';
 import { getPosts } from './writing';
 
@@ -9,8 +10,8 @@ import { getPosts } from './writing';
  * the reader's browser picks out today — in the reader's own timezone, which
  * is the only sense of "today" that means anything.
  *
- * Only real days: an essay's date, the day a photograph was taken, a dated
- * entry in a project's log. Not Now entries, which name a month; not circa
+ * Only real days: an essay's or a note's date, the day a photograph was
+ * taken, a dated entry in a project's log. Not Now entries, which name a month; not circa
  * photographs, whose day nobody knows; not dates that only name a month or a
  * year. And the same rules as "From the archive": no drafts or placeholders,
  * nothing marked `resurface: false`, nothing from an album marked that way.
@@ -22,7 +23,7 @@ export type OnThisDayEntry = {
   /** `2019-06-14` */
   date: string;
   year: number;
-  kind: 'essay' | 'photographs' | 'log';
+  kind: 'essay' | 'note' | 'photographs' | 'log';
   title: string;
   href: string;
   /** Photographs taken that day, for kind `photographs`. */
@@ -45,6 +46,12 @@ export function getOnThisDayEntries(): OnThisDayEntry[] {
     if (post.placeholder || !post.resurface) continue;
     const day = dayOf(post.date);
     if (day) entries.push({ ...day, kind: 'essay', title: post.title, href: post.href });
+  }
+
+  for (const note of getNotes()) {
+    if (!note.resurface) continue;
+    const day = dayOf(note.date);
+    if (day) entries.push({ ...day, kind: 'note', title: note.label, href: note.href });
   }
 
   for (const project of getProjects()) {

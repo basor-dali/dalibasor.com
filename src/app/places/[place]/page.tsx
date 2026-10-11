@@ -9,7 +9,7 @@ import { ArticlePreview } from '@/components/writing/ArticlePreview';
 import { getPlace, getPlaces, placeCounts } from '@/lib/content';
 import { mediaAlt } from '@/lib/media';
 import { breadcrumbJsonLd, jsonLdScript, pageMetadata } from '@/lib/metadata';
-import { formatPeriod, pluralize } from '@/lib/utils';
+import { formatDate, formatPeriod, pluralize } from '@/lib/utils';
 
 /**
  * /places/[place] — everything filed under one place.
@@ -104,6 +104,33 @@ export default async function PlacePage({ params }: { params: Promise<Params> })
               </li>
             ))}
           </ol>
+        </Rubric>
+      ) : null}
+
+      {place.notes.length > 0 ? (
+        <Rubric
+          id="place-notes"
+          title="Notes"
+          count={`${pluralize(place.notes.length, 'note')} written here`}
+        >
+          <ul className="border-line m-0 list-none border-b p-0">
+            {place.notes.map((note) => (
+              <li key={note.slug} className="border-line border-t">
+                <Link
+                  href={note.href}
+                  className="group grid grid-cols-1 items-baseline gap-x-6 gap-y-1 py-5 md:grid-cols-[10rem_minmax(0,1fr)]"
+                >
+                  <span className="u-label u-nums text-muted">
+                    {formatDate(note.date)}
+                    <span className="sr-only">: </span>
+                  </span>
+                  <span className="u-serif text-ivory text-lg transition-colors duration-300 group-hover:text-white">
+                    {note.label}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Rubric>
       ) : null}
 

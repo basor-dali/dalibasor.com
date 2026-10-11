@@ -6,7 +6,8 @@ push, and the files are the archive.
 
 ```
 content/
-  writing/<year>/<slug>.mdx    essays and notes
+  notes/<year>/<name>.mdx      notes — a sentence, a photograph, a link
+  writing/<year>/<slug>.mdx    essays
   projects/<slug>.mdx          projects
   now/<YYYY-MM>.mdx            Now snapshots — one per update, kept forever
   pages/about.mdx              the About page body
@@ -23,6 +24,47 @@ a drag-and-drop importer for photographs. Easiest for everyday use. See [docs/CM
 
 **The files themselves** — everything below. Both paths edit the same files and can be used
 interchangeably; the CMS is a front-end onto `content/`, not a separate store.
+
+---
+
+## Write a note
+
+The smallest thing you can put on the site, and the one to reach for most. A sentence, a
+photograph, a link — anything that is not an essay but should not be lost.
+
+```bash
+npm run note -- "First snow. The car is a white loaf."
+npm run note -- "Back in Belgrade." --place "Belgrade, Serbia"
+npm run note -- --photo 2026-everyday-0007 "The view from the bridge."
+```
+
+That writes `content/notes/<year>/<date>-<first-words>.mdx`, dated now, with your words as
+the note. Commit and push, and it is on `/notes`, on the homepage, on its year, under its
+place, and in the notes feed. Nothing else to set up: no media bucket, no editor. In
+Keystatic it is **Notes → Create**.
+
+| Field                           | What it does                                                               |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `date`                          | `2026-10-11`, or `2026-10-11 14:30` — the command adds the time for you    |
+| `title`                         | Optional. Most notes have none; the first words stand in for it            |
+| `photo`                         | The id of a photograph already in `content/media/` — shown under the note  |
+| `photoAlt`                      | Optional. Otherwise the photograph's own alt text is used                  |
+| `link`                          | A page the note is about, shown as its domain                              |
+| `location`                      | Files the note under that place (write each place the same way every time) |
+| `tags`                          | Free text, for search                                                      |
+| `draft`, `resurface`, `noindex` | As for posts                                                               |
+
+The filename is the note's permanent address, `/notes/<filename>`. A note can hold anything a
+post can — links, `<Figure>` — but it is meant to be short. If it keeps growing, it was an
+essay.
+
+### Linking things together
+
+Link to anything else on the site in the ordinary way — `[the lawnmower essay](/writing/lawnmowers-are-hard)` —
+and the page you link to gains a **Mentioned in** list at its foot, pointing back. Essays,
+projects, notes, Now entries, albums and photographs all have one, and placing a photograph
+with `<Figure>` counts as mentioning it. There is nothing to declare: the links you write are
+the connections.
 
 ---
 

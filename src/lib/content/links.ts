@@ -4,6 +4,7 @@ import { normalizePath, outboundLinks } from '@/lib/links';
 import { site } from '@/lib/site';
 import { once } from './fs';
 import { findMediaByRef } from './media';
+import { getAllNotesWithBodies } from './notes';
 import { getAllNowWithBodies } from './now';
 import { getAllProjectsWithBodies } from './projects';
 import { getAllPostsWithBodies } from './writing';
@@ -13,9 +14,9 @@ import { getAllPostsWithBodies } from './writing';
  *
  * Time and place already connect the archive: everything has a year, and
  * much of it a place. What they cannot show is that one piece of writing is
- * about another — that an essay from 2031 answers one from 2026. A link
+ * about another — that a note from 2031 answers an essay from 2026. A link
  * written in either is that connection, so every page that is linked to says
- * where from: an essay, a project or a month.
+ * where from: an essay, a project, a note, a month, an album or a photograph.
  *
  * Read from what was written, nothing declared: a markdown link, an href, a
  * link to this site written out in full, or a photograph placed with
@@ -51,6 +52,13 @@ const mentions = once((): Map<string, Mention[]> => {
         date: project.endDate ?? project.startDate,
         body: project.body,
       })),
+    ...getAllNotesWithBodies().map((note) => ({
+      href: note.href,
+      title: note.label,
+      kind: 'note' as const,
+      date: note.date,
+      body: note.body,
+    })),
     ...getAllNowWithBodies()
       .filter((entry) => !entry.placeholder)
       .map((entry) => ({
